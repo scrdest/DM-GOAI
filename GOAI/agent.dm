@@ -11,7 +11,7 @@
 	var/list/targetlist = typesof(/mob/goai in world)
 	for(var/i=1,i<=targetlist.len,i++)
 		var/mob/goai/target = targetlist[i]
-		src << "[target.life]"
+		src << "[target.name] - [target.life]"
 
 /mob/goai/agent
 	var/datum/need
@@ -71,7 +71,7 @@
 	var/howtired = src.tiredness
 	return howtired
 
-/mob/goai/agent/proc/GainAction(var/target as obj)
+/mob/goai/agent/proc/GainAction(var/obj/actionholder/target)
 	if(istype(target, /obj/actionholder))
 		var/obj/actionholder/trg = New(target)
 		trg.owner = src
@@ -120,12 +120,25 @@
 
 //BEGIN GOAP CORE: Build a tree of actions, take valids and A* through lowest cost path to action accomplishing the goal
 
-/mob/goai/proc/PlanActions(var/Goal as num)
+/datum/PlanHolder
+	var/list/plan = list()
 
-	var/list/validpaths = new()
-	var/list/mobactions = src.actionslist //a copy of the mob's list - so we can remove actions from the tally
+/datum/PlanHolder/New()
+	..()
+	var/obj/actionholder/A
+	for(A in args)
+		plan.Add(A)
+
+/proc/PlanActions(var/Goal as num, var/mob/goai/actor, var/obj/actionholder/callingaction)
+
+	if(!istype(actor))
+		return
+
+	var/list/mobactions = actor.actionslist //a copy of the mob's list - so we can remove actions from the tally
 	var/obj/actionholder/allactions
-	var/branchid = 0 //list pointer, so we can access valid actions later
+	var/list/plans = list() //holds data containing strings of actions for evaluation
+	var/list/goodactions = list()
+
 
 	//first, let's see if any of our actions can do what we want
 	if(!(mobactions.len))
@@ -133,8 +146,7 @@
 
 	for(allactions in mobactions) //cycle through all actions the mob has
 
-		branchid++
-		var/list/pathactions = new() //holds a valid 'path' through actions
+		var/plan
 		var/obj/actionholder/A = allactions
 		var/Effect = A.GetEffects() //look at its effects //TODO: Make this a list
 
@@ -142,20 +154,31 @@
 
 			//now, let's see if we can actually do it
 			var/Requirement = A.GetPreconditions() //TODO: Make this a list
-			if((Requirement in src.mobstatuslist)||(!(Requirement)))
-				pathactions.Add(A) //Yay, we can!
-				validpaths.Add(branchid) //Finalize this branch as valid for further consideration!
+
+			if(Requirement == Goal) //prevents infinite loops
+				continue
+
+			if((Requirement in actor.mobstatuslist)||(!(Requirement)))
+				goodactions.Add(A) //Yay, we can! //Finalize this branch as valid for further consideration!
 
 			else //we can't do it just now, but we might be able to do stuff to make it possible...
-				var/CODE_THIS_YA_SHIT = 1
-				if(Requirement == Goal) //prevents infinite loops
-					return
-				PlanActions(Requirement) //Build subbranches
+				var/subbranchplan = (PlanActions(Requirement, actor, A)) //Build subbranches same way
+				if(!subbranchplan) //No valid solution found, kill this branch
+					continue
+				else //Found a solution a level below
+					for(var/datum/PlanHolder/PH in subbranchplan)
+						for(var/obj/actionholder/AH in PH.plan)
+							goodactions.Add(AH) //nope, will mix solutions
 
+			if(istype(callingaction))
+				goodactions.Add(callingaction) //only used by subbranches - automatically add the parent to each valid child
+
+			plan = new /datum/PlanHolder(arglist(goodactions))
+			plans.Add(plan)
 
 		else
 			continue //doing that won't accomplish the goal, keep going
-
+	return plans
 
 
 	//now, we have all our workable solutions tallied up
