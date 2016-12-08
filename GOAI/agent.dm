@@ -37,14 +37,14 @@
 		TirednessDecay()
 		HungerDecay()
 		Idle()
-		PlanActions()
+		//HandleAI()
 		sleep(10)
 
 /mob/goai/agent/Move()
 	..()
 	src.tiredness--
 
-/mob/goai/agent/proc/Idle()
+/mob/goai/agent/proc/Idle() //make this an action later!
 	if(prob(10))
 		var/moving_to = 0 // otherwise it always picks 4, fuck if I know.   Did I mention fuck BYOND
 		moving_to = pick(SOUTH, NORTH, WEST, EAST)
@@ -118,69 +118,65 @@
 /obj/actionholder/proc/IsDone()
 	return 1
 
-//BEGIN GOAP CORE: Build a tree of actions, take valids and A* through lowest cost path to action accomplishing the goal
+//BEGIN GOAP CORE: Build a tree of actions depth-first, take valids and A* through lowest cost path to action accomplishing the goal
 
 /datum/PlanHolder
-	var/list/plan = list()
+	var/list/queque = list()
 
 /datum/PlanHolder/New()
 	..()
 	var/obj/actionholder/A
 	for(A in args)
-		plan.Add(A)
+		queque.Add(A)
 
-/proc/PlanActions(var/Goal as num, var/mob/goai/actor, var/obj/actionholder/callingaction)
+/proc/Mastermind(var/goal, var/mob/goai/actor)
+	//Get plans
+	var/options = GetPlans(goal, actor)
+	//Evaluate plans
+	//Pick best plan
 
-	if(!istype(actor))
+/proc/GetPlans(var/Goal, var/mob/goai/actor, var/list/parent = null)
+//returns a list of datums holding queques of actions meeting the Goal the Actor can perform
+	if(!(actor))
 		return
 
-	var/list/mobactions = actor.actionslist //a copy of the mob's list - so we can remove actions from the tally
-	var/obj/actionholder/allactions
-	var/list/plans = list() //holds data containing strings of actions for evaluation
-	var/list/goodactions = list()
+	//if(!(mobactions || mobactions.len))
+	var/list/mobactions = actor.actionslist //a local copy of the mob's list - so we can remove actions from the tally
+	var/obj/actionholder/action
+	var/list/masterlist = list() //holds data containing queques of actions for evaluation
 
 
 	//first, let's see if any of our actions can do what we want
 	if(!(mobactions.len))
 		return
 
-	for(allactions in mobactions) //cycle through all actions the mob has
+	for(action in mobactions) //cycle through all actions the mob has
 
-		var/plan
-		var/obj/actionholder/A = allactions
-		var/Effect = A.GetEffects() //look at its effects //TODO: Make this a list
+		var/list/currentplan = list() //holds an action queque
+		if(parent)
+			currentplan = parent //higher-level queque is inherited and branched out
+		var/Effect = action.GetEffects() //TODO: Make this a list, limited to single effect per action ATM
 
 		if(Effect == Goal) //prune branches for aimless actions
 
 			//now, let's see if we can actually do it
-			var/Requirement = A.GetPreconditions() //TODO: Make this a list
+			var/Requirement = action.GetPreconditions() //TODO: Make this a list, see above
 
 			if(Requirement == Goal) //prevents infinite loops
 				continue
 
-			if((Requirement in actor.mobstatuslist)||(!(Requirement)))
-				goodactions.Add(A) //Yay, we can! //Finalize this branch as valid for further consideration!
+			if((Requirement in actor.mobstatuslist)||(!(Requirement))) //reqs met, good to go
+				currentplan += action
+				var/packagedplan = new /datum/PlanHolder(arglist(currentplan))
+				masterlist += packagedplan
 
-			else //we can't do it just now, but we might be able to do stuff to make it possible...
-				var/subbranchplan = (PlanActions(Requirement, actor, A)) //Build subbranches same way
-				if(!subbranchplan) //No valid solution found, kill this branch
-					continue
-				else //Found a solution a level below
-					for(var/datum/PlanHolder/PH in subbranchplan)
-						for(var/obj/actionholder/AH in PH.plan)
-							goodactions.Add(AH) //nope, will mix solutions
-
-			if(istype(callingaction))
-				goodactions.Add(callingaction) //only used by subbranches - automatically add the parent to each valid child
-
-			plan = new /datum/PlanHolder(arglist(goodactions))
-			plans.Add(plan)
-
-		else
-			continue //doing that won't accomplish the goal, keep going
-	return plans
-
+			else //we can't do it just now, but we might if we do stuff first...
+				var/subbranch = GetPlans(Goal, actor, currentplan) //we need to go deeper!
+				for(var/datum/PlanHolder/P in subbranch)
+					var/subbranchplan = currentplan + P.queque //if there's more than 1 path available, return all
+					var/packagedplan = new /datum/PlanHolder(arglist(subbranchplan))
+					masterlist += packagedplan
+	return masterlist
 
 	//now, we have all our workable solutions tallied up
 	//time to check which one suits our purposes best
-
