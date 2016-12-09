@@ -12,6 +12,7 @@ Each action has a set of requirements (preconditions) and effects. The AI is try
 As mentioned before, the plans are then evaluated with A* to pick a solution, taking in account the actor's motive costs and gains from the action and the best action is executed.
 
 I recommend Orkin's 'Three States and a Plan: The A.I. of F.E.A.R.' if you want to read a more in-depth explanation by an actual CS PhD rather than some rando on the internet.
+
 ---
 
 So wait, are those SNPCs?
