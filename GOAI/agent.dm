@@ -6,6 +6,8 @@
 	var/list/inventory
 	var/list/actionslist
 	var/list/mobstatuslist
+	var/datum/PlanHolder/active_plan
+	var/obj/actionholder/active_action
 
 /mob/verb/InspectGoaiLife()
 	var/list/targetlist = typesof(/mob/goai in world)
@@ -36,8 +38,16 @@
 			src.mobstatuslist.Add("Hungry")
 		TirednessDecay()
 		HungerDecay()
-		Idle()
-		//HandleAI()
+		if(active_action) //ready to go
+			DoAction(active_action)
+		else if(active_plan)
+			if(active_plan.queque.len) //step done, move on to the next
+				active_action = pop(active_plan.queque)
+		else if(needs.len) //no plan & need to make one
+			var/need = pick(needs)
+			Mastermind(need, src)
+		else //satisfied, can be lazy
+			Idle()
 		sleep(10)
 
 /mob/goai/agent/Move()
@@ -133,7 +143,10 @@
 	//Get plans
 	var/options = GetPlans(goal, actor)
 	//Evaluate plans
-	//Pick best plan
+	var/datum/PlanHolder/plan = EvalPlans(options)
+	//Execute if found
+	if(plan)
+		actor.active_plan = plan
 
 /proc/GetPlans(var/Goal, var/mob/goai/actor, var/list/parent = null)
 //returns a list of datums holding queques of actions meeting the Goal the Actor can perform
@@ -155,21 +168,25 @@
 		var/list/currentplan = list() //holds an action queque
 		if(parent)
 			currentplan = parent //higher-level queque is inherited and branched out
-		var/Effect = action.GetEffects() //TODO: Make this a list, limited to single effect per action ATM
+		var/list/Effects = action.GetEffects()
 
-		if(Effect == Goal) //prune branches for aimless actions
+		if(Goal in Effects) //prune branches for aimless actions
 
 			//now, let's see if we can actually do it
-			var/Requirement = action.GetPreconditions() //TODO: Make this a list, see above
+			var/list/Requirements = action.GetPreconditions() //TODO: Make this a list, see above
 
-			if(Requirement == Goal) //prevents infinite loops
+			if(Goal in Requirements) //prevents infinite loops
 				continue
 
-			if((Requirement in actor.mobstatuslist)||(!(Requirement))) //reqs met, good to go
+			var/allclear = 1
+			if(Requirements.len)
+				for(var/Requirement in Requirements)
+					if(!(Requirement in actor.mobstatuslist)) //reqs met, good to go
+						allclear = 0
+			if(allclear)
 				currentplan += action
 				var/packagedplan = new /datum/PlanHolder(arglist(currentplan))
 				masterlist += packagedplan
-
 			else //we can't do it just now, but we might if we do stuff first...
 				var/subbranch = GetPlans(Goal, actor, currentplan) //we need to go deeper!
 				for(var/datum/PlanHolder/P in subbranch)
@@ -180,3 +197,18 @@
 
 	//now, we have all our workable solutions tallied up
 	//time to check which one suits our purposes best
+
+/proc/EvalPlans(var/list/plans)
+	var/minimal = 0 //index of least-cost plan
+	var/best_cost = 1.#INF //least cost found
+	var/current_index = 0
+	for(var/datum/PlanHolder/PH in plans)
+		current_index++
+		var/cost = 0
+		for(var/obj/actionholder/AH in PH)
+			cost += AH.cost
+		if(cost < best_cost)
+			minimal = current_index
+	if(minimal)
+		return plans[minimal]
+	return

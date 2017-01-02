@@ -18,6 +18,7 @@
 #include "agent.dm"
 #include "food.dm"
 #include "GOAI.dm"
+#include "helpers.dm"
 #include "turfs.dm"
 #include "basicmap.dmm"
 // END_INCLUDE
