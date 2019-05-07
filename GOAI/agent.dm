@@ -187,14 +187,6 @@
 			queue[action] = cost
 	return queue
 
-/proc/all_in(var/list/haystack, var/list/needles)
-	if(!(needles && haystack))
-		return 0
-	for(var/item in needles)
-		if(!(item in haystack))
-			return 0
-	return 1
-
 /proc/GetPlans(var/list/goals, var/list/actions, var/list/startstate, var/list/explored, var/recdepth=1)
 	//returns a list of datums holding queues of actions meeting the Goals the Actor can perform
 	world.log << "Goals: [goals ? goals.Join(" & ") : "None"]"
@@ -228,7 +220,7 @@
 
 				if (all_in(immediateActEffects, goals))
 					var/datum/PlanHolder/newplan = new(subqueue[immediateAct], list(immediateAct))
-					world.log << "Appending plan [newplan.queue.Join("; ")] @ [newplan.cost]"
+					world.log << "Appending plan [newplan.queue.Join(" -> ")] @ [newplan.cost]"
 					plan_queues[newplan] = newplan.cost
 					evaluated += immediateAct
 
@@ -258,8 +250,8 @@
 						continue
 					unmet += req
 
-				if(!isnull(unmet) && unmet.len <= 1)
-					world.log << "Unmet: [unmet.Join("; ")]"
+				if(!isnull(unmet) && unmet.len)
+					world.log << "Unmet: [unmet.Join(";")]"
 					var/list/subplans = GetPlans(unmet, actionspace, state, evaluated, recdepth+1) || list()
 
 					for(var/datum/PlanHolder/p in subplans)
@@ -267,9 +259,8 @@
 						var/list/intermeds = p.queue
 						var/datum/PlanHolder/fullplan = new(subplans[p], intermeds + list(intermedAct))
 						if(fullplan && !isnull(subcost))
-							world.log << "Appending plan [fullplan.queue.Join("; ")] @ [subcost]"
+							if(recdepth <= 1)
+								world.log << "Appending plan [fullplan.queue.Join(" -> ")] @ [subcost]"
 							plan_queues[fullplan] = subcost
-
-
 	return plan_queues
 

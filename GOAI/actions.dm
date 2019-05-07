@@ -3,6 +3,7 @@
 /datum/actionholder/eat
 	name = "Eat"
 	cost = 2
+	preconds = list(HASFOOD)
 	var/satietypotential = 0
 
 /datum/actionholder/eat/CheckPreconditions()
@@ -15,22 +16,18 @@
 	else
 		return -1 //error return
 
-/datum/actionholder/eat/GetPreconditions()
-	var/O = HASFOOD
-	return O
-
-/datum/actionholder/eat/GetEffects()
-	//if(istype(Food, /obj/food))
-		//var/obj/food/foodstuff = Food
 
 /datum/actionholder/eat/Action(Food as obj)
-	if(istype(src,/datum/actionholder))
-		var/datum/actionholder/caller = src
-		if(istype(Food, /obj/food))
-			var/obj/food/foodstuff = Food
-			caller.owner.hunger += foodstuff.satiety
-			del(foodstuff)
-		else
-			src.owner << "That's not food!"
+	var/datum/actionholder/caller = src
+	if(!caller)
+		return -1
+
+	if(istype(Food, /obj/food))
+		var/obj/food/foodstuff = Food
+		src.owner.hunger += foodstuff.satiety
+		del(foodstuff)
+		return
+
 	else
-		return -1 //error return
+		src.owner << "That's not food!"
+	return -1 //error return
