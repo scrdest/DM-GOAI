@@ -12,3 +12,12 @@
 		if(!(item in haystack))
 			return 0
 	return 1
+
+/proc/any_in(var/list/haystack, var/list/needles)
+	if(haystack)
+		if(!needles)
+			return 0
+		for(var/n in needles)
+			if(n in haystack)
+				return 1
+	return null

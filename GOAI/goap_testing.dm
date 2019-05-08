@@ -8,20 +8,6 @@
 	src.effects = neweffects ? (src.effects + neweffects) : src.effects
 	src.preconds = newpreconds ? (src.preconds + newpreconds) : src.preconds
 
-/mob/verb/testGetAction()
-	var/datum/actionholder/testAction/Action1 = new("ActionWithCost1", 1, list(1))
-	var/datum/actionholder/testAction/Action2 = new("Action2MeeterOnly", 999, list(3, 2))
-	var/datum/actionholder/testAction/Action3 = new("Action2EffectOnly", 999, list(1,3, 2), list(2))
-	world.log << "Testing..."
-	var/list/queue = EvaluateStepTo(1, list(Action1, Action2, Action3))
-	if(queue)
-		for(var/key in queue)
-			var/val = queue[key]
-			world.log << "{[key] : [val]}"
-	else
-		world.log << "No actions found!"
-
-
 /mob/verb/testGetPlans()
 	var/datum/actionholder/testAction/Action1 = new("ActionWithCost1", 1, list(1, 2))
 	var/datum/actionholder/testAction/Action2 = new("Action3Meeter",   1, list(2), list(5))
