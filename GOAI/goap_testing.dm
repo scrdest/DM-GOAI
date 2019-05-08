@@ -19,7 +19,7 @@
 	var/datum/actionholder/testAction/Action8 = new("Action8",         1, list(1), list(4))
 	var/datum/actionholder/testAction/Action9 = new("Action9",         1, list(5))
 	world.log << "Testing..."
-	var/list/queue = GetPlans(list(1), list(Action1, Action2, Action3, Action4, Action5, Action6, Action7, Action8, Action9))
+	var/list/queue = GetPlans(list(1,4,5), list(Action1, Action2, Action3, Action4, Action5, Action6, Action7, Action8, Action9))
 	if(queue)
 		var/i = 1
 		for(var/datum/PlanHolder/key in queue)

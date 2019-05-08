@@ -21,3 +21,12 @@
 			if(n in haystack)
 				return 1
 	return null
+
+/proc/left_disjoint(var/list/haystack, /var/list/needles)
+	if(!haystack)
+		return needles
+	var/list/disjoint = list()
+	for(var/i in needles)
+		if(!(i in haystack))
+			disjoint += i
+	return disjoint

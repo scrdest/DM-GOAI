@@ -176,55 +176,59 @@
 	var/list/queue = list()
 	var/list/state = startstate.Copy()
 	var/list/evaluated = explored ? explored.Copy() : list()
-	//actionspace.Remove(evaluated)
+	actionspace.Remove(evaluated)
 
 	var/sentinel = recdepth // terminates the loop cleanly
 	if(sentinel < RECURSION_DEPTH_SENTINEL && !(all_in(state, goals)))
 		sleep(-1)
 		for(var/datum/actionholder/action in actionspace)
+			var/list/unmet = list()
 			var/list/ActEffects = action.GetEffects()
 
 			if(!(ActEffects && ActEffects.len))
 				continue
 
-			if (all_in(ActEffects, goals))
+			if (any_in(ActEffects, goals))
 				var/list/Preconds = action.GetPreconditions() || list()
 				world.log << "[action.name] preconds: [Preconds ? Preconds.Join(", ") : "NONE!"]..."
 
-				if(any_in(Preconds, goals))
+				if(all_in(Preconds, goals))
 					// cycle in the graph
 					world.log << "Cycle!"
 					continue
 
-				var/cost = action.cost // refactorme!
+				unmet.Add(left_disjoint(ActEffects, goals))
+				world.log << "[action.name] meets goals: [(ActEffects & goals).Join(";")]."
 
-				if(!(Preconds && Preconds.len) || (Preconds in state))
+				var/Cost = action.cost // refactorme!
+
+				if(!(unmet && unmet.len) && (!(Preconds && Preconds.len) || (Preconds in state)))
 					// Immediately available steps meeting the goal
-					var/datum/PlanHolder/newplan = new(cost, list(action))
-					world.log << "Appending plan [newplan.queue.Join(" -> ")] @ [cost]"
+					var/datum/PlanHolder/newplan = new(Cost, list(action))
+					world.log << "Appending plan [newplan.queue.Join(" -> ")] @ [Cost]"
 					plan_queues[newplan] = newplan.cost
-					continue
+					evaluated.Add(action)
 
 				else
 					// Actions that require other steps to be taken first
-					var/list/unmet = list()
-
 					for(var/req in Preconds)
 						if(!(req in state))
-							unmet += req
+							unmet.Add(req)
 
 					if(!isnull(unmet) && unmet.len)
 						world.log << "Unmet: [unmet.Join(";")]"
 						var/list/subplans = GetPlans(unmet, actionspace, state, evaluated, recdepth+1) || list()
 
 						for(var/datum/PlanHolder/p in subplans)
-							var/subcost = subplans[p] + action.cost
+							var/subcost = subplans[p] + Cost
 							var/list/intermeds = p.queue
 							var/datum/PlanHolder/fullplan = new(subplans[p], intermeds + list(action))
 							if(fullplan && !isnull(subcost))
 								if(recdepth <= 1)
 									world.log << "Appending plan [fullplan.queue.Join(" -> ")] @ [subcost]"
 								plan_queues[fullplan] = subcost
-								continue
+								evaluated.Add(action)
+	if((!plan_queues || !plan_queues.len) && recdepth <= 1)
+		world.log << "Got no valid plans."
 	return plan_queues
 
