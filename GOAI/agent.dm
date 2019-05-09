@@ -197,37 +197,36 @@
 					world.log << "Cycle!"
 					continue
 
-				unmet.Add(left_disjoint(ActEffects, goals))
+				unmet.Add(right_disjoint(unmet, right_disjoint(ActEffects, goals)))
+				if(unmet && unmet.len)
+					world.log << "[action.name] unmet 1: [unmet.Join(";")]."
+				unmet.Add(right_disjoint(unmet, right_disjoint(state, Preconds)))
+				if(unmet && unmet.len)
+					world.log << "[action.name] unmet 2: [unmet.Join(";")]."
 				world.log << "[action.name] meets goals: [(ActEffects & goals).Join(";")]."
 
 				var/Cost = action.cost // refactorme!
 
-				if(!(unmet && unmet.len) && (!(Preconds && Preconds.len) || (Preconds in state)))
+				if(!(unmet && unmet.len))
 					// Immediately available steps meeting the goal
 					var/datum/PlanHolder/newplan = new(Cost, list(action))
-					world.log << "Appending plan [newplan.queue.Join(" -> ")] @ [Cost]"
+					world.log << "Appending immediate plan [newplan.queue.Join(" -> ")] @ [Cost]"
 					plan_queues[newplan] = newplan.cost
-					evaluated.Add(action)
+					//evaluated.Add(action)
 
 				else
 					// Actions that require other steps to be taken first
-					for(var/req in Preconds)
-						if(!(req in state))
-							unmet.Add(req)
+					var/list/subplans = GetPlans(unmet, actionspace, state, evaluated+list(action), recdepth+1) || list()
 
-					if(!isnull(unmet) && unmet.len)
-						world.log << "Unmet: [unmet.Join(";")]"
-						var/list/subplans = GetPlans(unmet, actionspace, state, evaluated, recdepth+1) || list()
-
-						for(var/datum/PlanHolder/p in subplans)
-							var/subcost = subplans[p] + Cost
-							var/list/intermeds = p.queue
-							var/datum/PlanHolder/fullplan = new(subplans[p], intermeds + list(action))
-							if(fullplan && !isnull(subcost))
-								if(recdepth <= 1)
-									world.log << "Appending plan [fullplan.queue.Join(" -> ")] @ [subcost]"
-								plan_queues[fullplan] = subcost
-								evaluated.Add(action)
+					for(var/datum/PlanHolder/p in subplans)
+						var/subcost = subplans[p] + Cost
+						var/list/intermeds = p.queue
+						var/datum/PlanHolder/fullplan = new(subplans[p], intermeds + list(action))
+						if(fullplan && !isnull(subcost))
+							if(recdepth <= 1)
+								world.log << "Appending deferred plan [fullplan.queue.Join(" -> ")] @ [subcost]"
+							plan_queues[fullplan] = subcost
+							evaluated.Add(action)
 	if((!plan_queues || !plan_queues.len) && recdepth <= 1)
 		world.log << "Got no valid plans."
 	return plan_queues

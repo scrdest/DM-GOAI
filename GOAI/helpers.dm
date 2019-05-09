@@ -22,10 +22,13 @@
 				return 1
 	return null
 
-/proc/left_disjoint(var/list/haystack, /var/list/needles)
+/proc/right_disjoint(var/list/haystack, var/list/needles)
 	if(!haystack)
-		return needles
+		return needles ? needles.Copy() : list()
+
 	var/list/disjoint = list()
+	world.log << "[needles.Join(";")]"
+
 	for(var/i in needles)
 		if(!(i in haystack))
 			disjoint += i

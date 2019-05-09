@@ -8,6 +8,13 @@
 	src.effects = neweffects ? (src.effects + neweffects) : src.effects
 	src.preconds = newpreconds ? (src.preconds + newpreconds) : src.preconds
 
+/mob/verb/testRDisjoint()
+	var/list/left = list(1,2,3,4)
+	var/list/right = list(2,3,5)
+	var/list/dis = right_disjoint(left, right)
+	dis = dis ? dis : list("MISSING!")
+	world.log << "RDisjoint: [dis.Join(",")]"
+
 /mob/verb/testGetPlans()
 	var/datum/actionholder/testAction/Action1 = new("ActionWithCost1", 1, list(1, 2))
 	var/datum/actionholder/testAction/Action2 = new("Action3Meeter",   1, list(2), list(5))
@@ -19,7 +26,7 @@
 	var/datum/actionholder/testAction/Action8 = new("Action8",         1, list(1), list(4))
 	var/datum/actionholder/testAction/Action9 = new("Action9",         1, list(5))
 	world.log << "Testing..."
-	var/list/queue = GetPlans(list(1,4,5), list(Action1, Action2, Action3, Action4, Action5, Action6, Action7, Action8, Action9))
+	var/list/queue = GetPlans(list(1,2,5), list(Action1, Action2, Action3, Action4, Action5, Action6, Action7, Action8, Action9))
 	if(queue)
 		var/i = 1
 		for(var/datum/PlanHolder/key in queue)
