@@ -27,9 +27,49 @@
 		return needles ? needles.Copy() : list()
 
 	var/list/disjoint = list()
-	world.log << "[needles.Join(";")]"
 
 	for(var/i in needles)
 		if(!(i in haystack))
 			disjoint += i
 	return disjoint
+
+/proc/right_disjoint_assoc(var/list/assoc_haystack, var/list/assoc_needles)
+	if(!assoc_haystack)
+		return assoc_needles ? assoc_needles.Copy() : list()
+
+	var/list/disjoint = list()
+
+	for(var/i in assoc_needles)
+		if(!(i in assoc_haystack))
+			disjoint[i] = assoc_needles[i]
+	return disjoint
+
+/proc/upsert(var/list/oldassoc, var/list/newassoc)
+	if(!newassoc)
+		return oldassoc
+	else if(!oldassoc)
+		return newassoc
+
+	var/list/merged = list()
+
+	for(var/Key in oldassoc)
+		// upsert to current oldassoc
+		var/oldVal = oldassoc[Key]
+		var/newVal = newassoc[Key]
+
+		if(oldVal && newVal)
+			// merge effects
+			merged[Key] = oldVal + newVal
+			world.log << "[Key]: updating from [oldVal] to [merged[Key]]."
+
+		else if(newVal)
+			// insert key
+			merged[Key] = newVal
+		// if only oldVal, we got it covered already
+
+	for(var/effkey in newassoc)
+		if(effkey in oldassoc)
+			continue //already handled by the upsert
+		merged[effkey] = newassoc[effkey]
+
+	return merged
