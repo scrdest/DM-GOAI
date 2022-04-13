@@ -9,23 +9,28 @@
 	var/datum/PlanHolder/active_plan
 	var/datum/actionholder/active_action
 
+
 /mob/verb/InspectGoaiLife()
 	var/list/targetlist = typesof(/mob/goai in world)
 	for(var/i=1,i<=targetlist.len,i++)
 		var/mob/goai/target = targetlist[i]
 		src << "[target.name] - [target.life]"
 
+
 /mob/goai/agent
 	var/datum/need
 	var/tiredness = 100
 	var/hunger = 100
 
+
 /mob/goai/New()
 	..()
 	Life()
 
+
 /mob/goai/proc/Life()
 	return 1
+
 
 /mob/goai/agent/Life()
 	var/list/status = src.mobstatuslist
@@ -50,17 +55,19 @@
 			if(active_plan.queue.len) //step done, move on to the next
 				active_action = pop(active_plan.queue)
 
-		else if(needs && needs.len) //no plan & need to make one
-			var/need = pick(needs)
+		/*else if(needs && needs.len) //no plan & need to make one
+			var/need = pick(needs)*/
 
 		else //satisfied, can be lazy
 			Idle()
 
 		sleep(10)
 
+
 /mob/goai/agent/Move()
 	..()
 	src.tiredness--
+
 
 /mob/goai/agent/proc/Idle() //make this an action later!
 	if(prob(10))
@@ -69,11 +76,13 @@
 		dir = moving_to			//How about we turn them the direction they are moving, yay.
 		Move(get_step(src,moving_to))
 
+
 /mob/goai/agent/proc/TirednessDecay()
 	if(src.tiredness >= 0)
 		src.tiredness -= 1
 	else
 		src.tiredness = 0
+
 
 /mob/goai/agent/proc/HungerDecay()
 	if(src.hunger >= 0)
@@ -81,13 +90,16 @@
 	else
 		src.hunger = 0
 
+
 /mob/goai/agent/proc/GetHunger()
 	var/howhungry = src.hunger
 	return howhungry
 
+
 /mob/goai/agent/proc/GetTiredness()
 	var/howtired = src.tiredness
 	return howtired
+
 
 /mob/goai/agent/verb/DoAction(Act as obj in actionslist)
 	if(istype(Act,/datum/actionholder))
@@ -97,11 +109,13 @@
 	else
 		return 0
 
+
 /mob/goai/agent/proc/Has(What as obj)
 	if(What in src.inventory)
 		return 1
 	else
 		return 0
+
 
 /mob/goai/agent/proc/HasType(What as obj)
 	if(typesof(What) in src.inventory)

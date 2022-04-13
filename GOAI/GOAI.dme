@@ -18,12 +18,12 @@
 #include "agent.dm"
 #include "food.dm"
 #include "GOAI.dm"
+#include "goap.dm"
 #include "goap_testing.dm"
 #include "helpers.dm"
+#include "lists.dm"
+#include "pqueue.dm"
 #include "turfs.dm"
 #include "basicmap.dmm"
-#include "array\_colormatrix_defines.dm"
-#include "array\array.dm"
-#include "array\tests\arraytests.dm"
 // END_INCLUDE
 

@@ -1,101 +1,142 @@
-/datum/actionholder/testAction
-	name = "Test Action"
-
-/datum/actionholder/testAction/New(var/newname, var/newcost, var/list/neweffects, var/list/newpreconds)
-	. = ..()
-	src.name = newname ? newname : src.name
-	src.cost = newcost ? newcost : src.cost
-	src.effects = upsert(src.effects, neweffects)
-	src.preconds = upsert(src.preconds, newpreconds)
-
-var/global/list/need2name = list(
-	"1" = "food",
-	"2" = "comfort",
-	"3" = "tools",
-	"4" = "money",
-	"5" = "chair"
+/*var/global/list/actions = list(
+	"Eat" = new /datum/Triple (1, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
+	//"Eat" = new /datum/Triple (1, list(), list("Fed" = 1, "HasFood" = -1)),
+	"Shop" = new /datum/Triple (1, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
+	"Party" = new /datum/Triple (1, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
+	"Sleep" = new /datum/Triple (1, list("Fed" = 1), list("Rested" = 10)),
+	//"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
+	"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
+	"Work" = new /datum/Triple (1, list("Rested" = 1), list("Money" = 10)),
+	"Idle" = new /datum/Triple (1, list(), list("Rested" = 1))
+	//"DebugGetSimple" = new /datum/Triple (100, list(), list("Debug" = 1))
+)
+*/
+var/global/list/actions = list(
+	"Eat" = new /datum/Triple (2, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
+	"Shop" = new /datum/Triple (2, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
+	"Party" = new /datum/Triple (2, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
+	"Sleep" = new /datum/Triple (2, list("Fed" = 1), list("Rested" = 10)),
+	//"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
+	"DishWash" = new /datum/Triple (2, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
+	"Work" = new /datum/Triple (2, list("Rested" = 1), list("Money" = 10)),
+	"Idle" = new /datum/Triple (2, list(), list("Rested" = 1))
 )
 
+
+/proc/get_actions_test()
+	var/list/all_actions = list()
+	for (var/act in actions)
+		all_actions.Add(act)
+	return all_actions
+
+
+/proc/get_preconds_test(var/action)
+	var/datum/Triple/actiondata = actions[action]
+	var/list/preconds = actiondata.middle
+	return preconds
+
+
+/proc/get_effects_test(var/action)
+	var/datum/Triple/actiondata = actions[action]
+	var/list/effects = actiondata.right
+	return effects
+
+
+/proc/check_preconds_test(var/action, var/list/blackboard)
+	var/match = 1
+	var/list/preconds = get_preconds_test(action)
+
+	for (var/req_key in preconds)
+		var/req_val = preconds[req_key]
+		if (isnull(req_val))
+			continue
+
+		var/blackboard_val = (req_key in blackboard) ? blackboard[req_key] : null
+		if (isnull(blackboard_val) || (blackboard_val < req_val))
+			match = 0
+			break
+
+
+	return match
+
+
+/proc/greater_than(var/left, var/right)
+	var/result = left > right
+	//world << "GT: [result], L: [left], R: [right]"
+	return result
+
+
+/proc/greater_or_equal_than(var/left, var/right)
+	var/result = left >= right
+	//world << "GT: [result], L: [left], R: [right]"
+	return result
+
+
+/proc/goal_checker_test(var/pos, var/goal, var/proc/cmp_op = null)
+	var/match = 1
+	var/list/pos_effects = islist(pos) ? pos : get_effects_test(pos)
+	world.log << "PosFx: [pos_effects]"
+	var/proc/comparison = cmp_op ? cmp_op : /proc/greater_or_equal_than
+
+	for (var/state in goal)
+		var/goal_val = goal[state]
+
+		world.log << "GoalState: [state] = [goal_val]"
+
+		if (isnull(goal_val))
+			continue
+
+
+		var/curr_value = (state in pos_effects) ? pos_effects[state] : 0
+		world.log << "PosState: [state] = [pos_effects[state]]"
+		var/cmp_result = call(comparison)(curr_value, goal_val)
+		if (cmp_result <= 0)
+			/*world.log << "MISMATCH: [curr_value] & [goal_val]"
+			var/i = 1
+			for (var/mispos in pos)
+				world.log << "MISMATCH POS [i] = [mispos], [pos[mispos]]"
+				i++*/
+			match = 0
+			break
+
+	return match
+
+
 /mob/verb/testGetPlansByArgs()
-	var/inputs = input("Enter a comma-separated string of integer goals", "Goals", null) as text|null
-	var/depth = min(input("Enter max search depth", "Depth", 5) as num, 1)
-	var/list/arggoals = (inputs && length(inputs)) ? splittext(inputs, ",") : null
-	var/list/formatted_goals = list()
-	for(var/goal in arggoals)
-		var/needkey = need2name["[goal]"]
-		formatted_goals[needkey] = goal
-	return src.testGetPlans(formatted_goals, depth)
+	/*var/state_inputs = input("Enter a comma-separated string of initial state", "State", null) as text|null
+	var/goal_inputs = input("Enter a comma-separated string of integer goals", "Goals", null) as text|null
+	var/list/formatted_state = (state_inputs && length(state_inputs)) ? splittext(state_inputs, ",") : null
+	var/list/formatted_goals = (goal_inputs && length(goal_inputs)) ? splittext(goal_inputs, ",") : null*/
+	var/formatted_state = null
+	var/formatted_goals = null,
+	var/iter_cutoff = input("Enter cutoff", "Cutoff", null) as num|null
+
+	return src.testGetPlans(formatted_state, formatted_goals, iter_cutoff)
+
 
 /mob/verb/testGetPlansSimple()
 	return src.testGetPlans()
 
-/mob/proc/testGetPlans(var/list/goals, var/maxdepth=5)
+
+/mob/proc/testGetPlans(var/list/state, var/list/goals, var/cutoff)
+	var/true_state = state
+	var/true_goals = goals
+	var/true_cutoff = cutoff
+
+	if(!(state && state.len))
+		true_state = list("HasFood" = 0, "HasDirtyDishes" = 1)
+
 	if(!(goals && goals.len))
-		goals = list( "comfort"=list(2),"tools"=list(3) )
-	var/datum/actionholder/testAction/Action1 = new("Eat leftovers", 1, list("food"=list(1), "comfort"=list(2)))
-	var/datum/actionholder/testAction/Action2 = new("Sit on a chair",   1, list("comfort"=list(2)), list("chair"=list(5)))
-	var/datum/actionholder/testAction/Action3 = new("Get tools",   1, list("tools"=list(3)), list("comfort"=list(2)))
-	var/datum/actionholder/testAction/Action4 = new("Cook dinner",   1, list("food"=list(1),"tools"=list(3)), list("tools"=list(3)))
-	var/datum/actionholder/testAction/Action5 = new("Action5",   1, list("food"=list(1)), list("tools"=list(3),"money"=list(4)))
-	var/datum/actionholder/testAction/Action6 = new("Action6",   1, list("food"=list(1)), list("comfort"=list(2)))
-	var/datum/actionholder/testAction/Action7 = new("Action7",         1, list("money"=list(4)), list("comfort"=list(2)))
-	var/datum/actionholder/testAction/Action8 = new("Buy groceries",   1, list("food"=list(1)), list("money"=list(4)))
-	var/datum/actionholder/testAction/Action9 = new("Build a chair",   1, list("chair"=list(5)))
-	world.log << "   "
-	world.log << "   "
-	world.log << "Testing..."
+		true_goals = list("Fed" = 1)
 
-	var/list/queue = list()
-	var/list/solutions = list()
-	var/sentinel = 0
-	while(sentinel++ < maxdepth)
-		world.log << "=========="
-		if(!(queue && queue.len))
-			queue.len++
-			queue[1] = GetPlans(goals, list(Action1, Action2, Action3, Action4, Action5, Action6, Action7, Action8, Action9))
+	if (isnull(cutoff))
+		true_cutoff = 30
 
-		var/list/iteration = pick(queue)
-		if(!iteration)
-			continue
-
-		var/list/immediates = iteration[PLANNED_KEY] || list()
-		var/i = 1
-		for(var/datum/PlanHolder/key in immediates)
-			var/list/val = immediates[key]
-			var/list/planqueue = key.queue
-			world.log << "([i]) {[planqueue ? planqueue.Join("=>") : key] : [val]}"
-			solutions.Add("[sentinel].[i]: [planqueue.Join("=>")]")
-
-
-		var/list/deferred = iteration[DEFERRED_KEY]
-		if(deferred && deferred.len)
-			var/subeval_action = pick(deferred)
-			var/list/subeval_args = deferred[subeval_action]
-			deferred.Remove(subeval_action)
-
-			if(!(subeval_args && subeval_args.len))
-				world.log << "Subargs missing!"
-
-			if(subeval_args)
-				world.log << "EV'd: [subeval_args.Join("|")]"
-				world.log << "EV'd (goals): [subeval_args[1].Join("|")]"
-				for(var/k in subeval_args[3])
-					world.log << "EV'd (state) `[k]`: [subeval_args[3][k]]"
-				world.log << "EV'd (exlrd): [subeval_args[4].Join("|")]"
-
-				var/list/subiter = GetPlans(arglist(subeval_args))
-				if(subiter)
-					var/list/subimmediates = subiter[PLANNED_KEY] || list()
-					var/j = 1
-					for(var/datum/PlanHolder/subkey in subimmediates)
-						var/list/subval = subimmediates[subkey]
-						var/list/subplanqueue = list(subeval_action) + subkey.queue
-						solutions.Add("[sentinel].[i].[j]: {[subplanqueue ? subplanqueue.Join("=>") : subkey] : [subval]}")
-					j++
-		i++
-	world.log << "   "
-	world.log << "------------------"
-	world.log << "SOLUTIONS:"
-	for(var/s in solutions)
-		world.log << s
-	world.log << "------------------"
+	// start,  goal,  adjacent, check_preconds, handle_backtrack, paths, visited, neighbor_measure, goal_measure, goal_check, get_effects, cutoff_iter, max_queue_size, pqueue_key_gen, blackboard_default, blackboard_update_op)
+	var/datum/Tuple/result = Plan(actions, true_state, true_goals, /proc/get_actions_test, /proc/check_preconds_test, null, null, null, null, null, /proc/goal_checker_test, /proc/get_effects_test, true_cutoff)
+	if (result)
+		var/list/path = result.right
+		//world << "Result cost: [result.left]"
+		world << "Path: [path] ([path.len])"
+		for (var/act in path)
+			world << "Step: [act]"
