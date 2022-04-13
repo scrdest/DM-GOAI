@@ -27,10 +27,14 @@
 	return result_state
 
 
-/proc/action_graph_dist(var/start, var/end, var/list/graph, var/default_cost = 0)
+/proc/default_dist(var/start, var/end, var/list/graph, var/default_cost = 0)
 	var/cost = default_cost
-	/* UNFINISHED! */
-	cost += roll(1, 2) - 1
+	return cost
+
+
+/proc/tiebreaker_dist(var/start, var/end, var/list/graph, var/default_cost = 0)
+	var/cost = default_cost
+	cost += ((roll(1, 8) - 4) / 16)
 	return cost
 
 
@@ -39,13 +43,14 @@
 	var/datum/Triple/action_data = (neighbor_key in graph) ? graph[neighbor_key] : null
 	if (action_data && action_data.left)
 		cost = action_data.left
+		world.log << "ACTION [neighbor_key] COST: [cost]"
 
 	return cost
 
 
 /proc/evaluate_neighbor(var/list/graph, var/proc/check_preconds, var/neigh, var/current_pos, var/goal, var/list/blackboard = null, var/blackboard_default = 0, var/proc/blackboard_update_op = null, var/proc/neighbor_measure = null, var/proc/goal_measure = null, var/proc/get_effects)
 	var/proc/actual_neigh_measure = neighbor_measure ? neighbor_measure : /proc/graph_neighbor_cost
-	var/proc/actual_goal_measure = goal_measure ? goal_measure : /proc/action_graph_dist
+	var/proc/actual_goal_measure = goal_measure ? goal_measure : /proc/default_dist
 	var/list/actual_blackboard = blackboard ? blackboard : list()
 
 	var/is_valid = call(check_preconds)(neigh, actual_blackboard)
@@ -232,7 +237,7 @@
 		return final_result
 
 	var/proc/neighbor_measurer = (neighbor_measure ? neighbor_measure : /proc/graph_neighbor_cost)
-	var/proc/goal_measurer = (goal_measure ? goal_measure : /proc/action_graph_dist)
+	var/proc/goal_measurer = (goal_measure ? goal_measure : /proc/default_dist)
 
 	if (visited)
 		var/curr_visit_count = visited[start] ? visited[start] : 0
@@ -319,7 +324,7 @@
 	return result
 
 
-/proc/Plan(var/list/graph, var/list/start, var/list/goal, var/proc/adjacent, var/proc/check_preconds, var/proc/handle_backtrack, var/paths = null, var/visited = null, var/proc/neighbor_measure, var/proc/goal_measure, var/proc/goal_check, var/proc/get_effects, var/cutoff_iter, var/max_queue_size = null, var/proc/pqueue_key_gen, var/blackboard_default = 0, var/proc/blackboard_update_op = null)
+/proc/Plan(var/list/graph, var/list/start, var/list/goal, var/proc/adjacent, var/proc/check_preconds, var/proc/handle_backtrack = null, var/handle_backtrack_target = null, var/paths = null, var/visited = null, var/proc/neighbor_measure, var/proc/goal_measure, var/proc/goal_check, var/proc/get_effects, var/cutoff_iter, var/max_queue_size = null, var/proc/pqueue_key_gen, var/blackboard_default = 0, var/proc/blackboard_update_op = null)
 	var/curr_iter = 0
 	var/continue_search = 1
 
@@ -347,6 +352,8 @@
 	next_params["blackboard_update_op"] = blackboard_update_op
 
 	while(next_params && continue_search):
+		sleep(-1) // this is a safe time to pause things and catch up with reality
+
 		result = SearchIteration(arglist(next_params))
 		continue_search = result ? result.left : 0
 		var/list/new_params = result.right
@@ -367,12 +374,9 @@
 	var/datum/Triple/best_opt = result ? result.right : null
 	var/best_path = best_opt
 
-	for (var/best_path_elem in best_path)
-		world.log << "BEST PATH ELEM: [best_path_elem]"
-
 	if (handle_backtrack):
 		for (var/parent_elem in best_path)
-			call(handle_backtrack)(parent_elem)
+			call(handle_backtrack_target, handle_backtrack)(parent_elem)
 
 	return result
 

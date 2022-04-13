@@ -12,14 +12,14 @@
 )
 */
 var/global/list/actions = list(
-	"Eat" = new /datum/Triple (2, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
-	"Shop" = new /datum/Triple (2, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
-	"Party" = new /datum/Triple (2, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
-	"Sleep" = new /datum/Triple (2, list("Fed" = 1), list("Rested" = 10)),
+	"Eat" = new /datum/Triple (10, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
+	"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
+	"Party" = new /datum/Triple (10, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
+	"Sleep" = new /datum/Triple (1, list("Fed" = 1), list("Rested" = 10)), // For some reason, the planner REALLY likes going to sleep by default, so we discourage it w/ a lower weight. Mood.
 	//"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
-	"DishWash" = new /datum/Triple (2, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
-	"Work" = new /datum/Triple (2, list("Rested" = 1), list("Money" = 10)),
-	"Idle" = new /datum/Triple (2, list(), list("Rested" = 1))
+	"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
+	"Work" = new /datum/Triple (10, list("Rested" = 1), list("Money" = 10)),
+	"Idle" = new /datum/Triple (10, list(), list("Rested" = 1))
 )
 
 
@@ -81,14 +81,14 @@ var/global/list/actions = list(
 	for (var/state in goal)
 		var/goal_val = goal[state]
 
-		world.log << "GoalState: [state] = [goal_val]"
+		//world.log << "GoalState: [state] = [goal_val]"
 
 		if (isnull(goal_val))
 			continue
 
 
 		var/curr_value = (state in pos_effects) ? pos_effects[state] : 0
-		world.log << "PosState: [state] = [pos_effects[state]]"
+		//world.log << "PosState: [state] = [pos_effects[state]]"
 		var/cmp_result = call(comparison)(curr_value, goal_val)
 		if (cmp_result <= 0)
 			/*world.log << "MISMATCH: [curr_value] & [goal_val]"
@@ -103,13 +103,15 @@ var/global/list/actions = list(
 
 
 /mob/verb/testGetPlansByArgs()
-	/*var/state_inputs = input("Enter a comma-separated string of initial state", "State", null) as text|null
-	var/goal_inputs = input("Enter a comma-separated string of integer goals", "Goals", null) as text|null
-	var/list/formatted_state = (state_inputs && length(state_inputs)) ? splittext(state_inputs, ",") : null
-	var/list/formatted_goals = (goal_inputs && length(goal_inputs)) ? splittext(goal_inputs, ",") : null*/
-	var/formatted_state = null
-	var/formatted_goals = null,
 	var/iter_cutoff = input("Enter cutoff", "Cutoff", null) as num|null
+	/*var/state_inputs = input("Enter a comma-separated string of initial state", "State", null) as text|null
+	var/goal_inputs = input("Enter a comma-separated string of integer goals", "Goals", null) as text|null*/
+	/*var/list/formatted_state = (state_inputs && length(state_inputs)) ? splittext(state_inputs, ",") : null
+	var/list/formatted_goals = (goal_inputs && length(goal_inputs)) ? splittext(goal_inputs, ",") : null
+	var/list/formatted_state = list()
+	var/list/formatted_goals = list()*/
+	var/formatted_state = null
+	var/formatted_goals = null
 
 	return src.testGetPlans(formatted_state, formatted_goals, iter_cutoff)
 
@@ -124,16 +126,17 @@ var/global/list/actions = list(
 	var/true_cutoff = cutoff
 
 	if(!(state && state.len))
-		true_state = list("HasFood" = 0, "HasDirtyDishes" = 1)
+		true_state = list("HasFood" = 0, "HasDirtyDishes" = 2)
 
 	if(!(goals && goals.len))
-		true_goals = list("Fed" = 1)
+		true_goals = list("Fed" = 2, "HasCleanDishes" = 2)
+		//true_goals = list("Money" = 20) // now defaults to eating/buying food =_=
 
 	if (isnull(cutoff))
 		true_cutoff = 30
 
-	// start,  goal,  adjacent, check_preconds, handle_backtrack, paths, visited, neighbor_measure, goal_measure, goal_check, get_effects, cutoff_iter, max_queue_size, pqueue_key_gen, blackboard_default, blackboard_update_op)
-	var/datum/Tuple/result = Plan(actions, true_state, true_goals, /proc/get_actions_test, /proc/check_preconds_test, null, null, null, null, null, /proc/goal_checker_test, /proc/get_effects_test, true_cutoff)
+	// start,  goal,  adjacent, check_preconds, handle_backtrack, handle_backtrack_target, paths, visited, neighbor_measure, goal_measure, goal_check, get_effects, cutoff_iter, max_queue_size, pqueue_key_gen, blackboard_default, blackboard_update_op)
+	var/datum/Tuple/result = Plan(actions, true_state, true_goals, /proc/get_actions_test, /proc/check_preconds_test, null, null, null, null, null, null, /proc/goal_checker_test, /proc/get_effects_test, true_cutoff)
 	if (result)
 		var/list/path = result.right
 		//world << "Result cost: [result.left]"
