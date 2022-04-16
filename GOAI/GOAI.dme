@@ -23,6 +23,7 @@
 #include "helpers.dm"
 #include "lists.dm"
 #include "pqueue.dm"
+#include "tuple.dm"
 #include "turfs.dm"
 #include "basicmap.dmm"
 // END_INCLUDE

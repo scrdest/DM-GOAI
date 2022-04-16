@@ -1,56 +1,106 @@
 # define PLUS_INF 1.#INF
 # define GOAP_KEY_SRC "source"
 
+# ifdef DEBUG_LOGGING
+# define MAYBE_LOG(X) world.log << X
+# define MAYBE_LOG_TOSTR(X) world.log << #X + ": [X]"
+# else
+# define MAYBE_LOG(X)
+# define MAYBE_LOG_TOSTR(X)
+# endif
+
+
 /proc/AddItem(var/oldval, var/newval)
 	if(isnull(newval) || newval == 0)
 		return oldval
 	var/total = oldval + newval
-	world.log << "OLDV [oldval] + NEWV [newval] = [total]"
 	return total
 
 
 /proc/update_counts(var/list/old_state, var/list/new_state, var/default = 0, var/proc/op = null)
+	/* Merges counts in two assoc lists. Returns the result as a new assoc list.
+	//
+	// o old_state - start state
+	// o new_state - new state (neighbor for neighbor measure, goal for goal measure)
+	// o default - default value to read from old_state if the key is missing there.
+	// o op - Optional, proc to use to update values.
+	//        Takes 2 args: (new, old).
+	//        Default: op(A, B) -> A + B
+	//        A custom op can be used e.g. to implement normal pathfinding (with op(A, B) -> B).
+	*/
 	var/proc/update_op = isnull(op) ? /proc/AddItem : op
 	var/list/result_state = old_state.Copy()
 
 	for (var/key in new_state)
 		if (key == GOAP_KEY_SRC)
 			continue
+
 		var/old_val = (key in result_state) ? result_state[key] : default
-		world.log << "UpdKey: [key], [result_state[key]], [old_val]"
 		var/add_val = new_state[key]
 		var/result = call(update_op)(old_val, add_val)
 
-		//if((!(key in old_state)) || (result != 0))
 		result_state[key] = result
 
 	return result_state
 
 
-/proc/default_dist(var/start, var/end, var/list/graph, var/default_cost = 0)
-	var/cost = default_cost
+/proc/default_dist(var/start, var/end, var/list/graph)
+	/* This is the most basic heuristic - uniform cost.
+	//
+	// If used for just the neighbor measure, the Astar search
+	//    degenerates to a greedy breadth-first search.
+	//
+	// If used for just the goal measure, the search degenerates
+	//    to a simple Dijkstra's algorithm search (fine,
+	//    but slower than a well-guided search)
+	//
+	// If used for both, this degenerates to a random-ish
+	//    (depending on the queue implementation) breadth-first search!
+	//    This will be REALLY slow, so it's NOT recommended.
+	//
+	// o start - start state (current pos for neighbor measure, neighbor for goal measure)
+	// o end - end state (neighbor for neighbor measure, goal for goal measure)
+	// o graph - assoc list representing the action graph (not actually used here, just for consistency)
+	*/
+	var/cost = 1
 	return cost
 
 
-/proc/tiebreaker_dist(var/start, var/end, var/list/graph, var/default_cost = 0)
-	var/cost = default_cost
-	cost += ((roll(1, 8) - 4) / 16)
+/proc/tiebreaker_dist(var/start, var/end, var/list/graph)
+	/* This is a heuristic that fuzzes the default uniform value by a random small amount.
+	// This is a variant of the default_dist so all the same caveats apply.
+	//
+	// This stops the search from getting stuck on one action in all iterations in some cases,
+	// but at the cost of (1) losing determinism, & (2) sometimes creating sub-optimal paths
+	// (in plain terms - overly-long but still *valid* plans).
+	//
+	// o start - start state (current pos for neighbor measure, neighbor for goal measure)
+	// o end - end state (neighbor for neighbor measure, goal for goal measure)
+	// o graph - assoc list representing the action graph (not actually used here, just for consistency)
+	*/
+	var/cost = 0
+	cost -= ((roll(1, 4) - 1) / 4) // empirically, more uniform (i.e. less rolls) randomness seems to work better for some reason
 	return cost
 
 
 /proc/graph_neighbor_cost(var/curr_pos, var/neighbor_key, var/list/graph)
+	/* This is a simple heuristic that looks up the neighbor cost from the action triple as-is.
+	//
+	// o curr_pos - current position, go figure; unused, only here for interface consistency
+	// o neighbor_key - string representing the candidate action/position
+	// o graph - assoc list representing the action graph; should have the neighbor_key as a key innit.
+	*/
 	var/cost = PLUS_INF
 	var/datum/Triple/action_data = (neighbor_key in graph) ? graph[neighbor_key] : null
 	if (action_data && action_data.left)
 		cost = action_data.left
-		world.log << "ACTION [neighbor_key] COST: [cost]"
 
 	return cost
 
 
 /proc/evaluate_neighbor(var/list/graph, var/proc/check_preconds, var/neigh, var/current_pos, var/goal, var/list/blackboard = null, var/blackboard_default = 0, var/proc/blackboard_update_op = null, var/proc/neighbor_measure = null, var/proc/goal_measure = null, var/proc/get_effects)
 	var/proc/actual_neigh_measure = neighbor_measure ? neighbor_measure : /proc/graph_neighbor_cost
-	var/proc/actual_goal_measure = goal_measure ? goal_measure : /proc/default_dist
+	var/proc/actual_goal_measure = goal_measure ? goal_measure : /proc/tiebreaker_dist
 	var/list/actual_blackboard = blackboard ? blackboard : list()
 
 	var/is_valid = call(check_preconds)(neigh, actual_blackboard)
@@ -79,12 +129,24 @@
 	return result
 
 
-/proc/rebuild_effects(graph, action_plan, get_effects, blackboard_default = 0, blackboard_update_op = null)
-	// MISBEHAVING!!!
+/proc/rebuild_effects(var/list/graph, var/list/action_plan, var/proc/get_effects, var/blackboard_default = 0, var/proc/blackboard_update_op = null)
+	/* Rebuilds the world-state after the given plan is applied.
+	//
+	// We need this proc so that we can check action preconds without carrying the blackboards on the stack
+	// the whole time; most queued actions will never actually get evaluated, so it would chew up the RAM
+	// for no discernible benefit. Of course, this does mean we chew up some CPU instead rebuilding these.
+	//
+	// o graph - assoc list representing the Action graph
+	// o action_plan - plain old list of Actions in the current plan (in FIFO order from left to right)
+	// o get_effects - *required* proc; should return an assoc list representing expected world state after the Action is executed.
+	// o blackboard_default - optional; the default value to use for unset keys in the blackboard (only when necessary, e.g. comparing values). Default: 0.
+	// o blackboard_update_op - optional proc; the function used to update the blackboard values to new states. Default: (A, B) => A + B.
+	//
+	*/
 	var/list/rebuilt_blackboard = list()
 
 	for (var/action in action_plan)
-		world.log << "REBUILD ACT [action]"
+		//MAYBE_LOG("REBUILD ACT [action]")
 		var/list/act_effects = list()
 
 		if (islist(action))
@@ -92,7 +154,7 @@
 			var/is_state = 0
 
 			for (var/stitm in state)
-				world.log << "STITM [stitm]"
+				MAYBE_LOG("STITM [stitm]")
 
 				if (stitm in graph)
 					var/list/statitm_fx = call(get_effects)(stitm)
@@ -113,115 +175,67 @@
 
 
 
-/datum/State
-	var/list/L
-
-
-/datum/State/New(var/state_vars)
-	L = state_vars
-
-
-/datum/Tuple
-	var/left = null
-	var/right = null
-
-
-/datum/Tuple/New(var/fst, var/snd)
-	left = fst
-	right = snd
-
-
-/datum/Triple
-	var/left = null
-	var/middle = null
-	var/right = null
-
-
-/datum/Triple/New(var/new_left, var/new_mid, var/new_right)
-	left = new_left
-	middle = new_mid
-	right = new_right
-
-
-/datum/Quadruple
-	var/first = null
-	var/second = null
-	var/third = null
-	var/fourth = null
-
-
-/datum/Quadruple/New(var/new_first, var/new_second, var/new_third, var/new_fourth)
-	first = new_first
-	second = new_second
-	third = new_third
-	fourth = new_fourth
-
-
-
-/datum/Quadruple/proc/QuadCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
-	// return 0 if Right == Left
-
-	if (right.first > left.first)
-		return 1
-
-	if (right.first < left.first)
-		return -1
-
-	if (right.second > left.second)
-		return 1
-
-	if (right.second < left.second)
-		return -1
-
-	if (right.third > left.third)
-		return 1
-
-	if (right.third < left.third)
-		return -1
-
-	if (right.fourth > left.fourth)
-		return 1
-
-	if (right.fourth < left.fourth)
-		return -1
-
-	return 0
-
-
-
-/datum/Quadruple/proc/ActionCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
-	// return 0 if Right == Left
-
-	if (right.first > left.first)
-		return 1
-
-	if (right.first < left.first)
-		return -1
-
-	if (right.second > left.second)
-		return 1
-
-	if (right.second < left.second)
-		return -1
-
-	return 0
-
-
-
 /proc/SearchIteration(var/list/graph, var/list/start, var/list/goal, var/proc/adjacent, var/proc/check_preconds, var/paths = null, var/PriorityQueue/queue = null, var/visited = null, var/proc/neighbor_measure, var/proc/goal_measure, var/proc/goal_check, var/proc/get_effects, var/cutoff_iter = null, var/max_queue_size = null, var/proc/pqueue_key_gen = null, var/list/blackboard = null, var/blackboard_default = 0, var/proc/blackboard_update_op = null, var/curr_cost = 0, var/curr_iter = 0)
-	world.log << "    "
-	world.log << "CURR ITER: [curr_iter]"
-	world.log << "CURR POS: [start]"
+	/* The main 'worker' logic of the search.
+	//
+	// Takes in a graph, the starting position/state, the target position/state and a pile of configuration options/procs,
+	// then evaluates all possible Candidates (followup actions available for the current state), simulating their results,
+	// and returns the best Candidate to look at in the next SearchIteration call.
+	// That is, unless our current start state already DOES satisfy the goals - in that case, we simply return the path to the goal.
+	//
+	// Where's the search then? It's done via the first branch (i.e. goal not found).
+	// While evaluating the Candidates we're doing some magic to the Queue and Paths lists
+	// and forwarding them to the next SearchIteration call.
+	//
+	// This code implements a 'trampoline' pattern; in other words, it's pseudo-recursive. What would
+	// normally be a recursive call to SearchIteration is moved to another associated function (here, it's
+	// the 'Plan' proc) which pipes the outputs of one SearchIteration calls to the inputs of the next one.
+	//
+	// The cool thing about this is that this lets us pause the search between any two iterations safely.
+	// We could even serialize the output of one call to JSON or whatever, then deserialize it a day later,
+	// on a completely different computer and it would pick up right where it left off!
+	//
+	// It's not entirely *stateless*, but all state we need is explicitly passed around in parameters.
+	// In particular, if anything weird ever happens in this code, if we capture the inputs of the problematic
+	// runs, we can replay them in tests and in principle fully recreate the scenario where it misbehaved
+	// to debug it (CAVEAT: unless your custom procs have their own weird stateful behavior, but that's on you!).
+	//
+	// o graph - assoc list representing the action graph
+	// o start - assoc list of the currently-evaluated start state
+	// o goal  - assoc list of the goal state we're trying to reach (or exceed, depending on cmp)
+	// o adjacent - proc that generates Candidate actions available to us in the current Start state
+	// o check_preconds - proc that returns 1 if the start state meets preconditions for an available action (returned from the 'adjacent' proc)
+	// o paths - optional; assoc list of best neighbors for each action seen so far. Will default to a new list.
+	// o queue - optional; PriorityQueue instance from previous iteration(s). Will default to a new instance.
+	// o visited - optional; assoc list of visited nodes. If null, *WILL NOT SKIP VISITED NODES*!
+	// o neighbor_measure - optional proc; abstract distance (Start => Candidate) heuristic
+	// o goal_measure - optional proc; abstract distance (Candidate => Goal) heuristic
+	// o goal_check - *required* proc; should return 1 when goal criteria are satisfied, 0 otherwise.
+	// o get_effects - *required* proc; should return an assoc list representing expected world state after the Action is executed.
+	// o cutoff_iter - optional; maximum iteration allowed for the search. If exceeded, search terminates w/o finding a valid path. If null - unlimited.
+	// o max_queue_size - optional; maximum space allocated for the Priority Queue. Unlimited if null, otherwise trims the worst candidates from the list tail.
+	// o pqueue_key_gen - optional proc; a hook to allow custom queue sort keys. Default - simply uses the iteration as the primary sort key.
+	// o blackboard - optional assoc list; represents the total expected state of the world before the Start action/state is applied. Default - empty list.
+	// o blackboard_default - optional; the default value to use for unset keys in the blackboard (only when necessary, e.g. comparing values). Default: 0.
+	// o blackboard_update_op - optional proc; the function used to update the blackboard values to new states. Default: (A, B) => A + B.
+	// o curr_cost - *PRIVATE* optional; the total cost of getting from search root to current start pos. You shouldn't need to mess with it.
+	// o curr_iter - *PRIVATE* optional; the search iteration index. You shouldn't need to mess with it.
+	//
+	// Returns: 2-tuple, (continue_search, next_iteration_params (usually) | best_path (if found))
+	//
+	*/
+	MAYBE_LOG("    ")
+	MAYBE_LOG("CURR ITER: [curr_iter]")
+	MAYBE_LOG("CURR POS: [start]")
+
 	var/list/_paths = isnull(paths) ? list() : paths
 	var/PriorityQueue/_pqueue = isnull(queue) ? new /PriorityQueue(/datum/Quadruple/proc/ActionCompare) : queue
 
-	world.log << "START BB is [blackboard]"
+	# ifdef DEBUG_LOGGING
+	MAYBE_LOG("START BB is [blackboard]")
 	for (var/bbitem in blackboard)
-		world.log << "START BB ITEM: [bbitem] @ [blackboard[bbitem]]"
+		MAYBE_LOG("START BB ITEM: [bbitem] @ [blackboard[bbitem]]")
+	# endif
 
 	var/list/_blackboard = isnull(blackboard) ? list() : blackboard.Copy()
 
@@ -229,7 +243,8 @@
 
 	var/goal_check_result = call(goal_check)(updated_state, goal, null)
 	if (goal_check_result > 0)
-		world.log << "GOAL CHECK SUCCEEDED."
+		MAYBE_LOG("GOAL CHECK SUCCEEDED.")
+
 		var/raw_final_result = updated_state[GOAP_KEY_SRC]
 		var/list/full_final_result = islist(start) ? list(raw_final_result, start) : raw_final_result + list(start)
 		var/datum/Tuple/final_result = new /datum/Tuple(0, full_final_result)
@@ -237,7 +252,7 @@
 		return final_result
 
 	var/proc/neighbor_measurer = (neighbor_measure ? neighbor_measure : /proc/graph_neighbor_cost)
-	var/proc/goal_measurer = (goal_measure ? goal_measure : /proc/default_dist)
+	var/proc/goal_measurer = (goal_measure ? goal_measure : /proc/tiebreaker_dist)
 
 	if (visited)
 		var/curr_visit_count = visited[start] ? visited[start] : 0
@@ -276,27 +291,37 @@
 		world.log << "Exhausted all candidates before a path was found!"
 		return
 
-
 	var/datum/Quadruple/next_cand_tuple = _pqueue.Dequeue()
 	var/cand_cost = next_cand_tuple.second
 	var/cand_pos = next_cand_tuple.third
-	world.log << "CAND: [next_cand_tuple.third]"
 	var/list/source_pos = next_cand_tuple.fourth
-	world.log << "CAND SRCp: [source_pos]"
+
+	MAYBE_LOG("CAND: [next_cand_tuple.third]")
+	MAYBE_LOG("CAND SRCp: [source_pos]")
+
+	# ifdef DEBUG_LOGGING
 	/*for (var/srcpit in source_pos)
-		world.log << "SRCp item: [srcpit]"*/
+		MAYBE_LOG("SRCp item: [srcpit]")*/
+	# endif
 
 	var/list/action_stack = list(source_pos ? source_pos.Copy() : list())
 	action_stack.Add(cand_pos)
+
+	# ifdef DEBUG_LOGGING
 	/*for (var/actpit in source_pos)
-		world.log << "ACTp item: [actpit]"*/
+		MAYBE_LOG("ACTp item: [actpit]")*/
+	# endif
 
 	var/cand_blackboard = rebuild_effects(graph, action_stack, get_effects, blackboard_default, blackboard_update_op)
 	cand_blackboard[GOAP_KEY_SRC] = source_pos
+
+	# ifdef DEBUG_LOGGING
 	for (var/blit in cand_blackboard)
-		world.log << "BLIT: [blit] = [cand_blackboard[blit]]"
+		MAYBE_LOG("BLIT: [blit] = [cand_blackboard[blit]]")
+	# endif
 
 	var/list/new_params = list()
+
 	new_params["graph"] = graph
 	new_params["start"] = cand_pos
 	new_params["goal"] = goal
@@ -317,14 +342,51 @@
 	new_params["curr_cost"] = cand_cost
 	new_params["curr_iter"] = curr_iter + 1
 
-
 	var/datum/Tuple/result = new /datum/Tuple (1, new_params)
+
+	# ifdef DEBUG_LOGGING
 	var/list/pathli = result.right
-	world.log << "Result tuple: ([result.left], [pathli] ([pathli.len]))"
+	MAYBE_LOG("Result tuple: ([result.left], [pathli] ([pathli.len]))")
+	# endif
+
 	return result
 
 
 /proc/Plan(var/list/graph, var/list/start, var/list/goal, var/proc/adjacent, var/proc/check_preconds, var/proc/handle_backtrack = null, var/handle_backtrack_target = null, var/paths = null, var/visited = null, var/proc/neighbor_measure, var/proc/goal_measure, var/proc/goal_check, var/proc/get_effects, var/cutoff_iter, var/max_queue_size = null, var/proc/pqueue_key_gen, var/blackboard_default = 0, var/proc/blackboard_update_op = null)
+	/* Main planning proc. Runs the full Astar search over a graph of Actions until either a path
+	// satisfying the Goal criteria is found or the iteration cutoff has been exceeded (if set).
+	//
+	// Technically speaking, this proc doesn't *do* much. It's primarily a trampoline for one or more
+	// SearchIteration() proc calls that handle the bulk of the work; this proc just manages their work
+	// by forwarding parameters between iterations, deciding when to give up the search, and handling
+	// the wrap-up of a successful pathfind.
+	//
+	// Somewhat surprisingly, this is a shockingly fast search (at least on relatively small action spaces)!
+	// For larger spaces, you might want to break things down hierarchically - run one planner for the
+	// 'strategy' level and then another for the 'tactical' level, whose action-space is constrained to
+	// the RoE of the strategy)!
+	//
+	// o graph - assoc list representing the Action graph
+	// o start - assoc list of the currently-evaluated Start state
+	// o goal  - assoc list of the Goal state we're trying to reach (or exceed, depending on cmp)
+	// o adjacent - proc that generates Candidate actions available to us in the current Start state
+	// o check_preconds - proc that returns 1 if the start state meets preconditions for an available action (returned from the 'adjacent' proc)
+	// o handle_backtrack - optional proc; arbitrary callback to execute for each Action in the path during backtracking after a plan is found.
+	// o handle_backtrack_target - optional object; the object to run the handle_backtrack proc on, e.g. a list to run list.Add() on.
+	// o paths - optional; assoc list of best neighbors for each action seen so far. Will default to a new list.
+	// o visited - optional; assoc list of visited nodes. If null, *WILL NOT SKIP VISITED NODES*!
+	// o neighbor_measure - optional proc; abstract distance (Start => Candidate) heuristic
+	// o goal_measure - optional proc; abstract distance (Candidate => Goal) heuristic
+	// o goal_check - *required* proc; should return 1 when goal criteria are satisfied, 0 otherwise.
+	// o get_effects - *required* proc; should return an assoc list representing expected world state after the Action is executed.
+	// o cutoff_iter - optional; maximum iteration allowed for the search. If exceeded, search terminates w/o finding a valid path. If null - unlimited.
+	// o max_queue_size - optional; maximum space allocated for the Priority Queue. Unlimited if null, otherwise trims the worst candidates from the list tail.
+	// o pqueue_key_gen - optional proc; a hook to allow custom queue sort keys. Default - simply uses the iteration as the primary sort key.
+	// o blackboard_default - optional; the default value to use for unset keys in the blackboard (only when necessary, e.g. comparing values). Default: 0.
+	// o blackboard_update_op - optional proc; the function used to update the blackboard values to new states. Default: (A, B) => A + B.
+	//
+	// Returns: 2-tuple, (continue_search, best_path (if found)) if a path is found; null otherwise.
+	*/
 	var/curr_iter = 0
 	var/continue_search = 1
 
@@ -365,24 +427,27 @@
 			if (!isnull(cutoff_iter)) // 0 is *technically* valid, so let's use ifnull...
 				curr_iter = curr_iter + 1
 				if (curr_iter >= cutoff_iter):
-					// raise NoPathError(f"Path not found within {cutoff_iter} iterations!")
-					world.log << "Path not found within [cutoff_iter] iterations!"
+					MAYBE_LOG("Path not found within [cutoff_iter] iterations!")
 					return
 
 
-	world.log << "Broken out of the Plan loop!"
+	MAYBE_LOG("Broken out of the Plan loop!")
 	var/datum/Triple/best_opt = result ? result.right : null
 	var/best_path = best_opt
 
 	if (handle_backtrack):
 		for (var/parent_elem in best_path)
-			call(handle_backtrack_target, handle_backtrack)(parent_elem)
+			if (isnull(handle_backtrack_target))
+				call(handle_backtrack)(parent_elem)
+			else
+				call(handle_backtrack_target, handle_backtrack)(parent_elem)
 
 	return result
 
 
 /proc/GetActions(var/list/graph)
 	var/list/actions = list()
+
 	for (var/key in graph)
 		actions.Add(key)
 

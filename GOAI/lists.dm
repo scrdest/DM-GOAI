@@ -6,7 +6,7 @@
  */
 
 /*
- * Misc
+ * Shamelessly ripped from SS13 code.
  */
 
 

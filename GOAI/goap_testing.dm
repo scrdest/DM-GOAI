@@ -15,9 +15,9 @@ var/global/list/actions = list(
 	"Eat" = new /datum/Triple (10, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
 	"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
 	"Party" = new /datum/Triple (10, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
-	"Sleep" = new /datum/Triple (1, list("Fed" = 1), list("Rested" = 10)), // For some reason, the planner REALLY likes going to sleep by default, so we discourage it w/ a lower weight. Mood.
-	//"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
-	"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
+	"Sleep" = new /datum/Triple (10, list("Fed" = 1), list("Rested" = 10)), // For some reason, the planner REALLY likes going to sleep by default, so we discourage it w/ a lower weight. Mood.
+	"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
+	//"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
 	"Work" = new /datum/Triple (10, list("Rested" = 1), list("Money" = 10)),
 	"Idle" = new /datum/Triple (10, list(), list("Rested" = 1))
 )
@@ -75,7 +75,6 @@ var/global/list/actions = list(
 /proc/goal_checker_test(var/pos, var/goal, var/proc/cmp_op = null)
 	var/match = 1
 	var/list/pos_effects = islist(pos) ? pos : get_effects_test(pos)
-	world.log << "PosFx: [pos_effects]"
 	var/proc/comparison = cmp_op ? cmp_op : /proc/greater_or_equal_than
 
 	for (var/state in goal)
@@ -130,7 +129,7 @@ var/global/list/actions = list(
 
 	if(!(goals && goals.len))
 		true_goals = list("Fed" = 2, "HasCleanDishes" = 2)
-		//true_goals = list("Money" = 20) // now defaults to eating/buying food =_=
+		//true_goals = list("Money" = 20)
 
 	if (isnull(cutoff))
 		true_cutoff = 30
@@ -143,3 +142,4 @@ var/global/list/actions = list(
 		world << "Path: [path] ([path.len])"
 		for (var/act in path)
 			world << "Step: [act]"
+		world << "   "
