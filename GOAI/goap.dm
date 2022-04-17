@@ -1,3 +1,88 @@
+/*
+X================================================================X
+|                                                                |
+|                  GOAL-ORIENTED ACTION PLANNING                 |
+|                                                                |
+X================================================================X
+
+  This is an implementation of the GOAP AI algorithm for DM.
+
+  GOAP is a search-based planning algorithm that promises AIs
+  that are smart, organic, modular, easily extensible (i.e.
+  adding new behaviors is a breeze) and still fairly 'cheap'.
+
+  TL;DR, we know how to pathfind gud and fast since the 60s;
+  if you zoom your brain out, planning a path is just a sequence
+  of steps - and so is planning *actions*. So, we can yoink some
+  good pathfinding algorithms (A*) and use them for AI planning.
+
+  This *works*, and there's a good chance you played something
+  that uses this AI architecture, especially around 2010 - notably,
+  F.E.A.R., TES: IV & V (although Radiant AI is a fairly cut-down
+  version) or Deus Ex: Human Revolution, just to name the AAA titles.
+
+  This is a fairly ambitious implementation; unlike classic GOAP
+  as originally described by Jeff Orkin, we're (ab-)using assoc
+  lists and proc dynamic dispatch to be much more flexible.
+
+  =*=   FLEXIBILITY   =*=
+
+  Notably, by default our states can be described not just as
+  booleans (True/False), but as numeric values (or even strings or
+  lists, if your custom logic can handle that).
+
+  This means that we can create plans that track resource (e.g. money,
+  energy, health) usage  smartly without creating a billion boolean
+  flags for each variant and to account for their depletion when
+  scoring each plan.
+
+  This also allows for goals that are more elaborate; e.g. 'be at
+  position (15, 30) while having at least 20$ and full health'.
+
+  That said, use this sparingly - the more complex the goal, the
+  more expensive the plan will be to compute.
+
+  =*=    EFFICIENCY    =*=
+
+  This brings us to another trick: this implementation has been
+  designed to be portable and easily paused/resumed/stopped and
+  support hard limits on resource consumption.
+
+  Thanks to DM's sleep(), this algorithm runs fairly seamlessly
+  in the background even for heavy jobs.
+
+  We don't want to choke the server with unsatisfiable jobs though;
+  you can set a hard limit on the number of iterations before the
+  planner gives up - in that case, we simply get a null back.
+
+  You can also limit the max queue size, to prevent bigger jobs
+  from eating up all the RAM. This may even speed up the search
+  sometimes!
+
+  =*=      SETUP      =*=
+
+  An unfortunate side-effect of trying to support ALL use-cases
+  is that it's hard to support any specific one out of the box.
+
+  GOAI takes in a *lot* of parameters, and you will likely need
+  to define a bunch of procs to tailor it to your use-cases.
+
+  Worse yet, as DM doesn't, to my knowledge, support closures,
+  it's hard to provide generic procs that would work on simple
+  customized variants of my preferred graph structure.
+
+  At minimum, you will need to define:
+  (1) at least one Action Graph
+  (2) a proc to fetch Preconditions for each Action in the Graph as an assoc list
+  (3) a proc to fetch Effects for each Action in the Graph as an assoc list
+  (4) a proc that compares two assoc lists, Current & Preconds and returns 1 if
+      the Current state meets the requirements of the Action, 0 otherwise.
+  (5) a proc that compares two assoc lists, Current & Goal and returns 1 if
+      the Current state meets the requirements of the Goal, 0 otherwise.
+
+  You can see a sample setup in the goap_testing.dm file.
+*/
+
 # define PLUS_INF 1.#INF
 # define GOAP_KEY_SRC "source"
 
@@ -10,11 +95,50 @@
 # endif
 
 
+/proc/greater_than(var/left, var/right)
+	var/result = left > right
+	//world << "GT: [result], L: [left], R: [right]"
+	return result
+
+
+/proc/greater_or_equal_than(var/left, var/right)
+	var/result = left >= right
+	//world << "GT: [result], L: [left], R: [right]"
+	return result
+
+
 /proc/AddItem(var/oldval, var/newval)
+	/* Returns a sum of old and new values.
+	//
+	// We only use this to avoid using builtins
+	// (which don't always work with call(proc)).
+	// This is the default merge strategy for GOAI.
+	*/
 	if(isnull(newval) || newval == 0)
 		return oldval
+
 	var/total = oldval + newval
 	return total
+
+
+/proc/UseNew(var/oldval, var/newval)
+	/* Always returns the new value, if not-null.
+	//
+	// This can be used as an alternative merge
+	// strategy for GOAI, to implement e.g.:
+	//
+	// - classic Astar pathfinding w/ absolute positions
+	//   as the Action effects (as opposed to deltas - in
+	//   that case, AddItem() would still be enough)
+	//
+	// - for boolean effects (for something closer to original
+	//   GOAP, as default GOAI is really a STRIPS planner instead).
+	*/
+	if(isnull(newval))
+		return oldval
+
+	var/retval = newval
+	return retval
 
 
 /proc/update_counts(var/list/old_state, var/list/new_state, var/default = 0, var/proc/op = null)
@@ -99,6 +223,34 @@
 
 
 /proc/evaluate_neighbor(var/list/graph, var/proc/check_preconds, var/neigh, var/current_pos, var/goal, var/list/blackboard = null, var/blackboard_default = 0, var/proc/blackboard_update_op = null, var/proc/neighbor_measure = null, var/proc/goal_measure = null, var/proc/get_effects)
+	/* Evaluates a single Candidate action based on the current state.
+	//
+	// This involves three essential steps:
+	// - Check preconditions: the action cannot be taken if its requirements are not met
+	//
+	// - Check effects: obviously, we only care about actions that help us get closer to the goal
+	//
+	// - Scoring: we need to (de-)prioritize expanding plans using this Candidate based on how good it is.
+	//   This breaks down further into two scores that are then added together:
+	//
+	//   - (1) Neighbor Measure - the raw cost of taking the Candidate action in the current state
+	//         In pathfinding terms, the 'distance' from current position to the next position.
+	//
+	//   - (2) Goal Measure - a rough estimate of how much closer taking the Candidate gets us to the
+	//         search goal; the *LOWER* the better (since the action gets us *closer* to the goal).
+	//
+	// o graph - assoc list representing the Action graph
+	// o check_preconds - proc that returns 1 if the start state meets preconditions for an available action
+	// o neigh - key in the Graph assoc list representing the Candidate action.
+	// o current_pos - current position in the plan, i.e. the 'start' var in the SearchIteration() call.
+	// o goal  - assoc list of the goal state we're trying to reach (or exceed, depending on cmp)
+	// o blackboard_default - optional; the default value to use for unset keys in the blackboard (only when necessary, e.g. comparing values). Default: 0.
+	// o blackboard_update_op - optional proc; the function used to update the blackboard values to new states. Default: (A, B) => A + B.
+	// o neighbor_measure - optional proc; abstract distance (Start => Candidate) heuristic. DEFAULT: taken from the Action triple
+	// o goal_measure - optional proc; abstract distance (Candidate => Goal) heuristic; DEFAULT: fuzzed uniform cost
+	// o get_effects - proc; should return an assoc list representing expected world state after the Action is executed.
+	//
+	*/
 	var/proc/actual_neigh_measure = neighbor_measure ? neighbor_measure : /proc/graph_neighbor_cost
 	var/proc/actual_goal_measure = goal_measure ? goal_measure : /proc/tiebreaker_dist
 	var/list/actual_blackboard = blackboard ? blackboard : list()
@@ -364,7 +516,8 @@
 	// Somewhat surprisingly, this is a shockingly fast search (at least on relatively small action spaces)!
 	// For larger spaces, you might want to break things down hierarchically - run one planner for the
 	// 'strategy' level and then another for the 'tactical' level, whose action-space is constrained to
-	// the RoE of the strategy)!
+	// the RoE of the strategy - this way, two searches look at small spaces, rather than having one search
+	// over a huge space.
 	//
 	// o graph - assoc list representing the Action graph
 	// o start - assoc list of the currently-evaluated Start state
@@ -444,11 +597,3 @@
 
 	return result
 
-
-/proc/GetActions(var/list/graph)
-	var/list/actions = list()
-
-	for (var/key in graph)
-		actions.Add(key)
-
-	return actions

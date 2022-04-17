@@ -1,16 +1,4 @@
-/*var/global/list/actions = list(
-	"Eat" = new /datum/Triple (1, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
-	//"Eat" = new /datum/Triple (1, list(), list("Fed" = 1, "HasFood" = -1)),
-	"Shop" = new /datum/Triple (1, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
-	"Party" = new /datum/Triple (1, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
-	"Sleep" = new /datum/Triple (1, list("Fed" = 1), list("Rested" = 10)),
-	//"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
-	"DishWash" = new /datum/Triple (1, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
-	"Work" = new /datum/Triple (1, list("Rested" = 1), list("Money" = 10)),
-	"Idle" = new /datum/Triple (1, list(), list("Rested" = 1))
-	//"DebugGetSimple" = new /datum/Triple (100, list(), list("Debug" = 1))
-)
-*/
+/* SAMPLE SETUP: */
 var/global/list/actions = list(
 	"Eat" = new /datum/Triple (10, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
 	"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
@@ -60,18 +48,6 @@ var/global/list/actions = list(
 	return match
 
 
-/proc/greater_than(var/left, var/right)
-	var/result = left > right
-	//world << "GT: [result], L: [left], R: [right]"
-	return result
-
-
-/proc/greater_or_equal_than(var/left, var/right)
-	var/result = left >= right
-	//world << "GT: [result], L: [left], R: [right]"
-	return result
-
-
 /proc/goal_checker_test(var/pos, var/goal, var/proc/cmp_op = null)
 	var/match = 1
 	var/list/pos_effects = islist(pos) ? pos : get_effects_test(pos)
@@ -101,6 +77,7 @@ var/global/list/actions = list(
 	return match
 
 
+/* TESTING VERBS */
 /mob/verb/testGetPlansByArgs()
 	var/iter_cutoff = input("Enter cutoff", "Cutoff", null) as num|null
 	/*var/state_inputs = input("Enter a comma-separated string of initial state", "State", null) as text|null
@@ -128,18 +105,39 @@ var/global/list/actions = list(
 		true_state = list("HasFood" = 0, "HasDirtyDishes" = 2)
 
 	if(!(goals && goals.len))
-		true_goals = list("Fed" = 2, "HasCleanDishes" = 2)
-		//true_goals = list("Money" = 20)
+		//true_goals = list("Fed" = 2, "HasCleanDishes" = 2)
+		true_goals = list("Money" = 20)
 
 	if (isnull(cutoff))
 		true_cutoff = 30
 
-	// start,  goal,  adjacent, check_preconds, handle_backtrack, handle_backtrack_target, paths, visited, neighbor_measure, goal_measure, goal_check, get_effects, cutoff_iter, max_queue_size, pqueue_key_gen, blackboard_default, blackboard_update_op)
-	var/datum/Tuple/result = Plan(actions, true_state, true_goals, /proc/get_actions_test, /proc/check_preconds_test, null, null, null, null, null, null, /proc/goal_checker_test, /proc/get_effects_test, true_cutoff)
+	var/list/params = list()
+	// You don't have to pass args like this; this is just to make things a bit more readable.
+	params["graph"] = actions
+	params["start"] = true_state
+	params["goal"] = true_goals
+	params["adjacent"] = /proc/get_actions_test
+	params["check_preconds"] = /proc/check_preconds_test
+	/*params["handle_backtrack"] = null
+	params["handle_backtrack_target"] = null
+	params["paths"] = null
+	params["visited"] = null
+	params["neighbor_measure"] = null
+	params["goal_measure"] = null*/
+	params["goal_check"] = /proc/goal_checker_test
+	params["get_effects"] = /proc/get_effects_test
+	params["cutoff_iter"] = true_cutoff
+
+	var/datum/Tuple/result = Plan(arglist(params))
+
 	if (result)
 		var/list/path = result.right
 		//world << "Result cost: [result.left]"
 		world << "Path: [path] ([path.len])"
 		for (var/act in path)
 			world << "Step: [act]"
-		world << "   "
+
+	else
+		world << "NO PATH FOUND!"
+
+	world << "   "
