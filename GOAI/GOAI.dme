@@ -14,12 +14,12 @@
 // END_PREFERENCES
 
 // BEGIN_INCLUDE
+#include "_defines.dm"
 #include "actions.dm"
 #include "agent.dm"
 #include "food.dm"
 #include "GOAI.dm"
 #include "goap.dm"
-#include "goap_testing.dm"
 #include "helpers.dm"
 #include "lists.dm"
 #include "pqueue.dm"

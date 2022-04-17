@@ -5,6 +5,13 @@
 		return picked
 	return null
 
+/proc/lpop(list/listfrom)
+	if (listfrom.len > 0)
+		var/picked = listfrom[1]
+		listfrom.Cut(0, 2)
+		return picked
+	return null
+
 /proc/all_in(var/list/haystack, var/list/needles)
 	if(!(needles && haystack))
 		return 0

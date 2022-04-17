@@ -1,73 +1,85 @@
-#define HASFOOD 2
 
-/datum/actionholder
-	var/name = "Do stuff"
-	var/cost = 9999
-	var/list/effects
-	var/list/preconds
-	var/mob/goai/agent/owner
+var/global/list/mob_actions = list(
+	"Eat" = new /datum/Triple (10, list("HasFood" = 1), list(MOTIVE_FOOD = 40, "HasFood" = -1)),
+	"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
+	"Party" = new /datum/Triple (10, list("Money" = 11), list(MOTIVE_SLEEP = 15, "Money" = -11, "Fun" = 40)),
+	"Sleep" = new /datum/Triple (10, list(MOTIVE_FOOD = 30), list(MOTIVE_SLEEP = 50)),
+	//"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
+	"Work" = new /datum/Triple (10, list(MOTIVE_SLEEP = 1), list("Money" = 10)),
+	"Idle" = new /datum/Triple (10, list(), list(MOTIVE_SLEEP = 5))
+)
 
-/datum/actionholder/proc/Action()
-	return 1
-
-/datum/actionholder/proc/CheckPreconditions()
-	return list()
-
-/datum/actionholder/proc/GetPreconditions()
-	return src.preconds ? src.preconds.Copy() : null
-
-/datum/actionholder/proc/GetEffects(var/list/old_state)
-	var/list/new_state = src.effects
-	new_state = new_state ? new_state.Copy() : list()
-	if(old_state)
-		for(var/key in old_state)
-			var/oldval = old_state[key]
-			var/newval = src.effects[key]
-			new_state[key] = isnull(newval) ? oldval : newval
-	return new_state
-
-/datum/actionholder/proc/IsDone()
-	return 1
-
-/datum/PlanHolder
-	var/list/queue = list()
-	var/cost = null
-
-/datum/PlanHolder/New(var/plancost, var/list/actions)
-	..()
-	src.cost = plancost
-	if(actions)
-		for(var/datum/actionholder/A in actions)
-			src.queue.Add(A)
-
-/datum/actionholder/eat
-	name = "Eat"
-	cost = 2
-	preconds = list(HASFOOD)
-	var/satietypotential = 0
-
-/datum/actionholder/eat/CheckPreconditions()
-	if(istype(src,/datum/actionholder))
-		var/datum/actionholder/caller = src
-		if("HasFood" in caller.owner.mobstatuslist)
-			return 1
-		else
-			return 0
-	else
-		return -1 //error return
+/proc/get_actions_agent()
+	var/list/all_actions = list()
+	for (var/act in mob_actions)
+		all_actions.Add(act)
+	return all_actions
 
 
-/datum/actionholder/eat/Action(Food as obj)
-	var/datum/actionholder/caller = src
-	if(!caller)
-		return -1
+/proc/get_preconds_agent(var/action)
+	var/datum/Triple/actiondata = mob_actions[action]
+	var/list/preconds = actiondata.middle
+	return preconds
 
-	if(istype(Food, /obj/food))
-		var/obj/food/foodstuff = Food
-		src.owner.hunger += foodstuff.satiety
-		del(foodstuff)
-		return
 
-	else
-		src.owner << "That's not food!"
-	return -1 //error return
+/proc/get_effects_agent(var/action)
+	var/datum/Triple/actiondata = mob_actions[action]
+	var/list/effects = actiondata.right
+	return effects
+
+
+/proc/check_preconds_agent(var/action, var/list/blackboard)
+	var/match = 1
+	var/list/preconds = get_preconds_agent(action)
+
+	for (var/req_key in preconds)
+		var/req_val = preconds[req_key]
+		if (isnull(req_val))
+			continue
+
+		var/blackboard_val = (req_key in blackboard) ? blackboard[req_key] : null
+		if (isnull(blackboard_val) || (blackboard_val < req_val))
+			match = 0
+			break
+
+
+	return match
+
+
+/proc/goal_checker_agent(var/pos, var/goal, var/proc/cmp_op = null)
+	var/match = 1
+	var/list/pos_effects = islist(pos) ? pos : get_effects_agent(pos)
+	var/proc/comparison = cmp_op ? cmp_op : /proc/greater_or_equal_than
+
+	for (var/state in goal)
+		var/goal_val = goal[state]
+
+		if (isnull(goal_val))
+			continue
+
+		var/curr_value = (state in pos_effects) ? pos_effects[state] : 0
+		var/cmp_result = call(comparison)(curr_value, goal_val)
+
+		if (cmp_result <= 0)
+			match = 0
+			break
+
+	return match
+
+
+/datum/ActionTracker
+	var/tracked_action
+
+	var/is_done = 0
+	var/is_failed = 0
+
+	var/creation_time = null
+	var/last_check_time = null
+
+
+/datum/ActionTracker/New(var/action)
+	tracked_action = action
+	var/curr_time = world.time
+
+	creation_time = curr_time
+	last_check_time = curr_time

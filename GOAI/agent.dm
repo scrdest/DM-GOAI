@@ -1,39 +1,44 @@
-var/global/list/mob_actions = list(
-	"Eat" = new /datum/Triple (10, list("HasFood" = 1), list("Hunger" = 40, "HasFood" = -1)),
-	"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
-	"Party" = new /datum/Triple (10, list("Money" = 11), list("Rested" = 15, "Money" = -11, "Fun" = 40)),
-	"Sleep" = new /datum/Triple (10, list("Hunger" = 30), list("Rested" = 50)),
-	//"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
-	"Work" = new /datum/Triple (10, list("Rested" = 1), list("Money" = 10)),
-	"Idle" = new /datum/Triple (10, list(), list("Rested" = 5))
-)
 
 /mob/goai
 	var/life = 1
 	icon = 'icons/mob/human_races/r_human.dmi'
 	icon_state = "preview"
-	var/list/needs
-	var/list/inventory
+	var/list/needs = list()
 	var/list/actionslist
-	var/list/mobstatuslist
-	var/datum/PlanHolder/active_plan
-	var/datum/actionholder/active_action
+	var/list/inventory
+	var/list/active_plan
+
+	var/selected_action = null
+	var/datum/ActionTracker/running_action = null
+
+	var/last_mob_update_time
+	var/last_action_update_time
+	var/planning_iter_cutoff = 30
 
 
 /mob/verb/InspectGoaiLife()
-	var/list/targetlist = typesof(/mob/goai in world)
-	for(var/i=1,i<=targetlist.len,i++)
-		var/mob/goai/target = targetlist[i]
-		usr << "[target.name] - [target.life]"
+	var/list/targetlist = typesof(/mob/goai/agent in world)
+	for(var/targtype in targetlist)
+		var/mob/goai/agent/M = locate(targtype)
+		usr << "[M.name] - [M.life]"
 
 
 /mob/goai/agent
-	var/tiredness = 100
-	var/hunger = 100
+	var/tiredness = NEED_THRESHOLD
+	var/hunger = NEED_THRESHOLD
+
+	var/decay_per_dsecond = 0.01
 
 
 /mob/goai/New()
 	..()
+
+	var/spawn_time = world.time
+	last_mob_update_time = spawn_time
+	last_action_update_time = spawn_time
+
+	actionslist = get_actions_agent()
+
 	Life()
 
 
@@ -41,51 +46,105 @@ var/global/list/mob_actions = list(
 	return 1
 
 
-/mob/goai/agent/proc/DoPlan()
+/mob/goai/agent/verb/DoAction(Act as anything in actionslist)
+	world.log << "DoAction act: [Act]"
 
-	return 1
+	if(!(Act in actionslist))
+		return null
+
+	var/datum/ActionTracker/new_action = new /datum/ActionTracker(Act)
+	world.log << "New Tracker: [new_action] [new_action.tracked_action] @ [new_action.creation_time]"
+	running_action = new_action
+
+	return running_action
+
+
+/mob/goai/agent/proc/CreatePlan(var/list/status, var/list/goal)
+	var/list/path = null
+
+	var/list/params = list()
+	// You don't have to pass args like this; this is just to make things a bit more readable.
+	params["graph"] = mob_actions
+	params["start"] = status
+	params["goal"] = goal
+	params["adjacent"] = /proc/get_actions_agent
+	params["check_preconds"] = /proc/check_preconds_agent
+	params["goal_check"] = /proc/goal_checker_agent
+	params["get_effects"] = /proc/get_effects_agent
+	params["cutoff_iter"] = planning_iter_cutoff
+
+
+	var/datum/Tuple/result = Plan(arglist(params))
+
+	if (result)
+		path = result.right
+
+	return path
 
 
 /mob/goai/agent/Life()
-	var/list/status = src.mobstatuslist
-	if(!status)
-		status = list()
-		src.mobstatuslist = status
-
 	while(src.life)
-
-		if(src.tiredness < 50 && prob(10))
-			world << "[src.name] *yawn*"
-
-		if(src.hunger < 50 && prob(10))
-			world << "[src.name] *rumble*"
-
 		TirednessDecay()
 		HungerDecay()
 
-		src.needs["Sleep"] = src.tiredness
-		src.needs["Hunger"] = src.hunger
+		if(tiredness < NEED_THRESHOLD && prob(10))
+			world << "[src.name] *yawn*"
 
-		if(active_action) //ready to go
-			DoAction(active_action)
+		if(hunger < NEED_THRESHOLD && prob(10))
+			world << "[src.name] *rumble*"
 
-		else if(active_plan)
-			if(active_plan.queue.len) //step done, move on to the next
-				active_action = pop(active_plan.queue)
+		src.needs[MOTIVE_SLEEP] = src.tiredness
+		src.needs[MOTIVE_FOOD] = src.hunger
 
-		else if(needs && needs.len) //no plan & need to make one
-			var/need = pick(needs)
+		if(running_action) // processing action
+			world << "ACTIVE ACTION: [running_action.tracked_action]"
+			var/running_is_finished = 0
 
+			if(running_action.is_done)
+				running_is_finished = 1
 
-		else //satisfied, can be lazy
-			Idle()
+			else if(running_action.is_failed)
+				running_is_finished = 1
 
-		sleep(10)
+			if(running_is_finished)
+				running_action = null
+
+		else if(selected_action) // ready to go
+			world << "SELECTED ACTION: [selected_action]"
+			running_action = DoAction(selected_action)
+			selected_action = null
+
+		else if(active_plan && active_plan.len)
+			world << "ACTIVE PLAN: [active_plan] ([active_plan.len])"
+			if(active_plan.len) //step done, move on to the next
+				selected_action = lpop(active_plan)
+
+		else //no plan & need to make one
+			var/list/curr_state = list()
+			var/list/goal_state = list()
+
+			for (var/need_key in needs)
+				var/need_val = needs[need_key]
+				curr_state[need_key] = need_val
+
+				if (need_val < NEED_THRESHOLD)
+					world.log << "[src.name] needs [need_key]"
+					goal_state[need_key] = NEED_SAFELEVEL
+
+				if (goal_state && goal_state.len)
+					world.log << "Creating plan!"
+					active_plan = CreatePlan(curr_state, goal_state)
+					world.log << (active_plan ? "Created plan [active_plan]" : "Failed to create a plan")
+
+				else //satisfied, can be lazy
+					Idle()
+
+		sleep(5)
 
 
 /mob/goai/agent/Move()
 	..()
-	src.tiredness--
+	TirednessDecay()
 
 
 /mob/goai/agent/proc/Idle() //make this an action later!
@@ -97,48 +156,14 @@ var/global/list/mob_actions = list(
 
 
 /mob/goai/agent/proc/TirednessDecay()
-	if(src.tiredness >= 0)
-		src.tiredness -= 1
-	else
-		src.tiredness = 0
+	var/deltaT = (world.time - last_mob_update_time)
+	var/cand_tiredness = max(0, (tiredness - deltaT * decay_per_dsecond))
+	tiredness = cand_tiredness
+	world.log << "Curr energy [tiredness]"
 
 
 /mob/goai/agent/proc/HungerDecay()
-	if(src.hunger >= 0)
-		src.hunger -= 1
-	else
-		src.hunger = 0
-
-
-/mob/goai/agent/proc/GetHunger()
-	var/howhungry = src.hunger
-	return howhungry
-
-
-/mob/goai/agent/proc/GetTiredness()
-	var/howtired = src.tiredness
-	return howtired
-
-
-/mob/goai/agent/verb/DoAction(Act as obj in actionslist)
-	if(istype(Act,/datum/actionholder))
-		var/datum/actionholder/WhatDo = Act
-		WhatDo.Action()
-		return 1
-	else
-		return 0
-
-
-/mob/goai/agent/proc/Has(What as obj)
-	if(What in src.inventory)
-		return 1
-	else
-		return 0
-
-
-/mob/goai/agent/proc/HasType(What as obj)
-	if(typesof(What) in src.inventory)
-		return 1
-	else
-		return 0
-
+	var/deltaT = (world.time - last_mob_update_time)
+	var/cand_hunger = max(0, (hunger - deltaT * decay_per_dsecond))
+	hunger = cand_hunger
+	world.log << "Curr hunger [hunger]"
