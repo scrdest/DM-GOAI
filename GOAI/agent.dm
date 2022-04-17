@@ -1,3 +1,13 @@
+var/global/list/mob_actions = list(
+	"Eat" = new /datum/Triple (10, list("HasFood" = 1), list("Hunger" = 40, "HasFood" = -1)),
+	"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
+	"Party" = new /datum/Triple (10, list("Money" = 11), list("Rested" = 15, "Money" = -11, "Fun" = 40)),
+	"Sleep" = new /datum/Triple (10, list("Hunger" = 30), list("Rested" = 50)),
+	//"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1)),
+	"Work" = new /datum/Triple (10, list("Rested" = 1), list("Money" = 10)),
+	"Idle" = new /datum/Triple (10, list(), list("Rested" = 5))
+)
+
 /mob/goai
 	var/life = 1
 	icon = 'icons/mob/human_races/r_human.dmi'
@@ -14,11 +24,10 @@
 	var/list/targetlist = typesof(/mob/goai in world)
 	for(var/i=1,i<=targetlist.len,i++)
 		var/mob/goai/target = targetlist[i]
-		src << "[target.name] - [target.life]"
+		usr << "[target.name] - [target.life]"
 
 
 /mob/goai/agent
-	var/datum/need
 	var/tiredness = 100
 	var/hunger = 100
 
@@ -32,6 +41,11 @@
 	return 1
 
 
+/mob/goai/agent/proc/DoPlan()
+
+	return 1
+
+
 /mob/goai/agent/Life()
 	var/list/status = src.mobstatuslist
 	if(!status)
@@ -39,14 +53,18 @@
 		src.mobstatuslist = status
 
 	while(src.life)
-		if(src.tiredness < 50 && !("Tired" in src.mobstatuslist))
+
+		if(src.tiredness < 50 && prob(10))
 			world << "[src.name] *yawn*"
-			status.Add("Tired")
-		if(src.hunger < 50 && !("Hungry" in src.mobstatuslist))
+
+		if(src.hunger < 50 && prob(10))
 			world << "[src.name] *rumble*"
-			status.Add("Hungry")
+
 		TirednessDecay()
 		HungerDecay()
+
+		src.needs["Sleep"] = src.tiredness
+		src.needs["Hunger"] = src.hunger
 
 		if(active_action) //ready to go
 			DoAction(active_action)
@@ -55,8 +73,9 @@
 			if(active_plan.queue.len) //step done, move on to the next
 				active_action = pop(active_plan.queue)
 
-		/*else if(needs && needs.len) //no plan & need to make one
-			var/need = pick(needs)*/
+		else if(needs && needs.len) //no plan & need to make one
+			var/need = pick(needs)
+
 
 		else //satisfied, can be lazy
 			Idle()
