@@ -8,3 +8,10 @@
 	set src in view(1)
 	var/true_state = isnull(state) ? icon_state : state
 	icon_state = true_state
+
+
+/obj/desk
+	name = "desk"
+	icon = 'icons/obj/computer.dmi'
+	icon_state = "syndicam"
+
