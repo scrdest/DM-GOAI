@@ -75,11 +75,13 @@
 
 
 /datum/ActionTracker/proc/SetDone()
+	world.log << "Setting tracker to done!"
 	is_done = 1
 	return
 
 
 /datum/ActionTracker/proc/SetFailed()
+	world.log << "Setting tracker to failed!"
 	is_failed = 1
 	return
 

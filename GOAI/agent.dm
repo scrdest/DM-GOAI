@@ -46,6 +46,7 @@
 	last_mob_update_time = spawn_time
 	last_action_update_time = spawn_time
 
+	/* TODO: add Time as a resource! */
 	actionslist = list(
 		"Eat" = new /datum/Triple (10, list("HasFood" = 1), list(MOTIVE_FOOD = 40, "HasFood" = -1)),
 		"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
@@ -71,14 +72,34 @@
 
 
 /mob/goai/agent/proc/HandleSleeping(var/datum/ActionTracker/tracker)
-	AddMotive(MOTIVE_SLEEP, 5)
+	var/obj/bed/sleeploc = locate()
+	if(!sleeploc)
+		tracker.SetFailed()
 
-	if(prob(20))
-		Say("Zzzzzzz...")
+	var/dist = ManhattanDistance(src, sleeploc)
 
-	if(tracker.IsOlderThan(60))
-		world.log << "Setting tracker to done!"
-		tracker.is_done = 1
+	if(dist <= 1)
+		if(!("TimeAt" in tracker.tracker_blackboard))
+			tracker.tracker_blackboard["TimeAt"] = 0
+		else
+			tracker.tracker_blackboard["TimeAt"] = tracker.tracker_blackboard["TimeAt"] + 1
+
+		AddMotive(MOTIVE_SLEEP, 5)
+
+		if(prob(20))
+			Say("Zzzzzzz...")
+
+
+	else
+		walk_towards(src, sleeploc, 3)
+
+
+	if(tracker.tracker_blackboard["TimeAt"] > 10)
+		tracker.SetDone()
+
+
+	if(tracker.IsOlderThan(600))
+		tracker.SetFailed()
 
 
 /mob/goai/agent/proc/HandleIdling(var/datum/ActionTracker/tracker)
@@ -86,18 +107,20 @@
 	AddMotive(MOTIVE_FOOD, -1)
 	AddMotive(MOTIVE_SLEEP, 1)
 
-	if(tracker.IsOlderThan(60))
-		world.log << "Setting tracker to done!"
-		tracker.is_done = 1
+	if(tracker.IsOlderThan(20))
+		tracker.SetDone()
 
 
 /mob/goai/agent/proc/HandleEating(var/datum/ActionTracker/tracker)
 	var/obj/food/noms = locate()
+	if(!noms)
+		tracker.SetFailed()
+
 	var/dist = ManhattanDistance(src, noms)
 
-	var/time_at_food = ("TimeAt" in tracker.tracker_blackboard ? tracker.tracker_blackboard["TimeAt"] : null)
+	var/time_at = ("TimeAt" in tracker.tracker_blackboard ? tracker.tracker_blackboard["TimeAt"] : null)
 	world.log << "NOMS DIST: [dist]"
-	world.log << "TIME AT NOMS: [time_at_food]"
+	world.log << "TIME AT NOMS: [time_at]"
 
 	if(dist <= 2)
 		if(!("TimeAt" in tracker.tracker_blackboard))
@@ -112,13 +135,18 @@
 		walk_towards(src, noms, 5)
 
 	if(tracker.tracker_blackboard["TimeAt"] > 10)
-		world.log << "Setting tracker to done!"
-		tracker.is_done = 1
+		tracker.SetDone()
 		AddMotive(MOTIVE_FOOD, 5)
+
+	if(tracker.IsOlderThan(600))
+		tracker.SetFailed()
 
 
 /mob/goai/agent/proc/HandleWorking(var/datum/ActionTracker/tracker)
 	var/obj/desk/workdesk = locate()
+	if(!workdesk)
+		tracker.SetFailed()
+
 	tracker.tracker_blackboard["Desk"] = workdesk
 
 	var/dist = ManhattanDistance(src, workdesk)
@@ -137,9 +165,11 @@
 	else
 		walk_towards(src, workdesk, 3)
 
-	if(tracker.tracker_blackboard["TimeAt"] > 30)
-		world.log << "Setting tracker to done!"
-		tracker.is_done = 1
+	if(tracker.tracker_blackboard["TimeAt"] > 10)
+		tracker.SetDone()
+
+	if(tracker.IsOlderThan(600))
+		tracker.SetFailed()
 
 
 /mob/goai/agent/proc/HandlePartying(var/datum/ActionTracker/tracker)
@@ -147,9 +177,35 @@
 
 	randMove()
 
-	if(tracker.IsOlderThan(30))
-		world.log << "Setting tracker to done!"
-		tracker.is_done = 1
+	if(tracker.IsOlderThan(40))
+		tracker.SetDone()
+
+
+/mob/goai/agent/proc/HandleShopping(var/datum/ActionTracker/tracker)
+	var/obj/vending/vendor = locate()
+	if(!vendor)
+		tracker.SetFailed()
+
+	tracker.tracker_blackboard["Vendor"] = vendor
+
+	var/dist = ManhattanDistance(src, vendor)
+
+	world.log << "DESK DIST: [dist]"
+
+	if(dist <= 2)
+		if(!("TimeAt" in tracker.tracker_blackboard))
+			tracker.tracker_blackboard["TimeAt"] = 0
+		else
+			tracker.tracker_blackboard["TimeAt"] = tracker.tracker_blackboard["TimeAt"] + 1
+
+	else
+		walk_towards(src, vendor, 3)
+
+	if(tracker.tracker_blackboard["TimeAt"] > 5)
+		tracker.SetDone()
+
+	if(tracker.IsOlderThan(600))
+		tracker.SetFailed()
 
 
 /mob/goai/agent/proc/HandleAction(var/action, var/datum/ActionTracker/tracker)
@@ -182,6 +238,9 @@
 
 			else if (action == "Party")
 				HandlePartying(tracker)
+
+			else if (action == "Shop")
+				HandleShopping(tracker)
 
 			else if (prob(10))
 				world.log << "Setting tracker to done!"

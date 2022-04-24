@@ -101,15 +101,24 @@
 
 
 /proc/EuclidDistance(var/atom/from_pos, var/atom/to_pos)
+	if(isnull(from_pos) || isnull(to_pos))
+		return PLUS_INF
+
 	var/dist = sqrt(SQUARED(to_pos.x - from_pos.x) + SQUARED(to_pos.y - from_pos.y))
 	return dist
 
 
 /proc/ManhattanDistance(var/atom/from_pos, var/atom/to_pos)
+	if(isnull(from_pos) || isnull(to_pos))
+		return PLUS_INF
+
 	var/dist = (abs(to_pos.x - from_pos.x) + abs(to_pos.y - from_pos.y))
 	return dist
 
 
 /proc/ChebyshevDistance(var/atom/from_pos, var/atom/to_pos)
-	var/dist = max((to_pos.x - from_pos.x), (to_pos.y - from_pos.y))
+	if(isnull(from_pos) || isnull(to_pos))
+		return PLUS_INF
+
+	var/dist = max(abs(to_pos.x - from_pos.x), abs(to_pos.y - from_pos.y))
 	return dist
