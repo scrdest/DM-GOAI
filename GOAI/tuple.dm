@@ -19,6 +19,43 @@
 	right = snd
 
 
+/datum/Tuple/proc/FirstCompare(var/datum/Tuple/left, var/datum/Tuple/right)
+	// returns 1 if Right > Left
+	// returns -1 if Right < Left
+	// return 0 if Right == Left
+
+	// Does not care about the second item - first item is the sort key.
+
+	if (right.left > left.left)
+		return 1
+
+	if (right.left < left.left)
+		return -1
+
+	return 0
+
+
+
+/datum/Tuple/proc/TupleCompare(var/datum/Tuple/left, var/datum/Tuple/right)
+	// returns 1 if Right > Left
+	// returns -1 if Right < Left
+	// return 0 if Right == Left
+
+	if (right.left > left.left)
+		return 1
+
+	if (right.left < left.left)
+		return -1
+
+	if (right.right > left.right)
+		return 1
+
+	if (right.right < left.right)
+		return -1
+
+	return 0
+
+
 /datum/Triple
 	var/left = null
 	var/middle = null
@@ -29,6 +66,28 @@
 	left = new_left
 	middle = new_mid
 	right = new_right
+
+
+/datum/Triple/proc/FirstTwoCompare(var/datum/Triple/left, var/datum/Triple/right)
+	// returns 1 if Right > Left
+	// returns -1 if Right < Left
+	// return 0 if Right == Left
+
+	// Does not care about the last item - first two are the hierarchical sort key.
+
+	if (right.left > left.left)
+		return 1
+
+	if (right.left < left.left)
+		return -1
+
+	if (right.middle > left.middle)
+		return 1
+
+	if (right.middle < left.middle)
+		return -1
+
+	return 0
 
 
 /datum/Quadruple

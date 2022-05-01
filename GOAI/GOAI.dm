@@ -12,9 +12,13 @@ world
 // Make objects move 8 pixels per tick when walking
 
 mob
-	step_size = 16
+	//step_size = 16
 	icon = 'icons/mob/mob.dmi'
 	icon_state = "ghost1"
 
 obj
-	step_size = 32
+	var/pathweight = 1
+	//step_size = 32
+
+/turf
+	var/pathweight = 1

@@ -16,9 +16,7 @@
 // BEGIN_INCLUDE
 #include "_defines.dm"
 #include "actions.dm"
-#include "agent.dm"
 #include "demoGoap.dm"
-#include "food.dm"
 #include "GOAI.dm"
 #include "goap_classy.dm"
 #include "goap_classy_testing.dm"
@@ -27,6 +25,14 @@
 #include "pqueue.dm"
 #include "tuple.dm"
 #include "turfs.dm"
-#include "basicmap.dmm"
+#include "combatmap.dmm"
+#include "basics\brain.dm"
+#include "demo\_astar.dm"
+#include "demo\_defines_action.dm"
+#include "demo\_utils.dm"
+#include "demo\agent.dm"
+#include "demo\combat_brain.dm"
+#include "demo\combatant.dm"
+#include "demo\food.dm"
 // END_INCLUDE
 
