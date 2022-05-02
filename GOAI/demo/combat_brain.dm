@@ -1,19 +1,29 @@
+/datum/GOAP/demoGoap/combatGoap
+
+
+/datum/GOAP/demoGoap/combatGoap/update_op(var/old_val, var/new_val)
+	var/result = new_val
+	return result
+
 
 /datum/brain/concrete/combat
 
 
-/datum/brain/concrete/combat/New(var/list/actions)
-	..()
-
-	needs = list()
+/datum/brain/concrete/combat/InitNeeds()
+	needs = ..()
 	needs[NEED_COVER] = NEED_MINIMUM
+	//needs[NEED_ENEMIES] = 2
+	return needs
 
-	var/spawn_time = world.time
-	last_need_update_times = list()
-	last_mob_update_time = spawn_time
-	last_action_update_time = spawn_time
 
-	actionslist = actions
+/datum/brain/concrete/combat/InitStates()
+	states = ..()
+	states[STATE_DOWNTIME] = TRUE
+	return states
 
-	var/datum/GOAP/demoGoap/new_planner = new /datum/GOAP/demoGoap(actionslist)
+
+/datum/brain/concrete/combat/New(var/list/actions)
+	..(actions)
+
+	var/datum/GOAP/demoGoap/new_planner = new /datum/GOAP/demoGoap/combatGoap/(actionslist)
 	planner = new_planner

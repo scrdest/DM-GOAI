@@ -1,6 +1,7 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
 "c" = (/mob/goai/combatant,/turf/ground,/area)
+"d" = (/mob/goai/combatant{name = "combatant 2"},/turf/ground,/area)
 
 (1,1,1) = {"
 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -19,7 +20,7 @@ abbababbbbbbbbbbbbbbbbbbbbbbbbba
 abbbbabbbababbbbbbbbbbbbbabbbbba
 abbabaabaaaaaaaaaabaaaaaaaaaaaaa
 abbabbbbbbbbbbbbbabbabbabbbbabba
-aababbbbbbbbbbbbaabbabbabbbbabba
+aababbbbbbbbbbdbaabbabbabbbbabba
 abbabbbbbbbbbbbbabbaabaaabbaabba
 abbaaabbbbabbbaaaabbabbabbbbaaba
 abbabbbbbbbbbbbbabbaabbabbbbabba

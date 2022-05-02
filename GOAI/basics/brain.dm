@@ -1,6 +1,7 @@
 /datum/brain
 	var/life = 1
 	var/list/needs
+	var/list/states
 	var/list/actionslist
 	var/list/active_plan
 
@@ -14,6 +15,28 @@
 	var/planning_iter_cutoff = 30
 
 	var/datum/GOAP/planner
+
+
+/datum/brain/New(var/list/actions)
+	..()
+
+	if(actions)
+		actionslist = actions.Copy()
+
+	InitNeeds()
+	InitStates()
+
+	return
+
+
+/datum/brain/proc/InitNeeds()
+	needs = list()
+	return needs
+
+
+/datum/brain/proc/InitStates()
+	states = list()
+	return states
 
 
 /datum/brain/proc/Life()
@@ -95,7 +118,7 @@
 			selected_action = lpop(active_plan)
 
 	else //no plan & need to make one
-		var/list/curr_state = list()
+		var/list/curr_state = states.Copy()
 		var/list/goal_state = list()
 
 		for (var/need_key in needs)
