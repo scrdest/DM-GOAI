@@ -78,17 +78,50 @@
 	usr << "X=======================X"
 
 
-/mob/goai/combatant/verb/GiveOrders(mob/M in world)
+/mob/goai/combatant/verb/CancelOrders()
+	set src in view()
+
+	SetState(STATE_DOWNTIME, TRUE)
+	usr << "Set [src] downtime-state to [TRUE]"
+
+	usr << (waypoint ? "[src] tracking [waypoint]" : "[src] no longer tracking waypoints")
+
+	return waypoint
+
+
+/mob/goai/combatant/verb/GiveFollowOrder(mob/M in world)
 	set src in view()
 	if(!M)
 		return
 
-	var/curr_state = GetState(STATE_DOWNTIME, FALSE)
-	SetState(STATE_DOWNTIME, !curr_state)
-	usr << "Set [src] orders-state to [!curr_state]"
+	SetState(STATE_DOWNTIME, FALSE)
+	usr << "Set [src] downtime-state to [FALSE]"
 
 	waypoint = M
+	usr << (waypoint ? "[src] now tracking [waypoint]" : "[src] not tracking waypoints")
 
+	return waypoint
+
+
+/mob/goai/combatant/verb/GiveMoveOrder(posX as num, posY as num)
+	set src in view()
+
+	var/trueX = posX % world.maxx
+	var/trueY = posY % world.maxy
+	var/trueZ = src.z
+
+	var/turf/position = locate(trueX, trueY, trueZ)
+	if(!position)
+		usr << "Target position does not exist!"
+		return
+
+	SetState(STATE_DOWNTIME, FALSE)
+	usr << "Set [src] downtime-state to [FALSE]"
+
+	waypoint = position
+	usr << (waypoint ? "[src] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[src] not tracking waypoints")
+
+	return waypoint
 
 
 /mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = null)
@@ -188,6 +221,9 @@
 				if(!(cand in curr_view))
 					continue
 
+				if(!(cand.Enter(src)))
+					continue
+
 				var/cand_dist = ManhattanDistance(cand, src)
 
 				var/open_lines = cand.GetOpenness()
@@ -254,6 +290,9 @@
 					continue
 
 				if(!(cand in curr_view))
+					continue
+
+				if(!(cand.Enter(src)))
 					continue
 
 				var/cand_dist = ManhattanDistance(cand, src)
@@ -353,6 +392,9 @@
 					continue
 
 				if(!(cand in curr_view))
+					continue
+
+				if(!(cand.Enter(src)))
 					continue
 
 				var/cand_dist = ManhattanDistance(cand, src)
@@ -467,7 +509,7 @@
 
 
 /mob/goai/combatant/proc/MovementSystem()
-	if(!(active_path) || active_path.IsDone())
+	if(!(active_path) || active_path.IsDone() || is_moving)
 		return
 
 	var/success = FALSE
@@ -523,14 +565,16 @@
 
 
 /mob/goai/combatant/Move()
-	..()
+	. = ..()
 
 
 /mob/goai/combatant/proc/randMove()
+	is_moving = 1
 	var/moving_to = 0 // otherwise it always picks 4
 	moving_to = pick(SOUTH, NORTH, WEST, EAST)
 	dir = moving_to //How about we turn them the direction they are moving, yay.
 	Move(get_step(src, moving_to))
+	is_moving = 0
 
 
 /mob/goai/combatant/proc/Idle()

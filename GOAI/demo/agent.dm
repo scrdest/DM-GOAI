@@ -14,6 +14,7 @@
 	var/datum/ActivePathTracker/active_path
 
 	var/is_repathing = 0
+	var/is_moving = 0
 
 	var/list/last_need_update_times
 	var/last_mob_update_time
@@ -31,7 +32,13 @@
 	if(!(usr && usr.client))
 		return
 
-	src.client = usr.client
+	if(usr.loc == src)
+		usr.loc = src.loc
+		return
+
+	usr.loc = src
+
+	return
 
 
 /mob/goai/proc/GetActionsList()

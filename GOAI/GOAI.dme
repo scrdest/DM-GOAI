@@ -34,6 +34,7 @@
 #include "demo\combat_brain.dm"
 #include "demo\combatant.dm"
 #include "demo\food.dm"
+#include "demo\linreg_debug.dm"
 #include "demo\sim.dm"
 // END_INCLUDE
 
