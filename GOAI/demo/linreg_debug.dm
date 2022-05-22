@@ -58,17 +58,16 @@ Temporary disable - gets in the way in the dropdown
 	return out_pos
 
 
-/turf/verb/TestEuclidWalkToPos(stepsize as num)
+/turf/verb/TestEuclidWalkToPos(steps as num)
 	set src in view()
 
 	var/total_dist = EuclidDistance(usr, src)
-	var/old_dist = total_dist
 	usr << " "
 	usr << "SRC: [src], USR: [usr], DIST: [total_dist]"
 
-	//var/true_steps = abs(steps)
-	//var/stepsize = total_dist / true_steps
-	//world.log << "STEPSIZE: [stepsize]"
+	var/true_steps = max(1, abs(steps))
+	var/stepsize = total_dist / true_steps
+	world.log << "STEPSIZE: [stepsize]"
 
 	var/starting_z = usr.z  // in case usr changes z-levels during calculation, we copy by value here
 
@@ -77,12 +76,16 @@ Temporary disable - gets in the way in the dropdown
 
 	var/atom/curr_turf = CoordsToTurf(curr_pos, starting_z)
 
-	var/i = 0
+	var/i = 1
+	var/running = TRUE
 
-	while(curr_turf)
-		var/curr_dist = EuclidDistance(curr_turf, src)
-		var/curr_step_size = ((curr_dist <= stepsize) ? curr_dist : stepsize * i)
-		i++
+	while(curr_turf && running)
+		usr << ""
+		var/curr_step_size = stepsize * i++
+
+		if (curr_step_size >= total_dist)
+			curr_step_size = total_dist
+			running = FALSE
 
 		var/Vector2d/step_result = GetEuclidStepPos(curr_pos, targ_pos, curr_step_size)
 		usr << "GetEuclidStepPos result TO [targ_pos] ([targ_pos.x], [targ_pos.y]) @ STEP [curr_step_size]: [step_result] ([step_result.x], [step_result.y])"
@@ -91,15 +94,6 @@ Temporary disable - gets in the way in the dropdown
 
 		usr << "CoordsToTurf result FROM [step_result] ([step_result.x], [step_result.y]) TO [targ_pos] ([targ_pos.x], [targ_pos.y]): [curr_turf]"
 		usr << " "
-
-
-		if(curr_dist > old_dist)
-			break
-
-		if(curr_dist < stepsize)
-			break
-
-		old_dist = curr_dist
 
 	usr << " "
 	return
