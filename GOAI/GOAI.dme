@@ -21,8 +21,11 @@
 #include "goap_classy.dm"
 #include "goap_classy_testing.dm"
 #include "helpers.dm"
+#include "linear_algebra.dm"
+#include "linreg_debug.dm"
 #include "lists.dm"
 #include "pqueue.dm"
+#include "trigonometry.dm"
 #include "tuple.dm"
 #include "turfs.dm"
 #include "combatmap.dmm"
@@ -32,9 +35,7 @@
 #include "demo\_utils.dm"
 #include "demo\agent.dm"
 #include "demo\combat_brain.dm"
-#include "demo\combatant_off.dm"
+#include "demo\combatant.dm"
 #include "demo\food.dm"
-#include "demo\linreg_debug.dm"
-#include "demo\sim.dm"
 // END_INCLUDE
 

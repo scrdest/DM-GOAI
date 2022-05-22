@@ -147,6 +147,10 @@
 	if(pathtracker)
 		active_path = pathtracker
 
+	if(istype(trg, /turf))
+		var/turf/trg_turf = trg
+		trg_turf.DrawVectorbeam()
+
 	is_repathing = 0
 	return active_path
 
