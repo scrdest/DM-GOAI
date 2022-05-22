@@ -1,3 +1,11 @@
+
+/proc/floor(x)
+	return round(x)
+
+/proc/ceil(x)
+	return -round(-x)
+
+
 /proc/pop(list/listfrom)
 	if (listfrom.len > 0)
 		var/picked = listfrom[listfrom.len]
@@ -104,7 +112,10 @@
 	if(isnull(from_pos) || isnull(to_pos))
 		return PLUS_INF
 
-	var/dist = sqrt(SQUARED(to_pos.x - from_pos.x) + SQUARED(to_pos.y - from_pos.y))
+	var/deltaX = to_pos.x - from_pos.x
+	var/deltaY = to_pos.y - from_pos.y
+
+	var/dist = sqrt(deltaX ** 2 + deltaY ** 2)
 	return dist
 
 

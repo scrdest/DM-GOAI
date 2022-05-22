@@ -25,8 +25,19 @@
 	return done
 
 
+/Vector2d
+	parent_type = /datum/Tuple
+	var/x
+	var/y
 
-/proc/LinRegress(var/atom/From, var/atom/To)
+
+/Vector2d/New(var/fst, var/snd)
+	. = ..(fst, snd)
+	x = fst
+	y = snd
+
+
+/proc/LinRegress(var/Vector2d/From, var/Vector2d/To)
 	/* Finds the slope coefficient A in the line equation:
 
 	   (1) --  y = Ax + B  --
@@ -70,7 +81,7 @@
 	return slope
 
 
-/proc/GetEuclidStepOffset(var/atom/From, var/atom/To, var/dist = 1)
+/proc/GetEuclidStepOffset(var/Vector2d/From, var/Vector2d/To, var/dist = 1)
 	/* Produces coords for a single (unrasterized) step along the line from From to To.
 
 	Kind of like get_step_towards(), but works w/o the hard tile limits
@@ -97,14 +108,18 @@
 
 	*/
 
+	if (From.x == To.x && From.y == To.y)
+		var/Vector2d/identity_result = new(0, 0)
+		return identity_result
+
 	var/slope = LinRegress(From, To)
 
 	if (slope == 0)
-		var/datum/Tuple/zero_result = new(dist, 0)
+		var/Vector2d/zero_result = new(dist, 0)
 		return zero_result
 
 	if (abs(slope) == PLUS_INF)
-		var/datum/Tuple/inf_result = new(0, dist)
+		var/Vector2d/inf_result = new(0, dist)
 		return inf_result
 
 	var/sq_dist = (dist ** 2)
@@ -112,24 +127,29 @@
 	var/x_offset = (sq_dist / (1 + sq_slope))
 	var/y_offset = slope * x_offset
 
-	var/datum/Tuple/result = new(x_offset, y_offset)
+	var/Vector2d/result = new(x_offset, y_offset)
 
 	return result
 
 
-/proc/GetEuclidStepPos(var/atom/From, var/atom/To, var/dist = 1)
+/proc/AtomToVector2d(var/atom/atomPos, center = TRUE)
+	var/Vector2d/pos_vec = new(atomPos.x + (center ? 0.5 : 0), atomPos.y + (center ? 0.5 : 0))
+	return pos_vec
+
+
+/proc/GetEuclidStepPos(var/Vector2d/From, var/Vector2d/To, var/dist = 1)
 	/* Same as GetEuclidStepOffset, except produces an absolute
 	position and not a relative offset.
 
 	Can be used to walk over a raycast between two points.
 	*/
-	var/datum/Tuple/offsets = GetEuclidStepOffset(From, To, dist)
+	var/Vector2d/offsets = GetEuclidStepOffset(From, To, dist)
 
 	if(isnull(offsets))
 		return
 
-	var/x_off = offsets.left
-	var/y_off = offsets.right
+	var/x_off = offsets.x
+	var/y_off = offsets.y
 
 	if(isnull(x_off) || isnull(y_off))
 		return
@@ -137,6 +157,43 @@
 	var/x_pos = From.x + x_off
 	var/y_pos = From.y + y_off
 
-	var/datum/Tuple/result = new(x_pos, y_pos)
+	var/Vector2d/result = new(x_pos, y_pos)
 
 	return result
+
+
+/proc/CoordsToTurf(var/Vector2d/coords, var/z_level = 1)
+	if(isnull(coords))
+		world.log << "CoordsToTurf: null coords!"
+		return
+
+	var/x_pos = coords.x
+	var/y_pos = coords.y
+	var/z_pos = z_level
+
+	if(isnull(x_pos) || isnull(y_pos) || isnull(z_pos))
+		world.log << "CoordsToTurf: null position!"
+		return
+
+	var/adj_x_pos = floor(x_pos)
+	var/adj_y_pos = floor(y_pos)
+
+	var/turf/step_loc = locate(adj_x_pos, adj_y_pos, z_pos)
+	world.log << "CoordsToTurf locate([adj_x_pos], [adj_y_pos], [z_pos]) => [step_loc]"
+
+	return step_loc
+
+
+/proc/GetEuclidStep(var/Vector2d/From, var/Vector2d/To, var/dist = 1, var/zlevel = 1)
+	/* Same as GetEuclidStepPos, except produces a turf rather than coordinates
+
+	Can be used to walk over a raycast between two points.
+	*/
+	var/Vector2d/coords = GetEuclidStepPos(From, To, dist)
+	var/z_pos = zlevel
+
+	if(isnull(z_pos))
+		return
+
+	var/turf/step_loc = CoordsToTurf(coords, z_pos)
+	return step_loc
