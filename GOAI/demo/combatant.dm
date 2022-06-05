@@ -12,7 +12,27 @@
 
 /mob/goai/combatant/InitStates()
 	states = ..()
+
+	/* Controls autonomy; if FALSE, agent has specific overriding orders,
+	// otherwise can 'smart idle' (i.e. wander about, but stil tacticool,
+	// as opposed to just sitting in place).
+	//
+	// Can be used as a precondition to/signal of running more micromanaged behaviours.
+	//
+	// With Sim-style needs, TRUE can be also used to let the NPC take care
+	// of any non-urgent motives; partying ANTAGs, why not?)
+	*/
 	states[STATE_DOWNTIME] = TRUE
+
+	/* Simple item tracker. */
+	states[STATE_HASGUN] = (locate(/obj/gun) in src.contents) ? 1 : 0
+
+	/* Controls if the agent is *allowed & able* to engage using *anything*
+	// Can be used to force 'hold fire' or simulate the hands being occupied
+	// during special actions / while using items.
+	*/
+	states[STATE_CANFIRE] = 1
+
 	return states
 
 
@@ -23,10 +43,18 @@
 		//"Idle" = new /datum/Triple (10, list(), list()),
 		//"Take Cover" = new /datum/Triple (10, list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
 		"Cover Leapfrog" = new /datum/Triple (10, list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
-		"Directional Cover Leapfrog" = new /datum/Triple (4, list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
+		"Directional Cover" = new /datum/Triple (4, list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
+		//"Directional Cover Leapfrog" = new /datum/Triple (4, list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
 		//"Cover Fire" = new /datum/Triple (5, list(STATE_INCOVER = 1), list(NEED_COVER = NEED_MINIMUM, STATE_INCOVER = 0, NEED_ENEMIES = NEED_SATISFIED)),
+		//"Shoot" = new /datum/Triple (10, list(STATE_CANFIRE = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
 	)
 	return new_actionslist
+
+
+/mob/goai/combatant/Equip()
+	. = ..()
+	GimmeGun()
+	return
 
 
 /mob/goai/combatant/proc/GetActionLookup()
@@ -34,15 +62,17 @@
 	action_lookup["Idle"] = /mob/goai/combatant/proc/HandleIdling
 	action_lookup["Take Cover"] = /mob/goai/combatant/proc/HandleTakeCover
 	action_lookup["Cover Leapfrog"] = /mob/goai/combatant/proc/HandleCoverLeapfrog
+	action_lookup["Directional Cover"] = /mob/goai/combatant/proc/HandleDirectionalCover
 	action_lookup["Directional Cover Leapfrog"] = /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog
 	action_lookup["Cover Fire"] = /mob/goai/combatant/proc/HandleIdling
+	action_lookup["Shoot"] = /mob/goai/combatant/proc/HandleShoot
 	return action_lookup
 
 
-/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = null)
+/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = NONE)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist)
-	new_brain.states = states.Copy()
+	new_brain.states = states
 	return new_brain
 
 
@@ -124,12 +154,12 @@
 	return waypoint
 
 
-/mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = null)
+/mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = NONE)
 	var/list/path = AStar(get_turf(loc), trg, /turf/proc/CardinalTurfs, /turf/proc/Distance, 0, pathing_dist_cutoff, min_target_dist = min_dist, exclude = avoid)
 	return path
 
 
-/mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0)
+/mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0)
 	var/datum/ActivePathTracker/pathtracker = null
 	var/list/path = FindPathTo(trg,  min_dist, avoid)
 
@@ -139,7 +169,7 @@
 	return pathtracker
 
 
-/mob/goai/combatant/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0)
+/mob/goai/combatant/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0)
 	is_repathing = 1
 
 	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, inh_frustration)
@@ -367,6 +397,108 @@
 	return
 
 
+/mob/goai/combatant/proc/HandleDirectionalCover(var/datum/ActionTracker/tracker)
+	//var/turf/startpos = tracker.BBSetDefault("startpos", src.loc)
+	var/turf/best_local_pos = tracker.BBGet("bestpos", null)
+
+	if(isnull(best_local_pos) && active_path && (!(active_path.IsDone())) && active_path.target && active_path.frustration < 2)
+		best_local_pos = active_path.target
+
+	//world.log << (isnull(best_local_pos) ? "Best local pos: null" : "Best local pos [best_local_pos]")
+
+	if(isnull(best_local_pos))
+		var/list/processed = list()
+		var/PriorityQueue/cover_queue = new /PriorityQueue(/datum/Quadruple/proc/TriCompare)
+		var/list/curr_view = oview(src)
+
+		for(var/turf/wall/loc_wall in curr_view)
+			if(!(loc_wall.is_corner || loc_wall.is_pillar))
+				if(prob(90))
+					continue
+
+			var/list/adjacents = loc_wall.CardinalTurfs(TRUE)
+
+			if(!adjacents)
+				continue
+
+			for(var/turf/cand in adjacents)
+				if(cand in processed)
+					continue
+
+				if(!(cand in curr_view))
+					continue
+
+				if(!(cand.Enter(src)))
+					continue
+
+				var/cand_dist = ManhattanDistance(cand, src)
+
+				var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
+				var/total_dist = (cand_dist + targ_dist)
+
+				var/open_lines = cand.GetOpenness()
+				var/score = -abs(open_lines-pick(
+					/*
+					This is a bit un-obvious:
+
+					What we're doing here is biasing the pathing towards
+					cover positions *around* the picked value.
+
+					For example, if we roll a 3, the ideal cover position
+					would be one with Openness score of 3.
+
+					However, this is not a hard requirement; if we don't
+					have a 3, we'll accept a 2 or a 4 (equally, preferentially)
+					and if we don't have *those* - a 1 or a 5, etc.
+
+					This makes it harder for the AI to wind up giving up due to
+					no valid positions; sub-optimal is still good enough in that case.
+
+					The randomness is here to make the leapfrogging more dynamic;
+					if we just rank by best cover, we'll just wind bouncing between
+					the same positions, and this action is supposed to be more like
+					a 'smart' tacticool wandering behaviour.
+					 */
+					120; 3,
+					50; 4,
+					5; 7
+				))
+
+				var/datum/Quadruple/cover_quad = new(-targ_dist, score, -total_dist, cand)
+				cover_queue.Enqueue(cover_quad)
+				processed.Add(cand)
+
+		var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
+
+		best_local_pos = best_cand_quad.fourth
+		tracker.BBSet("bestpos", best_local_pos)
+		world.log << (isnull(best_local_pos) ? "Best local pos: null" : "Best local pos [best_local_pos]")
+
+
+	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
+		world.log << "Navigating to [best_local_pos]"
+		StartNavigateTo(best_local_pos)
+
+	if(best_local_pos)
+		var/dist_to_pos = ManhattanDistance(src.loc, best_local_pos)
+		if(dist_to_pos <= 1)
+			tracker.SetTriggered()
+
+	var/is_triggered = tracker.IsTriggered()
+
+	if(is_triggered)
+		if(tracker.TriggeredMoreThan(10))
+			tracker.SetDone()
+
+	else if(active_path && tracker.IsOlderThan(100))
+		tracker.SetFailed()
+
+	else if(tracker.IsOlderThan(50))
+		tracker.SetFailed()
+
+	return
+
+
 /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog(var/datum/ActionTracker/tracker)
 	//var/turf/startpos = tracker.BBSetDefault("startpos", src.loc)
 	var/turf/best_local_pos = tracker.BBGet("bestpos", null)
@@ -470,7 +602,87 @@
 		tracker.SetFailed()
 
 	return
-.
+
+
+/mob/goai/combatant/proc/HandleShoot(var/datum/ActionTracker/tracker)
+	if (tracker.IsStopped())
+		return
+
+	if(tracker.IsOlderThan(50))
+		tracker.SetFailed()
+		return
+
+	states[STATE_CANFIRE] = TRUE
+	tracker.SetDone()
+
+	return
+
+
+/mob/goai/combatant/proc/GetTarget(var/list/searchspace = NONE, var/maxtries = 5)
+	var/list/true_searchspace = (isnull(searchspace) ? view() : searchspace)
+
+	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
+
+	for(var/mob/goai/combatant/enemy in true_searchspace)
+		var/enemy_dist = ManhattanDistance(src.loc, enemy)
+
+		if (enemy_dist <= 0)
+			continue
+
+		var/datum/Tuple/enemy_tup = new(-enemy_dist, enemy)
+		target_queue.Enqueue(enemy_tup)
+
+	var/tries = 0
+	var/atom/target = null
+
+	while (isnull(target) && target_queue.L.len && tries < maxtries)
+		var/datum/Tuple/best_target_tup = target_queue.Dequeue()
+		target = best_target_tup.right
+		tries++
+
+	return target
+
+
+/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = NONE, var/atom/cached_target = NONE)
+	. = FALSE
+
+	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.contents) : cached_gun)
+
+	if(isnull(my_gun))
+		world.log << "Gun not found for [src] to shoot D;"
+		return FALSE
+
+	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
+
+	if(!isnull(target))
+		my_gun.shoot(target, src)
+		. = TRUE
+
+	return .
+
+
+/mob/goai/combatant/proc/HandleShootOld(var/datum/ActionTracker/tracker)
+	if (tracker.IsStopped())
+		return
+
+	if(tracker.IsOlderThan(50))
+		tracker.SetFailed()
+		return
+
+	var/obj/gun/my_gun = locate(/obj/gun) in src.contents
+
+	if(isnull(my_gun))
+		world.log << "Gun not found for [src] to shoot D;"
+		return
+
+	var/atom/target = GetTarget()
+	var/successful = Shoot(my_gun, target)
+
+	if(successful)
+		tracker.SetDone()
+
+	return
+
 /*
 /mob/goai/combatant/verb/DoAction(Act as anything in actionslist)
 	world.log << "DoAction act: [Act]"
@@ -511,6 +723,13 @@
 			LifeTick()
 			sleep(AI_TICK_DELAY)
 
+	// Combat system; decoupled from generic planning/actions to make it run
+	// *in parallel* to other behaviours - e.g. run-and-gun or fire from cover
+	spawn(0)
+		while(life)
+			FightTick()
+			sleep(AI_TICK_DELAY)
+
 
 /mob/goai/combatant/proc/MovementSystem()
 	if(!(active_path) || active_path.IsDone() || is_moving)
@@ -547,6 +766,7 @@
 
 
 	else
+		// This happens prematurely in some cases, dunno why ATM
 		world.log << "Setting path to Done"
 		active_path.SetDone()
 
@@ -564,6 +784,17 @@
 			var/tracked_action = brain.running_action_tracker.tracked_action
 			if(tracked_action)
 				HandleAction(tracked_action, brain.running_action_tracker)
+
+	return
+
+
+/mob/goai/combatant/proc/FightTick()
+	var/can_fire = ((STATE_CANFIRE in states) ? states[STATE_CANFIRE] : FALSE)
+	if(!can_fire)
+		return
+
+	var/atom/target = GetTarget()
+	Shoot(NONE, target)
 
 	return
 

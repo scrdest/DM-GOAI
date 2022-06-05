@@ -1,9 +1,14 @@
+/dict/memories
+
+
 /datum/brain
 	var/life = 1
-	var/list/needs
-	var/list/states
+	var/dict/needs
+	var/dict/states
 	var/list/actionslist
 	var/list/active_plan
+	var/dict/memories/memories
+
 
 	var/is_planning = 0
 	var/selected_action = null
@@ -17,11 +22,14 @@
 	var/datum/GOAP/planner
 
 
-/datum/brain/New(var/list/actions)
+/datum/brain/New(var/list/actions, var/list/init_memories)
 	..()
 
 	if(actions)
 		actionslist = actions.Copy()
+
+	if(init_memories)
+		memories = new /dict/memories(init_memories)
 
 	InitNeeds()
 	InitStates()
@@ -30,12 +38,12 @@
 
 
 /datum/brain/proc/InitNeeds()
-	needs = list()
+	needs = new /dict(list())
 	return needs
 
 
 /datum/brain/proc/InitStates()
-	states = list()
+	states = new /dict(list())
 	return states
 
 

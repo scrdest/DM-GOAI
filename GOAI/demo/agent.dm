@@ -56,6 +56,7 @@
 /mob/goai/New()
 	..()
 
+	Equip()
 	InitNeeds()
 	InitStates()
 
@@ -79,6 +80,10 @@
 /mob/goai/proc/InitStates()
 	states = list()
 	return states
+
+
+/mob/goai/proc/Equip()
+	return
 
 
 /mob/goai/proc/UpdateBrain()

@@ -1,3 +1,6 @@
+/* to make optional types a bit clearer: */
+# define NONE null
+
 # define NEED_COVER "cover"
 # define NEED_PATROL "patrol"
 # define NEED_ENEMIES "enemies"
@@ -5,3 +8,5 @@
 
 # define STATE_INCOVER "in_cover"
 # define STATE_DOWNTIME "no_orders"
+# define STATE_HASGUN "has_gun"
+# define STATE_CANFIRE "can_shoot"

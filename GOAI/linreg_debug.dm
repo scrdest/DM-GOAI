@@ -182,7 +182,6 @@ Temporary disable - gets in the way in the dropdown
 	var/angle = arctan(dx, dy)
 
 	var/Vector2d/vec_length = dist
-	var/Vector2d/vec_dist = dist
 
 	var/obj/vectorbeam/vanishing/new_beam = new(usr.loc, vec_length, vec_length, angle)
 	usr << "Spawned new beam [new_beam]"
