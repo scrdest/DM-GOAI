@@ -1,4 +1,5 @@
-# define SQUARED(X) (X * X)
+# define PI 3.14159265
+# define LOG2(x) log(2, x)
 
 # define AI_TICK_DELAY 5
 

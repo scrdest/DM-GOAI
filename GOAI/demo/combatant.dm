@@ -76,6 +76,27 @@
 	return new_brain
 
 
+
+/mob/goai/combatant/Hit(var/angle)
+	. = ..(angle)
+	var/impact_angle = IMPACT_ANGLE(angle)
+	/* NOTE: impact_angle is in degrees from *positive X axis* towards Y, i.e.:
+	//
+	// impact_angle = +0   => hit from straight East
+	// impact_angle = +180 => hit from straight West
+	// impact_angle = -180 => hit from straight West
+	// impact_angle = -90  => hit from straight North
+	// impact_angle = +90  => hit from straight South
+	// impact_angle = +45  => hit from North-East
+	// impact_angle = -45  => hit from South-East
+	//
+	// Everything else - extrapolate from the above.
+	*/
+	world.log << "Impact angle [impact_angle]"
+	brain.SetMemory("ShotAt", impact_angle, 600)
+
+
+
 /mob/goai/combatant/verb/InspectGoaiLife()
 	set src in view(1)
 	usr << "X=======================X"

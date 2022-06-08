@@ -1,13 +1,10 @@
-/dict/memories
-
-
 /datum/brain
 	var/life = 1
-	var/dict/needs
-	var/dict/states
+	var/list/needs
+	var/list/states
 	var/list/actionslist
 	var/list/active_plan
-	var/dict/memories/memories
+	var/dict/memories
 
 
 	var/is_planning = 0
@@ -29,7 +26,9 @@
 		actionslist = actions.Copy()
 
 	if(init_memories)
-		memories = new /dict/memories(init_memories)
+		memories = new /dict(init_memories)
+	else
+		memories = new /dict()
 
 	InitNeeds()
 	InitStates()
@@ -37,13 +36,45 @@
 	return
 
 
+/datum/brain/proc/HasMemory(var/mem_key)
+	return (mem_key in memories)
+
+
+/datum/brain/proc/GetMemory(var/mem_key, var/default = null)
+	if(HasMemory(mem_key))
+		var/datum/memory/retrieved_mem = memories.Get(mem_key, null)
+
+		if(isnull(retrieved_mem))
+			return default
+
+		if(retrieved_mem.GetAge() < retrieved_mem.ttl)
+			return retrieved_mem
+
+		memories[mem_key] = null
+
+	return default
+
+
+/datum/brain/proc/SetMemory(var/mem_key, var/mem_val, var/mem_ttl)
+
+	if(HasMemory(mem_key))
+		var/datum/memory/retrieved_mem = memories[mem_key]
+		retrieved_mem.Update(mem_val)
+		return retrieved_mem
+
+	else
+		var/datum/memory/created_mem = new(mem_val, mem_ttl)
+		memories.Set(mem_key, created_mem)
+		return created_mem
+
+
 /datum/brain/proc/InitNeeds()
-	needs = new /dict(list())
+	needs = list()
 	return needs
 
 
 /datum/brain/proc/InitStates()
-	states = new /dict(list())
+	states = list()
 	return states
 
 

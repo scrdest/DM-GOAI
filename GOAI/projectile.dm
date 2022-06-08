@@ -40,7 +40,7 @@
 		// some stupid nonsense with how matrix.Turn() works requires this
 		turn_angle = 180 - angle
 
-	world.log << "SpinAngle [angle], YTrans: [y_translate]"
+	//world.log << "SpinAngle [angle], YTrans: [y_translate]"
 
 	beam_transform.Scale(1, scale)
 
@@ -69,7 +69,7 @@
 	var/cooldown_time_deterministic = 17
 	var/cooldown_time_random = 3
 
-	var/dispersion = 5
+	var/dispersion = 10
 	var/ammo_sprite = null
 
 
@@ -97,8 +97,10 @@
 	if(cooling)
 		return
 
+	cool()
+
 	var/atom/source = (isnull(From) ? src : From)
-	world.log << "Beam src: [source], at: [At]"
+	//world.log << "Beam src: [source], at: [At]"
 	var/dist = EuclidDistance(source, At)
 	var/shot_dispersion = rand(-dispersion, dispersion) % 180
 
@@ -109,9 +111,18 @@
 	var/vec_length = dist
 
 	var/obj/projectile/newbeam = new(source.loc, vec_length, vec_length, angle, ammo_sprite)
-	world.log << "Beam [newbeam] <@[source] length [vec_length]>"
+	//world.log << "Beam [newbeam] <@[source] length [vec_length]>"
 
-	cool()
+	var/true_dy = vec_length * sin(angle)
+	var/true_dx = vec_length * cos(angle)
+
+	var/hit_x = (source.x + true_dx)
+	var/hit_y = (source.y + true_dy)
+
+	if ((floor(hit_x) == At.x) && (floor(hit_y) == At.y))
+		world.log << "Emission angle [angle]"
+		At.Hit(angle)
+
 
 	return
 

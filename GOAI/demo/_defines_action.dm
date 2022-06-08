@@ -10,3 +10,7 @@
 # define STATE_DOWNTIME "no_orders"
 # define STATE_HASGUN "has_gun"
 # define STATE_CANFIRE "can_shoot"
+
+# define COMBATAI_AI_TICK_DELAY 5
+# define COMBATAI_MOVE_TICK_DELAY 5
+# define COMBATAI_FIGHT_TICK_DELAY 5

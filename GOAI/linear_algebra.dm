@@ -1,3 +1,9 @@
+/* Angle in degrees, standardized to positive & <360.*/
+# define CLOCKWISE_ANGLE(x) ((x + 360) % 360)
+
+/* Given an angle of emission into a target, calculates the angle of impact from the target's POV */
+# define IMPACT_ANGLE(x) ((CLOCKWISE_ANGLE(x) - 180) % 180)
+
 /Vector2d
 	var/x
 	var/y
@@ -168,3 +174,4 @@
 
 	var/turf/step_loc = CoordsToTurf(coords, z_pos)
 	return step_loc
+
