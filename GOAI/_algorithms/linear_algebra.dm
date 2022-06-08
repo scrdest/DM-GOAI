@@ -4,16 +4,6 @@
 /* Given an angle of emission into a target, calculates the angle of impact from the target's POV */
 # define IMPACT_ANGLE(x) ((CLOCKWISE_ANGLE(x) - 180) % 180)
 
-/Vector2d
-	var/x
-	var/y
-
-
-/Vector2d/New(var/fst, var/snd)
-	x = fst
-	y = snd
-
-
 /proc/LinRegress(var/Vector2d/From, var/Vector2d/To)
 	/* Finds the slope coefficient A in the line equation:
 
