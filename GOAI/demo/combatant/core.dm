@@ -1,5 +1,3 @@
-// moved to combatant/core, kept for now for diffs' sake
-
 # define STEP_SIZE 1
 # define STEP_COUNT 1
 

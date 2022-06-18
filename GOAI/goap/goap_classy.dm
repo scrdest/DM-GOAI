@@ -471,7 +471,7 @@ X================================================================X
 	next_params["cutoff_iter"] = cutoff_iter
 	next_params["max_queue_size"] = max_queue_size
 
-	while(next_params && continue_search):
+	while (next_params && continue_search)
 		sleep(-1) // this is a safe time to pause things and catch up with reality
 
 		result = SearchIteration(arglist(next_params))

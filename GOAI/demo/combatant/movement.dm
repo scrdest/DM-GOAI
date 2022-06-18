@@ -35,11 +35,17 @@
 	if(!(active_path) || active_path.IsDone() || is_moving)
 		return
 
+	var/datum/Tuple/curr_loc = src.CurrentPositionAsTuple()
+
 	var/success = FALSE
 	var/atom/next_step = ((active_path.path && active_path.path.len) ? active_path.path[1] : null)
-	if(next_step == src.loc)
+	/* var/datum/Tuple/next_step_loc = next_step?.CurrentPositionAsTuple()
+
+	while(next_step_loc && next_step_loc ~= curr_loc)
+		world.log << "Next step for [src] is in the same loc [curr_loc] ([curr_loc?.left], [curr_loc?.right])"
 		lpop(active_path.path)
-		next_step = ((active_path.path && active_path.path.len) ? lpop(active_path.path) : null)
+		next_step = lpop(active_path?.path)
+		next_step_loc = next_step.CurrentPositionAsTuple()*/
 
 	var/atom/followup_step = ((active_path.path && active_path.path.len >= 2) ? active_path.path[2] : null)
 

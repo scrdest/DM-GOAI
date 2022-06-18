@@ -1,30 +1,38 @@
 /dict
-	var/list/contents = list()
+	var/list/data = list()
 
 
 /dict/New(var/list/init_memories = null)
-	contents = isnull(init_memories) ? list() : init_memories.Copy()
+	data = isnull(init_memories) ? list() : init_memories.Copy()
+	//world.log << "DICT: Created with data [data]!"
 	return
 
 
 /dict/proc/Copy()
-	var/dict/newdict = new(contents.Copy())
+	var/dict/newdict = new(data.Copy())
 	return newdict
 
 
 /dict/proc/Items()
-	return contents.Copy()
+	return data.Copy()
+
+
+/dict/proc/HasKey(var/key)
+	return (key in data)
 
 
 /dict/proc/Get(var/key, var/default = null)
-	if (key in contents)
-		return contents[key]
+	if (HasKey(key))
+		var/retrieved = data[key]
+		//world.log << "DICT: Key [key] retrieved, data is [retrieved]"
+		return retrieved
 
+	//world.log << "DICT: Key [key] missing!"
 	return default
 
 
 /dict/proc/Set(var/key, var/val)
-	contents[key] = val
+	data[key] = val
 	return src
 
 

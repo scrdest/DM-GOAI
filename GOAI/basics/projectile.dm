@@ -53,6 +53,7 @@
 	src.y = source.y
 	src.transform = beam_transform
 
+
 /obj/projectile/proc/PostNewHook()
 	var/true_lifetime = lifetime // placeholder for proper validation :^)
 
@@ -69,7 +70,7 @@
 	var/cooldown_time_deterministic = 17
 	var/cooldown_time_random = 3
 
-	var/dispersion = 10
+	var/dispersion = GUN_DISPERSION
 	var/ammo_sprite = null
 
 
@@ -120,11 +121,11 @@
 	var/hit_y = (source.y + true_dy)
 
 	if ((floor(hit_x) == At.x) && (floor(hit_y) == At.y))
-		world.log << "Emission angle [angle]"
-		At.Hit(angle)
+		//world.log << "Emission angle [angle]"
+		At.Hit(angle, From)
 
 
-	return
+	return newbeam
 
 
 /obj/gun/verb/Shoot(var/atom/At as mob in view())

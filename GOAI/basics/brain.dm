@@ -1,4 +1,5 @@
 /datum/brain
+	var/name = "brain"
 	var/life = 1
 	var/list/needs
 	var/list/states
@@ -37,35 +38,45 @@
 
 
 /datum/brain/proc/HasMemory(var/mem_key)
-	return (mem_key in memories)
+	var/found = (mem_key in memories.data)
+	//world.log << "Memory for key [mem_key] [found ? "TRUE" : "FALSE"]"
+	return found
 
 
-/datum/brain/proc/GetMemory(var/mem_key, var/default = null)
+/datum/brain/proc/GetMemory(var/mem_key, var/default = null, by_age = FALSE)
 	if(HasMemory(mem_key))
 		var/datum/memory/retrieved_mem = memories.Get(mem_key, null)
 
 		if(isnull(retrieved_mem))
+			//world.log << "Retrieved default Memory for removed [mem_key]"
 			return default
 
-		if(retrieved_mem.GetAge() < retrieved_mem.ttl)
+		var/relevant_age = by_age ? retrieved_mem.GetAge() : retrieved_mem.GetFreshness()
+
+		if(relevant_age < retrieved_mem.ttl)
+			//world.log << "Retrieved Memory: [mem_key]"
 			return retrieved_mem
+
 
 		memories[mem_key] = null
 
+	//world.log << "Retrieved default Memory for missing [mem_key]"
 	return default
 
 
 /datum/brain/proc/SetMemory(var/mem_key, var/mem_val, var/mem_ttl)
+	var/datum/memory/retrieved_mem = memories.Get(mem_key)
 
-	if(HasMemory(mem_key))
-		var/datum/memory/retrieved_mem = memories[mem_key]
-		retrieved_mem.Update(mem_val)
-		return retrieved_mem
+	if(isnull(retrieved_mem))
+		//world.log << "Inserting Memory for [mem_key] with [mem_val]"
+		retrieved_mem = new(mem_val, mem_ttl)
+		memories.Set(mem_key, retrieved_mem)
 
 	else
-		var/datum/memory/created_mem = new(mem_val, mem_ttl)
-		memories.Set(mem_key, created_mem)
-		return created_mem
+		//world.log << "Updating Memory for [mem_key] with [mem_val]"
+		retrieved_mem.Update(mem_val)
+
+	return retrieved_mem
 
 
 /datum/brain/proc/InitNeeds()

@@ -29,3 +29,5 @@
 # endif
 
 # define get_turf(A) get_step(A,0)
+
+# define GUN_DISPERSION 5

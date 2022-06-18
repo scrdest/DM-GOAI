@@ -23,3 +23,11 @@
 
 	var/dist = max(abs(to_pos.x - from_pos.x), abs(to_pos.y - from_pos.y))
 	return dist
+
+
+/proc/ManhattanDistanceNumeric(var/srcX, var/srcY, var/trgX, var/trgY)
+	if(isnull(srcX) || isnull(trgX) || isnull(srcY) || isnull(trgY))
+		return PLUS_INF
+
+	var/dist = (abs(trgX - srcX) + abs(trgY - srcY))
+	return dist

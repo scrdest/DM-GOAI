@@ -79,3 +79,14 @@
 	usr << (waypoint ? "[src] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[src] not tracking waypoints")
 
 	return waypoint
+
+
+/mob/goai/combatant/verb/Disarm()
+	set src in view()
+
+	var/curr_firing_state = ((STATE_CANFIRE in states) ? states[STATE_CANFIRE] : FALSE)
+	states[STATE_CANFIRE] = !curr_firing_state
+
+	usr << "[src] CAN_FIRE set to [states[STATE_CANFIRE]]"
+
+	return

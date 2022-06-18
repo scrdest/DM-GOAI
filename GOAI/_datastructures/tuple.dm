@@ -19,6 +19,10 @@
 	right = snd
 
 
+/datum/Tuple/proc/operator~=(var/datum/Tuple/other)
+	return (istype(other) && (left == other?.left) && (right == other?.right))
+
+
 /datum/Tuple/proc/FirstCompare(var/datum/Tuple/left, var/datum/Tuple/right)
 	// returns 1 if Right > Left
 	// returns -1 if Right < Left
@@ -68,6 +72,10 @@
 	right = new_right
 
 
+/datum/Triple/proc/operator~=(var/datum/Triple/other)
+	return (istype(other) && (left == other?.left) && (middle == other?.middle) && (right == other?.right))
+
+
 /datum/Triple/proc/FirstTwoCompare(var/datum/Triple/left, var/datum/Triple/right)
 	// returns 1 if Right > Left
 	// returns -1 if Right < Left
@@ -103,6 +111,9 @@
 	third = new_third
 	fourth = new_fourth
 
+
+/datum/Quadruple/proc/operator~=(var/datum/Quadruple/other)
+	return (istype(other) && (first == other?.first) && (second == other?.second) && (third == other?.third) && (fourth == other?.fourth))
 
 
 /datum/Quadruple/proc/QuadCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)

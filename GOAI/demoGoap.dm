@@ -1,13 +1,3 @@
-# define PLUS_INF 1.#INF
-# define GOAP_KEY_SRC "source"
-
-# ifdef DEBUG_LOGGING
-# define MAYBE_LOG(X) world.log << X
-# define MAYBE_LOG_TOSTR(X) world.log << #X + ": [X]"
-# else
-# define MAYBE_LOG(X)
-# define MAYBE_LOG_TOSTR(X)
-# endif
 
 // Demo implementation
 /datum/GOAP/demoGoap

@@ -36,7 +36,7 @@
 
 
 /proc/pop(list/listfrom)
-	if (listfrom.len > 0)
+	if (listfrom && listfrom.len)
 		var/picked = listfrom[listfrom.len]
 		listfrom.len--
 		return picked
@@ -44,7 +44,7 @@
 
 
 /proc/lpop(list/listfrom)
-	if (listfrom.len > 0)
+	if (listfrom && listfrom.len)
 		var/picked = listfrom[1]
 		listfrom.Cut(0, 2)
 		return picked
