@@ -484,7 +484,7 @@ X================================================================X
 
 			if (!isnull(cutoff_iter)) // 0 is *technically* valid, so let's use ifnull...
 				curr_iter = curr_iter + 1
-				if (curr_iter >= cutoff_iter):
+				if (curr_iter >= cutoff_iter)
 					MAYBE_LOG("Path not found within [cutoff_iter] iterations!")
 					return
 

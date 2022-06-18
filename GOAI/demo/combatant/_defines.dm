@@ -15,7 +15,7 @@
 # define COMBATAI_MOVE_TICK_DELAY 5
 # define COMBATAI_FIGHT_TICK_DELAY 25
 
-//
+// Memory system constants
 # define MEM_TIME_LONGTERM 10000
 
 // Keys for the memory dict
@@ -34,3 +34,6 @@
 # define KEY_GHOST_POS_TUPLE "posTuple"
 # define KEY_GHOST_POS_TRIPLE "posTriple"
 # define KEY_GHOST_ANGLE "posAngle"
+
+# define KEY_ACTION_AIM "Aim"
+# define KEY_AIM_TARGET "aimTarget"

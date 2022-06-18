@@ -1,13 +1,46 @@
 
+/datum/aim
+	var/atom/target
+
+/datum/aim/New(var/atom/aim_target)
+	target = aim_target
+
+
 /mob/goai/combatant/proc/FightTick()
 	var/can_fire = ((STATE_CANFIRE in states) ? states[STATE_CANFIRE] : FALSE)
+	
 	if(!can_fire)
 		return
 
 	var/atom/target = GetTarget()
-	Shoot(NONE, target)
+
+	var/datum/memory/aim_mem = brain?.GetMemory(KEY_ACTION_AIM, null, FALSE)
+	var/datum/aim/target_aim = aim_mem?.val
+
+	var/aim_time = GetAimTime(target)
+
+	if(isnull(target_aim) || target_aim.target != target)
+		if(brain)
+			target_aim = new(target)
+			aim_mem = brain?.SetMemory(KEY_ACTION_AIM, target_aim, aim_time*5)
+			// we started aiming, no point in moving forwards
+			// I guess unless/until I add melee...
+			return
+
+	spawn(aim_time)
+		if(target in view(src))
+			Shoot(NONE, target)
 
 	return
+
+
+/mob/goai/combatant/proc/GetAimTime(var/atom/target)
+	if(isnull(target))
+		return
+	
+	var/targ_distance = EuclidDistance(src, target)
+	var/aim_time = rand(clamp(targ_distance*5, 1, 200)) + rand()*10
+	return aim_time
 
 
 /mob/goai/combatant/proc/GetTarget(var/list/searchspace = NONE, var/maxtries = 5)
@@ -35,7 +68,7 @@
 	return target
 
 
-/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = NONE, var/atom/cached_target = NONE)
+/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = NONE, var/atom/cached_target = NONE, var/datum/aim/cached_aim = NONE)
 	. = FALSE
 
 	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.contents) : cached_gun)

@@ -179,13 +179,13 @@
 				goal_state[need_key] = NEED_SAFELEVEL
 
 			if (goal_state && goal_state.len && (!is_planning))
-				world.log << "Creating plan!"
+				//world.log << "Creating plan!"
 
 				spawn(0)
 					var/list/raw_active_plan = CreatePlan(curr_state, goal_state)
 
 					if(raw_active_plan)
-						world.log << "Created plan [raw_active_plan]"
+						//world.log << "Created plan [raw_active_plan]"
 						var/first_clean_pos = 0
 
 						for (var/planstep in raw_active_plan)
@@ -207,13 +207,13 @@
 
 
 /datum/brain/concrete/verb/DoAction(Act as anything in actionslist)
-	world.log << "DoAction act: [Act]"
+	//world.log << "DoAction act: [Act]"
 
 	if(!(Act in actionslist))
 		return null
 
 	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(Act)
-	world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
+	//world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
 	running_action_tracker = new_actiontracker
 
 	return new_actiontracker

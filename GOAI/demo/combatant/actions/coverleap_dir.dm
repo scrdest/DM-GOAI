@@ -53,14 +53,13 @@
 
 				var/penalty = 0
 
-				var/threat_angle = GetThreatAngle(cand, threat)
+				if(threat)
+					var/threat_angle = GetThreatAngle(cand, threat)
+					var/threat_dir = angle2dir(threat_angle)
+					var/cand_dir_offset = get_dir(cand, loc_wall)
 
-				var/threat_dir = angle2dir(threat_angle)
-
-				var/cand_dir_offset = get_dir(cand, loc_wall)
-
-				if((cand_dir_offset & threat_dir) == 0)
-					continue
+					if((cand_dir_offset & threat_dir) == 0)
+						continue
 
 				var/cand_dist = ManhattanDistance(cand, src)
 				if(cand_dist < 3)
@@ -74,7 +73,7 @@
 
 				var/threat_dist = GetThreatDistance(cand, threat)
 
-				if(threat_dist < 3)
+				if(threat && threat_dist < 3)
 					//penalty += MAGICNUM_DISCOURAGE_SOFT
 					continue
 
@@ -119,6 +118,10 @@
 		var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
 
 		best_local_pos = istype(best_cand_quad) ? best_cand_quad?.fourth : null
+		/* We could do this here^ but I'm not sure if it's the right move yet
+		// So I'm doing it as a separate line to make it easy to comment in/out.
+		*/
+		//best_local_pos = isnull(best_local_pos) ? src.loc : best_local_pos
 
 		if(threat)
 			var/bestie_threat_angle = GetThreatAngle(best_local_pos, threat)
@@ -139,6 +142,8 @@
 		var/dist_to_pos = ManhattanDistance(src.loc, best_local_pos)
 		if(dist_to_pos < 1)
 			tracker.SetTriggered()
+	else
+		tracker.SetFailed()
 
 	if(tracker.IsTriggered() && !tracker.is_done)
 		if(tracker.TriggeredMoreThan(1))
