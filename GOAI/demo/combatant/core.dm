@@ -1,3 +1,13 @@
+/* In this module:
+===================
+
+ - Mob definition
+ - HandleAction core logic
+ - AI Mainloop (Life()/LifeTick())
+ - Init for subsystems per AI (by extension - it's in Life())
+
+*/
+
 # define STEP_SIZE 1
 # define STEP_COUNT 1
 
@@ -9,6 +19,9 @@
 
 	var/atom/waypoint
 
+	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
+	var/initial_action = null
+
 
 /mob/goai/combatant/proc/HandleAction(var/action, var/datum/ActionTracker/tracker)
 	MAYBE_LOG("Tracker: [tracker]")
@@ -19,6 +32,7 @@
 		return
 
 	while (tracker && running)
+		// TODO: Interrupts
 		running = tracker.IsRunning()
 
 		MAYBE_LOG("Tracker: [tracker] running @ [running]")
@@ -27,7 +41,7 @@
 			// task-specific logic goes here
 			MAYBE_LOG("HandleAction action is: [action]!")
 
-			var/mob/goai/combatant/proc/actionproc = ((action in action_lookup) ? action_lookup[action] : null)
+			var/mob/goai/combatant/actionproc = ((action in action_lookup) ? action_lookup[action] : null)
 
 			if(isnull(actionproc))
 				tracker.SetFailed()
@@ -35,7 +49,7 @@
 			else
 				call(src, actionproc)(tracker)
 
-		sleep(AI_TICK_DELAY)
+		sleep(COMBATAI_AI_TICK_DELAY)
 
 
 /*
@@ -66,6 +80,12 @@
 
 
 /mob/goai/combatant/Life()
+	// Movement updates
+	spawn(0)
+		while(life)
+			SensesSystem()
+			sleep(COMBATAI_SENSE_TICK_DELAY)
+
 	// Movement updates
 	spawn(0)
 		while(life)

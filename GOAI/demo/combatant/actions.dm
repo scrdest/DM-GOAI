@@ -1,3 +1,10 @@
+/* In this module:
+===================
+
+ - angle2dir helper (might be moved)
+ - Misc. actions (not worth their own module yet)
+
+*/
 
 /proc/angle2dir(var/angle)
 	var/true_angle = round(CLOCKWISE_ANGLE(angle))

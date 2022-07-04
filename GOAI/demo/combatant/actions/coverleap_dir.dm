@@ -28,9 +28,9 @@
 		var/list/curr_view = oview(src)
 
 		for(var/turf/wall/loc_wall in curr_view)
-			if(!(loc_wall.is_corner || loc_wall.is_pillar))
+			/*if(!(loc_wall.is_corner || loc_wall.is_pillar))
 				if(prob(90))
-					continue
+					continue*/
 
 			var/list/adjacents = loc_wall.CardinalTurfs(TRUE)
 
@@ -56,9 +56,9 @@
 				if(threat)
 					var/threat_angle = GetThreatAngle(cand, threat)
 					var/threat_dir = angle2dir(threat_angle)
-					var/cand_dir_offset = get_dir(cand, loc_wall)
 
-					if((cand_dir_offset & threat_dir) == 0)
+					var/atom/maybe_cover = get_step(cand, threat_dir)
+					if(!(maybe_cover.density))  // is cover check
 						continue
 
 				var/cand_dist = ManhattanDistance(cand, src)

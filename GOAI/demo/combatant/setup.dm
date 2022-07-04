@@ -60,6 +60,7 @@
 
 /mob/goai/combatant/CreateBrain(var/list/custom_actionslist = NONE)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
-	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist)
-	new_brain.states = states
+	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist, NONE, src.initial_action)
+	new_brain.needs = src.states
+	new_brain.states = src.states
 	return new_brain

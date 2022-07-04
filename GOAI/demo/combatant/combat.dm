@@ -173,6 +173,8 @@
 
 	brain.SetMemory(MEM_SHOTAT, shot_memory_ghost, COMBATAI_AI_TICK_DELAY*10)
 
+	/* disabled for testing Senses */
+	/*
 	if (!isnull(shotby))
 		var/list/threat_memory_data = list(
 			KEY_GHOST_X = shotby.x,
@@ -182,3 +184,4 @@
 		)
 		var/dict/threat_memory_ghost = new(threat_memory_data)
 		brain.SetMemory(MEM_THREAT, threat_memory_ghost, COMBATAI_AI_TICK_DELAY*50)
+	*/

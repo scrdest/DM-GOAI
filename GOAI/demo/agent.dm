@@ -10,6 +10,7 @@
 	var/list/states
 	var/list/actionslist
 	var/list/inventory
+	var/list/senses
 
 	var/datum/ActivePathTracker/active_path
 
@@ -48,7 +49,7 @@
 
 /mob/goai/proc/CreateBrain(var/list/custom_actionslist = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
-	var/datum/brain/new_brain = new /datum/brain(new_actionslist)
+	var/datum/brain/concrete/new_brain = new(new_actionslist)
 	new_brain.states = states.Copy()
 	return new_brain
 
@@ -56,20 +57,22 @@
 /mob/goai/New()
 	..()
 
-	Equip()
-	InitNeeds()
-	InitStates()
-
-	UpdateBrain()
-
 	var/spawn_time = world.time
 	last_mob_update_time = spawn_time
 	actionslist = GetActionsList()
 
-	var/datum/brain/new_brain = CreateBrain(actionslist)
-	brain = new_brain
-
+	Equip()
+	brain = CreateBrain(actionslist)
+	InitNeeds()
+	InitStates()
+	UpdateBrain()
+	InitSenses()
 	Life()
+
+
+/mob/goai/proc/InitSenses()
+	senses = list()
+	return senses
 
 
 /mob/goai/proc/InitNeeds()
@@ -83,7 +86,7 @@
 
 
 /mob/goai/proc/Equip()
-	return
+	return TRUE
 
 
 /mob/goai/proc/UpdateBrain()
@@ -97,7 +100,7 @@
 
 
 /mob/goai/proc/Life()
-	return 1
+	return TRUE
 
 
 /mob/goai/proc/SetState(var/key, var/val)
@@ -109,7 +112,7 @@
 	if(brain)
 		brain.states[key] = val
 
-	return 1
+	return TRUE
 
 
 /mob/goai/proc/GetState(var/key, var/default = null)

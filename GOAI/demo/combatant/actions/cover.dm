@@ -3,6 +3,7 @@
 	var/turf/best_local_pos = tracker?.BBGet("bestpos", null)
 
 	var/atom/threat = GetActiveThreat()
+	world.log << "Threat for [src]: [threat || "NONE"]"
 
 	var/datum/memory/shot_at_mem = brain?.GetMemory(MEM_SHOTAT, null, FALSE)
 	var/dict/shot_at_memdata = shot_at_mem?.val

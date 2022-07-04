@@ -20,16 +20,16 @@
 	var/datum/GOAP/planner
 
 
-/datum/brain/New(var/list/actions, var/list/init_memories)
+/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null)
 	..()
 
 	if(actions)
 		actionslist = actions.Copy()
 
-	if(init_memories)
-		memories = new /dict(init_memories)
-	else
-		memories = new /dict()
+	if(init_action && init_action in actionslist)
+		running_action_tracker = DoAction(init_action)
+
+	memories = new /dict(init_memories)
 
 	InitNeeds()
 	InitStates()
@@ -206,7 +206,7 @@
 	return
 
 
-/datum/brain/concrete/verb/DoAction(Act as anything in actionslist)
+/datum/brain/verb/DoAction(Act as anything in actionslist)
 	//world.log << "DoAction act: [Act]"
 
 	if(!(Act in actionslist))

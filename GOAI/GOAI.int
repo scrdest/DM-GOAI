@@ -1,12 +1,12 @@
 // BEGIN_INTERNALS
 /*
 MAP_ZOOM: 1.000
-LAST_COMPILE_TIME: 1655146548
+LAST_COMPILE_TIME: 1656865910
 DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions goap\testing icons\effects icons\obj icons\urist\turf 
 AUTO_FILE_DIR: OFF
 MAP_ICON_TYPE: 0
 LAST_COMPILE_VERSION: 514.1584
-WINDOW: basics\atom.dm;demo\combatant\actions.dm;demo\combatant\movement.dm;demo\combatant\setup.dm;demo\combatant\combat.dm;demo\combatant\_defines.dm;demo\combatant.dm;basics\memory.dm;basics\brain.dm;basics\projectile.dm;demo\_utils.dm;helpers.dm;demo\combatant\actions\cover.dm;demo\combatant\actions\cover_dir.dm;_defines.dm;demo\combatant\actions\coverleap_dir.dm;_datastructures\action_tracker.dm;demo\combatant\actions\coverleap.dm;_algorithms\linear_algebra.dm
+WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\setup.dm;demo\combatant\combat.dm;basics\memory.dm;basics\brain.dm;basics\projectile.dm;demo\_utils.dm;_algorithms\metrics.dm;demo\combatant\senses.dm;demo\combatant\core.dm;demo\combatant\actions\coverleap_dir.dm
 FILE: demo\combatant\actions\coverleap_dir.dm
 */
 // END_INTERNALS

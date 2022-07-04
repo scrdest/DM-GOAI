@@ -1,3 +1,13 @@
+/* In this module:
+===================
+
+ - Brain definition
+ - Operator override for need updates
+ - Initial needs
+ - Initial states
+
+*/
+
 /datum/GOAP/demoGoap/combatGoap
 
 
@@ -9,6 +19,20 @@
 /datum/brain/concrete/combat
 
 
+
+/mob/goai/combatant/InitNeeds()
+	needs = ..()
+	needs[NEED_COVER] = NEED_MINIMUM
+	//needs[NEED_ENEMIES] = 2
+	return needs
+
+
+/mob/goai/combatant/InitStates()
+	states = ..()
+	states[STATE_DOWNTIME] = TRUE
+	return states
+
+/*
 /datum/brain/concrete/combat/InitNeeds()
 	needs = ..()
 	needs[NEED_COVER] = NEED_MINIMUM
@@ -20,10 +44,10 @@
 	states = ..()
 	states[STATE_DOWNTIME] = TRUE
 	return states
+*/
 
-
-/datum/brain/concrete/combat/New(var/list/actions)
-	..(actions)
+/datum/brain/concrete/combat/New(var/list/actions, var/list/init_memories = null, var/init_action = null)
+	..(actions, init_memories, init_action)
 
 	var/datum/GOAP/demoGoap/new_planner = new /datum/GOAP/demoGoap/combatGoap/(actionslist)
 	planner = new_planner

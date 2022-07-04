@@ -20,6 +20,7 @@
 		plan_len = (brain_plan ? brain_plan.len : plan_len)
 		brain_is_planning = brain.is_planning
 
+		usr << "| Brain: [brain] ([brain.type])"
 		for (var/need_key in brain.needs)
 			usr << "| [need_key]: [brain.needs[need_key]]"
 	else
