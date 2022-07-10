@@ -18,7 +18,7 @@
 #include "demoGoap.dm"
 #include "GOAI.dm"
 #include "helpers.dm"
-#include "combatmap.dmm"
+#include "combatmap_tiny.dmm"
 #include "_algorithms\gaussdist.dm"
 #include "_algorithms\linear_algebra.dm"
 #include "_algorithms\metrics.dm"

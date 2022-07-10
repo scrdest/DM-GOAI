@@ -5,8 +5,28 @@
 	var/list/states
 	var/list/actionslist
 	var/list/active_plan
+
+	/* Memory container.
+	//
+	// Memories are effectively GOAI's Blackboard System:
+	// the forum for different AI subsystems (e.g. actions,
+	// senses, etc.) to query and post relevant information to.
+	//
+	// Memories can be _volatile_ - i.e. expire after a set Time-To-Live (TTL).
+	//
+	// Memories' keys are strings and the values are Memory instances.
+	// A Memory is a TTL wrapper around an arbitrary-typed value.
+	// The stored value can be accessed using the `.val` attribute.
+	*/
 	var/dict/memories
 
+	/* Optional 'parent' brain ref.
+	// Can be used to simulate literal hiveminds, but also
+	// various lower-granularity planners, e.g. squads or
+	// organisations or a mob's 'strategic' planner that
+	// informs the 'tactical'/'operational' planners' goals.
+	*/
+	var/datum/brain/hivemind = null
 
 	var/is_planning = 0
 	var/selected_action = null
@@ -43,25 +63,44 @@
 	return found
 
 
-/datum/brain/proc/GetMemory(var/mem_key, var/default = null, by_age = FALSE)
+/datum/brain/proc/GetMemory(var/mem_key, var/default = null, var/by_age = FALSE, var/check_hivemind = FALSE, var/recursive = FALSE, var/prefer_hivemind = FALSE)
+	var/datum/memory/retrieved_mem = null
+	var/datum/memory/hivemind_mem = null
+
+	if(check_hivemind && hivemind && hivemind.memories && hivemind.HasMemory(mem_key))
+		// The last two args are (..., recursive, recursive) ON PURPOSE!
+		// IFF recursive is TRUE, the parent mind should check for grandparents and so on.
+		// Root can have check_hivemind = TRUE and recursive = FALSE to only recurse 1-lvl deep.
+		hivemind_mem = hivemind.GetMemory(mem_key, null, by_age, recursive, recursive)
+
+		if(istype(hivemind_mem) && prefer_hivemind)
+			// If prefer_hivemind is TRUE, we don't need to bother with mob memories
+			// once we have found a hivemind memory.
+			return hivemind_mem
+
 	if(HasMemory(mem_key))
-		var/datum/memory/retrieved_mem = memories.Get(mem_key, null)
+		retrieved_mem = memories.Get(mem_key, null)
 
 		if(isnull(retrieved_mem))
-			//world.log << "Retrieved default Memory for removed [mem_key]"
-			return default
+
+			if(isnull(hivemind_mem))
+				//world.log << "Retrieved default Memory for removed [mem_key]"
+				return default
+
+			// if root has no memory, but the *parent* does - return parent's
+			return hivemind_mem
 
 		var/relevant_age = by_age ? retrieved_mem.GetAge() : retrieved_mem.GetFreshness()
 
 		if(relevant_age < retrieved_mem.ttl)
 			//world.log << "Retrieved Memory: [mem_key]"
+			// We already checked for parent preference - no need to redo that.
 			return retrieved_mem
-
 
 		memories[mem_key] = null
 
 	//world.log << "Retrieved default Memory for missing [mem_key]"
-	return default
+	return (isnull(hivemind_mem) ? default : hivemind_mem)
 
 
 /datum/brain/proc/SetMemory(var/mem_key, var/mem_val, var/mem_ttl)

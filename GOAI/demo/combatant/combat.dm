@@ -8,7 +8,7 @@
 
 /mob/goai/combatant/proc/FightTick()
 	var/can_fire = ((STATE_CANFIRE in states) ? states[STATE_CANFIRE] : FALSE)
-	
+
 	if(!can_fire)
 		return
 
@@ -37,7 +37,7 @@
 /mob/goai/combatant/proc/GetAimTime(var/atom/target)
 	if(isnull(target))
 		return
-	
+
 	var/targ_distance = EuclidDistance(src, target)
 	var/aim_time = rand(clamp(targ_distance*5, 1, 200)) + rand()*10
 	return aim_time
@@ -94,10 +94,10 @@
 	return threat_ghost
 
 
-/mob/goai/combatant/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null) // -> num
+/mob/goai/combatant/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = 0) // -> num
 	var/atom/rel_source = isnull(relative_to) ? src : relative_to
 	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreat() : curr_threat
-	var/threat_dist = 0
+	var/threat_dist = default
 
 	if(isnull(threat_ghost))
 		return threat_dist

@@ -22,6 +22,7 @@
 // Keys for the memory dict
 # define MEM_SHOTAT "ShotAt"
 # define MEM_THREAT "Threat"
+# define MEM_WAYPOINT_LKP "WaypointLKP"
 # define MEM_CURRLOC "MyCurrLocation"
 # define MEM_PREVLOC "MyPrevLocation"
 
@@ -38,3 +39,6 @@
 
 # define KEY_ACTION_AIM "Aim"
 # define KEY_AIM_TARGET "aimTarget"
+
+# define WAYPOINT_FUZZ_X 5
+# define WAYPOINT_FUZZ_Y 5

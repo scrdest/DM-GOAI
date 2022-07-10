@@ -35,11 +35,11 @@
 		// TODO: Interrupts
 		running = tracker.IsRunning()
 
-		MAYBE_LOG("Tracker: [tracker] running @ [running]")
+		MAYBE_LOG("[src]: Tracker: [tracker] running @ [running]")
 
 		spawn(0)
 			// task-specific logic goes here
-			MAYBE_LOG("HandleAction action is: [action]!")
+			MAYBE_LOG("[src]: HandleAction action is: [action]!")
 
 			var/mob/goai/combatant/actionproc = ((action in action_lookup) ? action_lookup[action] : null)
 

@@ -1,30 +1,44 @@
 
 /mob/goai/combatant/proc/HandleDirectionalCover(var/datum/ActionTracker/tracker)
-	//var/turf/startpos = tracker.BBSetDefault("startpos", src.loc)
+	var/tracker_frustration = tracker.BBSetDefault("frustration", 0)
+	var/turf/startpos = tracker.BBSetDefault("startpos", src.loc)
 	var/turf/best_local_pos = tracker?.BBGet("bestpos", null)
 
 	var/atom/threat = GetActiveThreat()
 
 	var/datum/memory/shot_at_mem = brain?.GetMemory(MEM_SHOTAT, null, FALSE)
 	var/dict/shot_at_memdata = shot_at_mem?.val
-	//var/shot_at_angle = shot_at_memdata?.Get(KEY_GHOST_ANGLE, null) || rand(0, 360)
 
 	var/datum/Tuple/shot_at_where = shot_at_memdata?.Get(KEY_GHOST_POS_TUPLE, null)
 
-	//var/preferred_dir = angle2dir(shot_at_angle)
+	if(isnull(best_local_pos) && active_path && (!(active_path.IsDone())) && active_path.target && active_path.frustration < 2)
+		best_local_pos = active_path.target
 
-	//world.log << (isnull(best_local_pos) ? "Best local pos: null" : "Best local pos [best_local_pos]")
+	var/atom/next_step = ((active_path && active_path.path && active_path.path.len) ? active_path.path[1] : null)
+
+	var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat, PLUS_INF) : PLUS_INF)
+	var/curr_threat_distance = GetThreatDistance(src, threat, PLUS_INF)
+	var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat, PLUS_INF)
+
+	var/bestpos_is_unsafe = (bestpos_threat_distance < 2)
+	var/currpos_is_unsafe = (
+		(tracker_frustration < 3) && (curr_threat_distance <= 3) && (next_step_threat_distance < curr_threat_distance)
+	)
+
+	if(bestpos_is_unsafe || currpos_is_unsafe)
+		tracker.BBSet("frustration", tracker_frustration+1)
+
+		CancelNavigate()
+		best_local_pos = null
+		tracker.BBSet("bestpos", null)
 
 	if(isnull(best_local_pos))
 		var/list/processed = list()
 		var/PriorityQueue/cover_queue = new /PriorityQueue(/datum/Quadruple/proc/TriCompare)
-		var/list/curr_view = oview(src)
+		var/list/curr_view = view(src)
+		curr_view.Add(startpos)
 
 		for(var/turf/wall/loc_wall in curr_view)
-			if(!(loc_wall.is_corner || loc_wall.is_pillar))
-				if(prob(90))
-					continue
-
 			var/list/adjacents = loc_wall.CardinalTurfs(TRUE)
 
 			if(!adjacents)
@@ -42,28 +56,28 @@
 
 				var/penalty = 0
 
-				var/threat_angle = GetThreatAngle(cand, threat)
-				var/threat_dir = angle2dir(threat_angle)
+				var/threat_dist = PLUS_INF
 
-				var/cand_dir_offset = get_dir(cand, loc_wall)
+				if(threat)
+					threat_dist = GetThreatDistance(cand, threat)
+					var/threat_angle = GetThreatAngle(cand, threat)
+					var/threat_dir = angle2dir(threat_angle)
 
-				if((cand_dir_offset & threat_dir) == 0)
-					continue
+					var/atom/maybe_cover = get_step(cand, threat_dir)
+					if(maybe_cover && !(maybe_cover.density))  // is cover check
+						continue
 
 				if (cand.CurrentPositionAsTuple() ~= shot_at_where)
 					penalty += MAGICNUM_DISCOURAGE_SOFT
 
 				var/cand_dist = ManhattanDistance(cand, src)
-
-				var/threat_dist = GetThreatDistance(cand, threat)
-
 				var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
 				var/total_dist = (cand_dist + targ_dist)
 
 				var/open_lines = cand.GetOpenness()
 
 				if(threat_dist < 2)
-					penalty += MAGICNUM_DISCOURAGE_SOFT
+					continue
 
 				//penalty += -threat_dist  // the further from a threat, the better
 				penalty += abs(open_lines-pick(
@@ -99,13 +113,16 @@
 
 		var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
 
-		best_local_pos = best_cand_quad.fourth
+		if(best_cand_quad)
+			best_local_pos = best_cand_quad?.fourth
+			tracker.BBSet("bestpos", best_local_pos)
+
 		tracker.BBSet("bestpos", best_local_pos)
-		world.log << (isnull(best_local_pos) ? "Best local pos: null" : "Best local pos [best_local_pos]")
+		world.log << (isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos [best_local_pos]")
 
 
 	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
-		world.log << "Navigating to [best_local_pos]"
+		world.log << "[src]: Navigating to [best_local_pos]"
 		StartNavigateTo(best_local_pos)
 
 	if(best_local_pos)

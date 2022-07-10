@@ -31,11 +31,17 @@
 	return active_path
 
 
+/mob/goai/combatant/proc/CancelNavigate()
+	active_path = null
+	is_repathing = 0
+	return TRUE
+
+
 /mob/goai/combatant/proc/MovementSystem()
 	if(!(active_path) || active_path.IsDone() || is_moving)
 		return
 
-	var/datum/Tuple/curr_loc = src.CurrentPositionAsTuple()
+	//var/datum/Tuple/curr_loc = src.CurrentPositionAsTuple()
 
 	var/success = FALSE
 	var/atom/next_step = ((active_path.path && active_path.path.len) ? active_path.path[1] : null)
@@ -67,13 +73,13 @@
 			// repath
 			var/frustr_x = followup_step.x
 			var/frustr_y = followup_step.y
-			world.log << "FRUSTRATIoN, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
+			world.log << "[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
 			StartNavigateTo(active_path.target, active_path.min_dist, next_step, active_path.frustration)
 
 
 	else
 		// This happens prematurely in some cases, dunno why ATM
-		world.log << "Setting path to Done"
+		world.log << "[src]: Setting path to Done"
 		active_path.SetDone()
 
 	if(success)
@@ -92,5 +98,5 @@
 	var/moving_to = 0 // otherwise it always picks 4
 	moving_to = pick(SOUTH, NORTH, WEST, EAST)
 	dir = moving_to //How about we turn them the direction they are moving, yay.
-	Move(get_step(src, moving_to))
+	step(src, dir)
 	is_moving = 0

@@ -41,9 +41,39 @@
 			KEY_GHOST_POS_TUPLE = target.CurrentPositionAsTuple(),
 		)
 		var/dict/threat_memory_ghost = new(threat_memory_data)
-		owner_brain.SetMemory(MEM_THREAT, threat_memory_ghost, COMBATAI_AI_TICK_DELAY*50)
+		owner_brain.SetMemory(MEM_THREAT, threat_memory_ghost, COMBATAI_AI_TICK_DELAY*20)
 
 		// forecast-raycast goes here once I find it
+
+	return TRUE
+
+
+/sense/combatant_eyes/proc/SpotWaypoint(var/mob/goai/combatant/owner)
+	if(isnull(owner))
+		return
+
+	if(isnull(owner.waypoint))
+		return
+
+	var/datum/brain/owner_brain = owner.brain
+	if(isnull(owner_brain))
+		// No point processing this if there's no memories to set
+		return
+
+	if(owner_brain.GetMemory(MEM_WAYPOINT_LKP, FALSE, FALSE))
+		return
+
+	var/list/true_searchspace = view(owner)
+
+	if(owner.waypoint in true_searchspace)
+		var/list/waypoint_memory_data = list(
+			KEY_GHOST_X = owner.waypoint.x,
+			KEY_GHOST_Y = owner.waypoint.y,
+			KEY_GHOST_Z = owner.waypoint.z,
+			KEY_GHOST_POS_TUPLE = owner.waypoint.CurrentPositionAsTuple(),
+		)
+		var/dict/waypoint_memory_ghost = new(waypoint_memory_data)
+		owner_brain.SetMemory(MEM_WAYPOINT_LKP, waypoint_memory_ghost, COMBATAI_AI_TICK_DELAY*20)
 
 	return TRUE
 
@@ -56,6 +86,7 @@
 
 	processing = TRUE
 	SpotThreats(owner)
+	SpotWaypoint(owner)
 
 	spawn(COMBATAI_AI_TICK_DELAY * 3)
 		// Sense-side delay to avoid spamming view() scans too much
