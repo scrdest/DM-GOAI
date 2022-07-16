@@ -1,12 +1,12 @@
 // BEGIN_INTERNALS
 /*
 MAP_ZOOM: 1.000
-LAST_COMPILE_TIME: 1657455690
+LAST_COMPILE_TIME: 1657982745
 DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions goap\testing icons\urist\turf icons\uristmob 
 AUTO_FILE_DIR: OFF
 MAP_ICON_TYPE: 0
 LAST_COMPILE_VERSION: 514.1584
-WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\_utils.dm;_algorithms\metrics.dm;demo\combatant\senses.dm;demo\combatant\core.dm;demo\combatant\_defines.dm;demo\_astar.dm;demo\combatant\actions\coverleap.dm;demo\combatant\actions\coverleap_dir.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\cover.dm;demo\combatant\setup.dm
-FILE: basics\brain.dm
+WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\_utils.dm;demo\combatant\senses.dm;demo\combatant\core.dm;demo\combatant\_defines.dm;demo\_astar.dm;demo\combatant\personality.dm;_algorithms\statistics.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\coverleap_dir.dm
+FILE: demo\combatant\personality.dm
 */
 // END_INTERNALS

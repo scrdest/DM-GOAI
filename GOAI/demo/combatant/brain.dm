@@ -46,8 +46,8 @@
 	return states
 */
 
-/datum/brain/concrete/combat/New(var/list/actions, var/list/init_memories = null, var/init_action = null)
-	..(actions, init_memories, init_action)
+/datum/brain/concrete/combat/New(var/list/actions, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null)
+	..(actions, init_memories, init_action, with_hivemind, init_personality)
 
 	var/datum/GOAP/demoGoap/new_planner = new /datum/GOAP/demoGoap/combatGoap/(actionslist)
 	planner = new_planner

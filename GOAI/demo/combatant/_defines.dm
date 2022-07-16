@@ -42,3 +42,6 @@
 
 # define WAYPOINT_FUZZ_X 5
 # define WAYPOINT_FUZZ_Y 5
+
+# define KEY_PERS_MINSAFEDIST "MinSafeDist"
+# define KEY_PERS_FRUSTRATION_THRESH "FrustrationRepathMaxthresh"

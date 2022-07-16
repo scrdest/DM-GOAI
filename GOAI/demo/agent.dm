@@ -47,9 +47,15 @@
 	return new_actionslist
 
 
-/mob/goai/proc/CreateBrain(var/list/custom_actionslist = null)
+/mob/goai/proc/generate_personality()
+	var/dict/new_personality = new()
+	return new_personality
+
+
+/mob/goai/proc/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
-	var/datum/brain/concrete/new_brain = new(new_actionslist)
+	var/dict/new_personality = (isnull(custom_personality) ? generate_personality() : custom_personality)
+	var/datum/brain/concrete/new_brain = new(new_actionslist, init_memories, init_action, with_hivemind, new_personality)
 	new_brain.states = states.Copy()
 	return new_brain
 

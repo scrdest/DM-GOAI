@@ -4,7 +4,12 @@
 	var/turf/startpos = tracker.BBSetDefault("startpos", src.loc)
 	var/turf/best_local_pos = tracker?.BBGet("bestpos", null)
 
-	var/atom/threat = GetActiveThreat()
+	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
+	var/frustration_repath_maxthresh = brain.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, 3)
+
+	// var/list/all_threats = GetActiveThreats()
+	// should do a proper for/in loop here!
+	var/atom/threat =  GetActiveThreat()
 	world.log << "[src]: Threat for [src]: [threat || "NONE"]"
 
 	var/datum/memory/prev_loc_mem = brain?.GetMemory(MEM_PREVLOC, null, FALSE)
@@ -20,13 +25,21 @@
 
 	var/atom/next_step = ((active_path && active_path.path && active_path.path.len) ? active_path.path[1] : null)
 
+/*
+	var/next_step_threat_distance = (next_step ? Min(GetThreatDistances(next_step, null, PLUS_INF), TRUE, null) : PLUS_INF)
+	var/curr_threat_distance = Min(GetThreatDistances(src, null, PLUS_INF), TRUE, null)
+	var/bestpos_threat_distance = Min(GetThreatDistances(best_local_pos, null, PLUS_INF), TRUE, null)
+*/
+
 	var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat, PLUS_INF) : PLUS_INF)
 	var/curr_threat_distance = GetThreatDistance(src, threat, PLUS_INF)
 	var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat, PLUS_INF)
 
-	var/bestpos_is_unsafe = (bestpos_threat_distance <= 2)
+	var/atom/bestpos_threat_neighbor = (threat ? get_step_towards(best_local_pos, threat) : null)
+
+	var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover()))
 	var/currpos_is_unsafe = (
-		(tracker_frustration < 3) && (curr_threat_distance <= 3) && (next_step_threat_distance < curr_threat_distance)
+		(tracker_frustration < frustration_repath_maxthresh) && (curr_threat_distance <= min_safe_dist) && (next_step_threat_distance < curr_threat_distance)
 	)
 
 	if(bestpos_is_unsafe || currpos_is_unsafe)
@@ -52,7 +65,7 @@
 				if(cand in processed)
 					continue
 
-				if(!(cand in curr_view))
+				if(!(cand in curr_view) && (cand != startpos))
 					continue
 
 				if(!(cand.Enter(src)))
@@ -67,6 +80,8 @@
 				var/threat_dist = PLUS_INF
 
 				if(threat)
+					//threat_dist = Min(GetThreatDistances(cand, null), TRUE, null)
+					//var/threat_angle = First(GetThreatAngles(cand, null), TRUE, null)
 					threat_dist = GetThreatDistance(cand, threat)
 					var/threat_angle = GetThreatAngle(cand, threat)
 					var/threat_dir = angle2dir(threat_angle)
@@ -85,7 +100,7 @@
 					penalty += MAGICNUM_DISCOURAGE_SOFT
 					//continue
 
-				if(threat && threat_dist < 3)
+				if(threat && threat_dist < min_safe_dist)
 					continue
 
 				var/open_lines = cand.GetOpenness()
@@ -139,7 +154,7 @@
 					5; 7
 				))
 
-				var/datum/Quadruple/cover_quad = new(-targ_dist, -penalty, -penalty, cand)
+				var/datum/Quadruple/cover_quad = new(-targ_dist, -cand_dist, -penalty, cand)
 				cover_queue.Enqueue(cover_quad)
 				processed.Add(cand)
 

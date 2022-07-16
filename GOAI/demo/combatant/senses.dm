@@ -55,7 +55,7 @@
 	if(isnull(owner.waypoint))
 		return
 
-	var/datum/brain/owner_brain = owner.brain
+	var/datum/brain/owner_brain = owner?.brain
 	if(isnull(owner_brain))
 		// No point processing this if there's no memories to set
 		return

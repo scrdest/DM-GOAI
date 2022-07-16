@@ -143,6 +143,92 @@
 
 	return threat_angle
 
+/mob/goai/combatant/proc/GetActiveThreats() // -> list(/dict)
+	var/datum/memory/threat_mem_block = brain?.GetMemory(MEM_THREAT, null, FALSE)
+	//world.log << "[src] threat memory: [threat_mem]"
+	var/list/threat_block = threat_mem_block?.val // list(memory)
+	var/list/threats = list() // list(/dict)
+
+	for(var/datum/memory/threat_mem in threat_block)
+		if(isnull(threat_mem))
+			continue
+
+		var/dict/threat_ghost = threat_mem?.val
+		if(istype(threat_ghost))
+			threats.Add(threat_ghost)
+
+	return threats
+
+
+/mob/goai/combatant/proc/GetThreatDistances(var/atom/relative_to = null, var/list/curr_threats = null, var/default = 0, var/check_max = null) // -> num
+	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+	var/list/threat_distances = list()
+	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreats() : curr_threats
+
+	var/checked_count = 0
+
+	for(var/dict/threat_ghost in threat_ghosts)
+		if(isnull(threat_ghost))
+			continue
+
+		if(!(isnull(check_max)) && (checked_count++ >= check_max))
+			break
+
+		var/threat_dist = default
+
+		var/threat_pos_x = 0
+		var/threat_pos_y = 0
+
+		//world.log << "[src] threat ghost: [threat_ghost]"
+
+		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
+		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
+		//world.log << "[src] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
+
+		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
+			threat_dist = ManhattanDistanceNumeric(rel_source.x, rel_source.y, threat_pos_x, threat_pos_y)
+
+			// long-term, it might be nicer to index by obj/str here
+			threat_distances.Add(threat_dist)
+
+	return threat_distances
+
+
+/mob/goai/combatant/proc/GetThreatAngles(var/atom/relative_to = null, var/list/curr_threats = null, var/check_max = null)
+	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+	var/list/threat_angles = list()
+	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreats() : curr_threats
+
+	var/checked_count = 0
+
+	for(var/dict/threat_ghost in threat_ghosts)
+		if(isnull(threat_ghost))
+			continue
+
+		if(!(isnull(check_max)) && (checked_count++ >= check_max))
+			break
+
+		var/threat_angle = null
+
+		var/threat_pos_x = 0
+		var/threat_pos_y = 0
+
+		//world.log << "[src] threat ghost: [threat_ghost]"
+
+		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
+		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
+		//world.log << "[src] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
+
+		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
+			var/dx = (threat_pos_x - rel_source.x)
+			var/dy = (threat_pos_y - rel_source.y)
+			threat_angle = arctan(dx, dy)
+
+			// long-term, it might be nicer to index by obj/str here
+			threat_angles.Add(threat_angle)
+
+	return threat_angles
+
 
 /mob/goai/combatant/Hit(var/angle, var/atom/shotby = null)
 	. = ..(angle)
@@ -172,16 +258,3 @@
 	var/dict/shot_memory_ghost = new(shot_memory_data)
 
 	brain.SetMemory(MEM_SHOTAT, shot_memory_ghost, COMBATAI_AI_TICK_DELAY*10)
-
-	/* disabled for testing Senses */
-	/*
-	if (!isnull(shotby))
-		var/list/threat_memory_data = list(
-			KEY_GHOST_X = shotby.x,
-			KEY_GHOST_Y = shotby.y,
-			KEY_GHOST_Z = shotby.z,
-			KEY_GHOST_POS_TUPLE = shotby.CurrentPositionAsTuple(),
-		)
-		var/dict/threat_memory_ghost = new(threat_memory_data)
-		brain.SetMemory(MEM_THREAT, threat_memory_ghost, COMBATAI_AI_TICK_DELAY*50)
-	*/

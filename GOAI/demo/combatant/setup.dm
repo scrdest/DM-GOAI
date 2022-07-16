@@ -49,8 +49,8 @@
 /mob/goai/combatant/proc/GetActionLookup()
 	var/list/action_lookup = list()
 	action_lookup["Idle"] = /mob/goai/combatant/proc/HandleIdling
-	action_lookup["Take Cover"] = /mob/goai/combatant/proc/HandleTakeCover
-	action_lookup["Cover Leapfrog"] = /mob/goai/combatant/proc/HandleCoverLeapfrog
+	action_lookup["Take Cover"] = /mob/goai/combatant/proc/HandleDirectionalCover
+	action_lookup["Cover Leapfrog"] = /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog
 	action_lookup["Directional Cover"] = /mob/goai/combatant/proc/HandleDirectionalCover
 	action_lookup["Directional Cover Leapfrog"] = /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog
 	action_lookup["Cover Fire"] = /mob/goai/combatant/proc/HandleIdling
@@ -58,9 +58,12 @@
 	return action_lookup
 
 
-/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = NONE)
+/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = NONE, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
-	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist, NONE, src.initial_action)
+	var/dict/new_personality = (isnull(custom_personality) ? generate_personality() : custom_personality)
+
+	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist, init_memories, src.initial_action, with_hivemind, new_personality)
+
 	new_brain.needs = src.states
 	new_brain.states = src.states
 	return new_brain

@@ -53,11 +53,13 @@
 
 /datum/memory/proc/ConvertToArraymem()
 	// Converts a simple memory Mem<val=Val> to a Mem<val=list[Mem<val=Val>]> memory
-	var/datum/memory/submemory = new(val, src.ttl)
+	var/datum/memory/submemory = new(src.val, src.ttl)
 	submemory.created_time = src.created_time
 
 	var/list/memory_block = list()
 	memory_block.Add(submemory)
+
+	src.val = memory_block
 
 	return src
 

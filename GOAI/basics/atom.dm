@@ -18,3 +18,7 @@
 /atom/proc/CurrentPositionAsTriple()
 	var/datum/Triple/pos_triple = new(src.x, src.y, src.z)
 	return pos_triple
+
+
+/atom/proc/IsCover()
+	return src.density

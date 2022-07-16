@@ -6,7 +6,8 @@
 	var/list/actionslist
 	var/list/active_plan
 
-	/* Memory container.
+
+	/* Memory container; key-value map.
 	//
 	// Memories are effectively GOAI's Blackboard System:
 	// the forum for different AI subsystems (e.g. actions,
@@ -20,36 +21,58 @@
 	*/
 	var/dict/memories
 
+
+	/* Personality container.
+	//
+	// A simple key-value map; keys are aspects of personality, vals are arbitrary (but probably numeric).
+	// This is designed to not overload Memories with handling fixed traits while also being simpler to use.
+	//
+	// This is a KVMap to provide 'interop' between brains in different mobs after transplanting brains.
+	// If a mob's body doesn't use some aspect of personality, it can just ignore it. If it's missing, it
+	// can provide a fallback value.
+	//
+	// This is in contrast to a struct-ey/OOP approach of declaring traits as attributes of a datum subclass;
+	// while it's likely a fair bit faster, we lose the brain's 'portability', and the allocations should be
+	// fairly light anyway. If access is slow, consider caching the value in the mob variables.
+	*/
+	var/dict/personality
+
+
 	/* Optional 'parent' brain ref.
 	// Can be used to simulate literal hiveminds, but also
 	// various lower-granularity planners, e.g. squads or
 	// organisations or a mob's 'strategic' planner that
 	// informs the 'tactical'/'operational' planners' goals.
 	*/
-	var/datum/brain/hivemind = null
+	var/datum/brain/hivemind
 
+	/* Bookkeeping for action execution */
 	var/is_planning = 0
 	var/selected_action = null
 	var/datum/ActionTracker/running_action_tracker = null
 
+	/* Bookkeeping for update times */
 	var/list/last_need_update_times
 	var/last_mob_update_time
 	var/last_action_update_time
-	var/planning_iter_cutoff = 30
 
+	/* GOAP parameters */
+	var/planning_iter_cutoff = 30
 	var/datum/GOAP/planner
 
 
-/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null)
+/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null)
 	..()
+
+	memories = new /dict(init_memories)
+	hivemind = with_hivemind
+	personality = init_personality
 
 	if(actions)
 		actionslist = actions.Copy()
 
 	if(init_action && init_action in actionslist)
 		running_action_tracker = DoAction(init_action)
-
-	memories = new /dict(init_memories)
 
 	InitNeeds()
 	InitStates()
@@ -116,6 +139,13 @@
 		retrieved_mem.Update(mem_val)
 
 	return retrieved_mem
+
+
+/datum/brain/proc/GetPersonalityTrait(var/trait_key, var/default = null)
+	if(isnull(personality?.data))
+		return default
+
+	return personality.Get(trait_key, default)
 
 
 /datum/brain/proc/InitNeeds()
@@ -267,8 +297,8 @@
 	var/decay_per_dsecond = 0.1
 
 
-/datum/brain/concrete/sim/New(var/list/actions)
-	..()
+/datum/brain/concrete/sim/New(var/list/actions, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null)
+	..(actions, init_memories, init_action, with_hivemind, init_personality)
 
 	needs = list()
 	needs[MOTIVE_SLEEP] = NEED_THRESHOLD

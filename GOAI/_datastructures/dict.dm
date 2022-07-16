@@ -2,8 +2,8 @@
 	var/list/data = list()
 
 
-/dict/New(var/list/init_memories = null)
-	data = isnull(init_memories) ? list() : init_memories.Copy()
+/dict/New(var/list/init_vals = null)
+	data = isnull(init_vals) ? list() : init_vals.Copy()
 	//world.log << "DICT: Created with data [data]!"
 	return
 
