@@ -7,54 +7,82 @@
 	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
 	var/frustration_repath_maxthresh = brain.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, 3)
 
-	// var/list/all_threats = GetActiveThreats()
-	// should do a proper for/in loop here!
-	var/atom/threat =  GetActiveThreat()
-	world.log << "[src]: Threat for [src]: [threat || "NONE"]"
+	var/list/threats = new()
 
+	// Main threat:
+	var/dict/primary_threat_ghost = GetActiveThreat()
+	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
+	var/atom/primary_threat = null
+	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.z)
+
+	if(primary_threat_ghost)
+		threats[primary_threat_ghost] = primary_threat
+
+	//world.log << "[src]: Threat for [src]: [threat || "NONE"]"
+
+	// Secondary threat:
+	var/dict/secondary_threat_ghost = GetActiveSecondaryThreat()
+	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
+	var/atom/secondary_threat = null
+	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.z)
+
+	if(secondary_threat_ghost)
+		threats[secondary_threat_ghost] = secondary_threat
+
+	// Previous position
 	var/datum/memory/prev_loc_mem = brain?.GetMemory(MEM_PREVLOC, null, FALSE)
 	var/turf/prev_loc_memdata = prev_loc_mem?.val
 
+	// Shot-at logic (avoid known currently unsafe positions):
 	var/datum/memory/shot_at_mem = brain?.GetMemory(MEM_SHOTAT, null, FALSE)
 	var/dict/shot_at_memdata = shot_at_mem?.val
-
 	var/datum/Tuple/shot_at_where = shot_at_memdata?.Get(KEY_GHOST_POS_TUPLE, null)
 
+	// Reuse cached solution if it's good enough
 	if(isnull(best_local_pos) && active_path && (!(active_path.IsDone())) && active_path.target && active_path.frustration < 2)
 		best_local_pos = active_path.target
 
+	// Required for the following logic: next location on the path
 	var/atom/next_step = ((active_path && active_path.path && active_path.path.len) ? active_path.path[1] : null)
 
-/*
-	var/next_step_threat_distance = (next_step ? Min(GetThreatDistances(next_step, null, PLUS_INF), TRUE, null) : PLUS_INF)
-	var/curr_threat_distance = Min(GetThreatDistances(src, null, PLUS_INF), TRUE, null)
-	var/bestpos_threat_distance = Min(GetThreatDistances(best_local_pos, null, PLUS_INF), TRUE, null)
-*/
+	// Bookkeeping around threats
+	for(var/dict/threat_ghost in threats)
+		if(isnull(threat_ghost))
+			continue
 
-	var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat, PLUS_INF) : PLUS_INF)
-	var/curr_threat_distance = GetThreatDistance(src, threat, PLUS_INF)
-	var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat, PLUS_INF)
+		var/atom/curr_threat = threats[threat_ghost]
+		var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat_ghost, PLUS_INF) : PLUS_INF)
+		var/curr_threat_distance = GetThreatDistance(src, threat_ghost, PLUS_INF)
+		var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat_ghost, PLUS_INF)
 
-	var/atom/bestpos_threat_neighbor = (threat ? get_step_towards(best_local_pos, threat) : null)
+		var/atom/bestpos_threat_neighbor = (curr_threat ? get_step_towards(best_local_pos, curr_threat) : null)
 
-	var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover()))
-	var/currpos_is_unsafe = (
-		(tracker_frustration < frustration_repath_maxthresh) && (curr_threat_distance <= min_safe_dist) && (next_step_threat_distance < curr_threat_distance)
-	)
+		// Reevaluating plans as new threats pop up
+		var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover()))
+		var/currpos_is_unsafe = (
+			(tracker_frustration < frustration_repath_maxthresh) && (curr_threat_distance <= min_safe_dist) && (next_step_threat_distance < curr_threat_distance)
+		)
 
-	if(bestpos_is_unsafe || currpos_is_unsafe)
-		tracker.BBSet("frustration", tracker_frustration+1)
+		if(bestpos_is_unsafe || currpos_is_unsafe)
+			tracker.BBSet("frustration", tracker_frustration+1)
 
-		CancelNavigate()
-		best_local_pos = null
-		tracker.BBSet("bestpos", null)
+			CancelNavigate()
+			best_local_pos = null
+			tracker.BBSet("bestpos", null)
+			break
 
+
+	// Pathfinding/search
 	if(isnull(best_local_pos))
-		var/list/processed = list()
+		var/list/processed = list(src.loc)
 		var/PriorityQueue/cover_queue = new /PriorityQueue(/datum/Quadruple/proc/TriCompare)
-		var/list/curr_view = oview(src)
+
+		var/list/curr_view = brain?.perceptions?.Get(SENSE_SIGHT)
 		curr_view.Add(startpos)
 
+		// TODO: Refactor for non-wall covers.
 		for(var/turf/wall/loc_wall in curr_view)
 			var/list/adjacents = loc_wall.CardinalTurfs(TRUE)
 
@@ -65,30 +93,38 @@
 				if(cand in processed)
 					continue
 
-				if(!(cand in curr_view) && (cand != startpos))
+				if(!(cand in curr_view) && (cand != prev_loc_memdata))
 					continue
 
 				if(!(cand.Enter(src)))
 					continue
 
-				if(prev_loc_memdata && prev_loc_memdata == cand)
-					//world.log << "Prev loc [prev_loc_memdata] matched candidate [cand]"
-					continue
-
 				var/penalty = 0
 
-				var/threat_dist = PLUS_INF
+				if(prev_loc_memdata && prev_loc_memdata == cand)
+					//world.log << "Prev loc [prev_loc_memdata] matched candidate [cand]"
+					penalty += MAGICNUM_DISCOURAGE_SOFT
 
-				if(threat)
-					//threat_dist = Min(GetThreatDistances(cand, null), TRUE, null)
-					//var/threat_angle = First(GetThreatAngles(cand, null), TRUE, null)
-					threat_dist = GetThreatDistance(cand, threat)
-					var/threat_angle = GetThreatAngle(cand, threat)
+				var/threat_dist = PLUS_INF
+				var/invalid_tile = FALSE
+
+				for(var/dict/threat_ghost in threats)
+					threat_dist = GetThreatDistance(cand, threat_ghost)
+					var/threat_angle = GetThreatAngle(cand, threat_ghost)
 					var/threat_dir = angle2dir(threat_angle)
 
 					var/atom/maybe_cover = get_step(cand, threat_dir)
+
 					if(maybe_cover && !(maybe_cover.density))  // is cover check
-						continue
+						invalid_tile = TRUE
+						break
+
+					if(threat_ghost && threat_dist < min_safe_dist)
+						invalid_tile = TRUE
+						break
+
+				if(invalid_tile)
+					continue
 
 				var/cand_dist = ManhattanDistance(cand, src)
 				if(cand_dist < 3)
@@ -99,9 +135,6 @@
 				if (cand.CurrentPositionAsTuple() ~= shot_at_where)
 					penalty += MAGICNUM_DISCOURAGE_SOFT
 					//continue
-
-				if(threat && threat_dist < min_safe_dist)
-					continue
 
 				var/open_lines = cand.GetOpenness()
 
@@ -125,6 +158,7 @@
 
 						targ_dist = ManhattanDistanceNumeric(cand.x, cand.y, effective_waypoint_x, effective_waypoint_y)
 
+				penalty += -targ_dist  // the further from a threat, the better
 				//penalty += -threat_dist  // the further from a threat, the better
 				penalty += abs(open_lines-pick(
 					/*
@@ -154,7 +188,7 @@
 					5; 7
 				))
 
-				var/datum/Quadruple/cover_quad = new(-targ_dist, -cand_dist, -penalty, cand)
+				var/datum/Quadruple/cover_quad = new(-targ_dist, -penalty, -cand_dist, cand)
 				cover_queue.Enqueue(cover_quad)
 				processed.Add(cand)
 

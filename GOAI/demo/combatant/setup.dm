@@ -22,6 +22,10 @@
 	*/
 	states[STATE_CANFIRE] = 1
 
+	/*
+	*/
+	states[STATE_PANIC] = -1
+
 	return states
 
 
@@ -30,12 +34,13 @@
 	var/list/new_actionslist = list(
 		// Cost, Req-ts, Effects
 		//"Idle" = new /datum/Triple (10, list(), list()),
-		"Take Cover" = new /datum/Triple (10, list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
+		"Take Cover" = new /datum/Triple (10, list(STATE_DOWNTIME = 1, STATE_PANIC = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
 		//"Cover Leapfrog" = new /datum/Triple (10, list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
 		//"Directional Cover" = new /datum/Triple (4, list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
-		"Directional Cover Leapfrog" = new /datum/Triple (4, list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
+		"Directional Cover Leapfrog" = new /datum/Triple (4, list(STATE_DOWNTIME = -1, STATE_PANIC = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
 		//"Cover Fire" = new /datum/Triple (5, list(STATE_INCOVER = 1), list(NEED_COVER = NEED_MINIMUM, STATE_INCOVER = 0, NEED_ENEMIES = NEED_SATISFIED)),
 		//"Shoot" = new /datum/Triple (10, list(STATE_CANFIRE = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),
+		"Panic Run" = new /datum/Triple (10, list(STATE_PANIC = 1), list(NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED, NEED_COMPOSURE = NEED_SATISFIED, STATE_PANIC = -1)),
 	)
 	return new_actionslist
 
@@ -55,6 +60,7 @@
 	action_lookup["Directional Cover Leapfrog"] = /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog
 	action_lookup["Cover Fire"] = /mob/goai/combatant/proc/HandleIdling
 	action_lookup["Shoot"] = /mob/goai/combatant/proc/HandleShoot
+	action_lookup["Panic Run"] = /mob/goai/combatant/proc/HandlePanickedRun
 	return action_lookup
 
 
@@ -62,7 +68,7 @@
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? generate_personality() : custom_personality)
 
-	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist, init_memories, src.initial_action, with_hivemind, new_personality)
+	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist, init_memories, src.initial_action, with_hivemind, new_personality, "brain of [src]")
 
 	new_brain.needs = src.states
 	new_brain.states = src.states

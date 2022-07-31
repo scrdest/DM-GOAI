@@ -91,3 +91,20 @@
 	usr << "[src] CAN_FIRE set to [states[STATE_CANFIRE]]"
 
 	return
+
+
+/mob/goai/combatant/verb/Panic()
+	set src in view()
+
+	if(isnull(brain))
+		usr << "[src] has no brain - command has no effect."
+		return
+
+	var/list/brainstates = brain.states
+
+	var/curr_panic_state = ((STATE_PANIC in brainstates) ? states[STATE_PANIC] : -1)
+	SetState(STATE_PANIC, -curr_panic_state)
+
+	usr << "[src] STATE_PANIC set to [brain.states[STATE_PANIC]]"
+
+	return

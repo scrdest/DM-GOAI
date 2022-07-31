@@ -39,12 +39,14 @@
 		return
 
 	var/targ_distance = EuclidDistance(src, target)
-	var/aim_time = rand(clamp(targ_distance*5, 1, 200)) + rand()*10
+	var/aim_time = rand(clamp(targ_distance*3, 1, 200)) + rand()*15
 	return aim_time
 
 
 /mob/goai/combatant/proc/GetTarget(var/list/searchspace = NONE, var/maxtries = 5)
-	var/list/true_searchspace = (isnull(searchspace) ? view() : searchspace)
+	var/list/true_searchspace = (isnull(searchspace) ? brain?.perceptions?.Get(SENSE_SIGHT) : searchspace)
+	if(!(true_searchspace))
+		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
@@ -94,54 +96,73 @@
 	return threat_ghost
 
 
-/mob/goai/combatant/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = 0) // -> num
-	var/atom/rel_source = isnull(relative_to) ? src : relative_to
-	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreat() : curr_threat
-	var/threat_dist = default
+/mob/goai/combatant/proc/GetActiveSecondaryThreat() // -> /dict
+	var/datum/memory/threat_mem = brain?.GetMemory(MEM_THREAT_SECONDARY, null, FALSE)
+	//world.log << "[src] threat memory: [threat_mem]"
 
-	if(isnull(threat_ghost))
-		return threat_dist
+	var/dict/threat_ghost = threat_mem?.val
+	return threat_ghost
+
+
+/mob/goai/combatant/proc/GetThreatPosTuple(var/dict/curr_threat = null) // -> num
+	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreat() : curr_threat
 
 	var/threat_pos_x = 0
 	var/threat_pos_y = 0
 
-	//world.log << "[src] threat ghost: [threat_ghost]"
-
 	if(!isnull(threat_ghost))
 		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
 		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
-		//world.log << "[src] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
 
-		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
-			threat_dist = ManhattanDistanceNumeric(rel_source.x, rel_source.y, threat_pos_x, threat_pos_y)
+		var/datum/Tuple/ghost_pos_tuple = new(threat_pos_x, threat_pos_y)
+
+		return ghost_pos_tuple
+
+	return
+
+
+/mob/goai/combatant/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = 0) // -> num
+	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
+
+	if(isnull(ghost_pos_tuple))
+		return default
+
+	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+	var/threat_dist = default
+
+	var/threat_pos_x = ghost_pos_tuple?.left
+	var/threat_pos_y = ghost_pos_tuple?.right
+
+	if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
+		threat_dist = ManhattanDistanceNumeric(rel_source.x, rel_source.y, threat_pos_x, threat_pos_y)
 
 	return threat_dist
 
 
-/mob/goai/combatant/proc/GetThreatAngle(var/atom/relative_to = null, var/dict/curr_threat = null)
+/mob/goai/combatant/proc/GetThreatAngle(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = null)
+	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
+
+	if(isnull(ghost_pos_tuple))
+		return default
+
 	var/atom/rel_source = isnull(relative_to) ? src : relative_to
-	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreat() : curr_threat
-	var/threat_angle = null
+	var/threat_angle = default
 
-	if(isnull(threat_ghost))
-		return threat_angle
+	var/threat_pos_x = ghost_pos_tuple?.left
+	var/threat_pos_y = ghost_pos_tuple?.right
 
-	var/threat_pos_x = 0
-	var/threat_pos_y = 0
-
-	//world.log << "[src] threat ghost: [threat_ghost]"
-
-	if(!isnull(threat_ghost))
-		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
-		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
-		//world.log << "[src] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
-
-		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
-			var/dx = (threat_pos_x - rel_source.x)
-			var/dy = (threat_pos_y - rel_source.y)
-			threat_angle = arctan(dx, dy)
+	if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
+		var/dx = (threat_pos_x - rel_source.x)
+		var/dy = (threat_pos_y - rel_source.y)
+		threat_angle = arctan(dx, dy)
 
 	return threat_angle
+
+
+/*
+// This is commented out to prevent confusion between the plural, array methods
+// and the singular, 'scalar' Threat methods.
+// These will probably get removed, unless I figure out why it's such a pain right now.
 
 /mob/goai/combatant/proc/GetActiveThreats() // -> list(/dict)
 	var/datum/memory/threat_mem_block = brain?.GetMemory(MEM_THREAT, null, FALSE)
@@ -154,6 +175,7 @@
 			continue
 
 		var/dict/threat_ghost = threat_mem?.val
+		world.log << "THREAT GHOST: [threat_ghost]"
 		if(istype(threat_ghost))
 			threats.Add(threat_ghost)
 
@@ -191,6 +213,7 @@
 			// long-term, it might be nicer to index by obj/str here
 			threat_distances.Add(threat_dist)
 
+	//world.log << "[src]: GetThreatDistances => [threat_distances] LEN [threat_distances.len]"
 	return threat_distances
 
 
@@ -228,7 +251,7 @@
 			threat_angles.Add(threat_angle)
 
 	return threat_angles
-
+*/
 
 /mob/goai/combatant/Hit(var/angle, var/atom/shotby = null)
 	. = ..(angle)
@@ -248,13 +271,19 @@
 	*/
 	//world.log << "Impact angle [impact_angle]"
 
-	var/list/shot_memory_data = list(
-		KEY_GHOST_X = src.x,
-		KEY_GHOST_Y = src.y,
-		KEY_GHOST_Z = src.z,
-		KEY_GHOST_POS_TUPLE = src.CurrentPositionAsTuple(),
-		KEY_GHOST_ANGLE = impact_angle,
-	)
-	var/dict/shot_memory_ghost = new(shot_memory_data)
+	if(brain)
+		var/list/shot_memory_data = list(
+			KEY_GHOST_X = src.x,
+			KEY_GHOST_Y = src.y,
+			KEY_GHOST_Z = src.z,
+			KEY_GHOST_POS_TUPLE = src.CurrentPositionAsTuple(),
+			KEY_GHOST_ANGLE = impact_angle,
+		)
+		var/dict/shot_memory_ghost = new(shot_memory_data)
 
-	brain.SetMemory(MEM_SHOTAT, shot_memory_ghost, COMBATAI_AI_TICK_DELAY*10)
+		brain.SetMemory(MEM_SHOTAT, shot_memory_ghost, COMBATAI_AI_TICK_DELAY*10)
+
+		var/datum/brain/concrete/needybrain = brain
+		if(needybrain)
+			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_ONHIT)
+

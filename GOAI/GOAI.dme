@@ -53,7 +53,7 @@
 #include "demo\combatant\setup.dm"
 #include "demo\combatant\actions\cover_dir.dm"
 #include "demo\combatant\actions\coverleap_dir.dm"
+#include "demo\combatant\actions\panic_run.dm"
 #include "goap\goap_classy.dm"
-#include "goap\testing\goap_classy_testing.dm"
 // END_INCLUDE
 

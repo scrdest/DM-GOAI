@@ -1,9 +1,8 @@
-/mob/goai/combatant/proc/HandleDirectionalCover(var/datum/ActionTracker/tracker)
+/mob/goai/combatant/proc/HandlePanickedRun(var/datum/ActionTracker/tracker)
 	var/tracker_frustration = tracker.BBSetDefault("frustration", 0)
-	var/turf/startpos = tracker.BBSetDefault("startpos", src.loc)
 	var/turf/best_local_pos = tracker?.BBGet("bestpos", null)
 
-	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
+	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2) ** 2
 	var/frustration_repath_maxthresh = brain.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || world.log << "Missed KEY_PERS_FRUSTRATION_THRESH" || 3
 
 	var/list/threats = new()
@@ -68,100 +67,66 @@
 			tracker.BBSet("bestpos", null)
 			break
 
-	// Pathfinding/search
 	if(isnull(best_local_pos))
-		var/list/processed = list()
+		var/list/processed = list(src.loc)
 		var/PriorityQueue/cover_queue = new /PriorityQueue(/datum/Quadruple/proc/TriCompare)
-
 		var/list/curr_view = brain?.perceptions?.Get(SENSE_SIGHT)
-		curr_view.Add(startpos)
 
-		// TODO: Refactor for non-wall covers.
-		for(var/turf/wall/loc_wall in curr_view)
-			var/list/adjacents = loc_wall.CardinalTurfs(TRUE)
-
-			if(!adjacents)
+		for(var/turf/cand in curr_view)
+			if(!(cand.Enter(src)))
 				continue
 
-			for(var/turf/cand in adjacents)
-				if(cand in processed)
-					continue
+			if(cand in processed)
+				continue
 
-				if(!(cand in curr_view) && (cand != startpos))
-					continue
+			var/penalty = 0
 
-				if(!(cand.Enter(src)))
-					continue
+			var/threat_dist = 0
+			var/invalid_tile = FALSE
 
-				var/penalty = 0
+			for(var/dict/threat_ghost in threats)
+				threat_dist = GetThreatDistance(cand, threat_ghost)
+				var/threat_angle = GetThreatAngle(cand, threat_ghost)
+				var/threat_dir = angle2dir(threat_angle)
 
-				var/threat_dist = PLUS_INF
-				var/invalid_tile = FALSE
+				var/atom/maybe_cover = get_step(cand, threat_dir)
 
-				for(var/dict/threat_ghost in threats)
-					threat_dist = GetThreatDistance(cand, threat_ghost)
-					var/threat_angle = GetThreatAngle(cand, threat_ghost)
-					var/threat_dir = angle2dir(threat_angle)
+				if(maybe_cover && !(maybe_cover.density))  // is cover check
+					penalty += 50
 
-					var/atom/maybe_cover = get_step(cand, threat_dir)
+				if(threat_ghost && threat_dist < min_safe_dist)
+					invalid_tile = TRUE
+					break
 
-					if(maybe_cover && !(maybe_cover.density))  // is cover check
-						invalid_tile = TRUE
-						break
+				/* Bit of a hack: for now, let's only consider primary threat
+				// for Panicking - this should mean that a Panic state is just
+				// trying to bail from the primary ASAP, even if it's a little
+				// bit irrational.
+				*/
+				break
 
-					if(threat_ghost && threat_dist < min_safe_dist)
-						invalid_tile = TRUE
-						break
+			if(invalid_tile)
+				continue
 
-				if(invalid_tile)
-					continue
+			var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
 
-				var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
+			if (curr_pos_tup ~= shot_at_where)
+				world.log << "[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where"
+				continue
 
-				if (curr_pos_tup ~= shot_at_where)
-					world.log << "[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where"
-					continue
+			var/cand_dist = ManhattanDistance(cand, src)
+			//var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
+			var/targ_dist = 0 // ignore waypoint, just leg it!
+			var/total_dist = (cand_dist + targ_dist)
 
-				var/cand_dist = ManhattanDistance(cand, src)
-				var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
-				var/total_dist = (cand_dist + targ_dist)
+			/*if(threat_dist < min_safe_dist)
+				continue*/
 
-				var/open_lines = cand.GetOpenness()
+			penalty += -threat_dist  // the further from a threat, the better
 
-				if(threat_dist < min_safe_dist)
-					continue
-
-				//penalty += -threat_dist  // the further from a threat, the better
-				penalty += abs(open_lines-pick(
-					/*
-					This is a bit un-obvious:
-
-					What we're doing here is biasing the pathing towards
-					cover positions *around* the picked value.
-
-					For example, if we roll a 3, the ideal cover position
-					would be one with Openness score of 3.
-
-					However, this is not a hard requirement; if we don't
-					have a 3, we'll accept a 2 or a 4 (equally, preferentially)
-					and if we don't have *those* - a 1 or a 5, etc.
-
-					This makes it harder for the AI to wind up giving up due to
-					no valid positions; sub-optimal is still good enough in that case.
-
-					The randomness is here to make the leapfrogging more dynamic;
-					if we just rank by best cover, we'll just wind bouncing between
-					the same positions, and this action is supposed to be more like
-					a 'smart' tacticool wandering behaviour.
-					 */
-					120; 3,
-					50; 4,
-					5; 7
-				))
-
-				var/datum/Quadruple/cover_quad = new(-targ_dist, -penalty, -total_dist, cand)
-				cover_queue.Enqueue(cover_quad)
-				processed.Add(cand)
+			var/datum/Quadruple/cover_quad = new(-penalty, threat_dist, -total_dist, cand)
+			cover_queue.Enqueue(cover_quad)
+			processed.Add(cand)
 
 		var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
 
@@ -174,7 +139,7 @@
 
 	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
 		world.log << "[src]: Navigating to [best_local_pos]"
-		StartNavigateTo(best_local_pos)
+		StartNavigateTo(best_local_pos, 0, primary_threat?.loc)
 
 	if(best_local_pos)
 		var/dist_to_pos = ManhattanDistance(src.loc, best_local_pos)
@@ -186,6 +151,12 @@
 	if(is_triggered)
 		if(tracker.TriggeredMoreThan(COMBATAI_AI_TICK_DELAY))
 			tracker.SetDone()
+
+			var/datum/brain/concrete/needybrain = brain
+			if(needybrain)
+				needybrain.ChangeMotive(NEED_COMPOSURE, NEED_SAFELEVEL)
+
+			SetState(STATE_PANIC, -1)
 
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))
 		tracker.SetFailed()

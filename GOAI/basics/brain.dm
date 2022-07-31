@@ -39,12 +39,19 @@
 
 
 	/* Optional 'parent' brain ref.
+	//
 	// Can be used to simulate literal hiveminds, but also
 	// various lower-granularity planners, e.g. squads or
 	// organisations or a mob's 'strategic' planner that
 	// informs the 'tactical'/'operational' planners' goals.
+	//
+	// IMPORTANT: this hierarchy should form a (Directed) Acyclic Graph!
 	*/
 	var/datum/brain/hivemind
+
+	/* Dict containing sensory data indexed by sense key.
+	*/
+	var/dict/perceptions
 
 	/* Bookkeeping for action execution */
 	var/is_planning = 0
@@ -61,12 +68,16 @@
 	var/datum/GOAP/planner
 
 
-/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null)
+/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null)
 	..()
+
+	name = (newname ? newname : name)
 
 	memories = new /dict(init_memories)
 	hivemind = with_hivemind
 	personality = init_personality
+	last_need_update_times = list()
+	perceptions = new()
 
 	if(actions)
 		actionslist = actions.Copy()
@@ -221,18 +232,18 @@
 
 	if(running_action_tracker) // processing action
 		var/running_is_active = running_action_tracker.IsRunning()
-		world << "ACTIVE ACTION: [running_action_tracker.tracked_action] @ [running_is_active]"
+		world << "ACTIVE ACTION: [running_action_tracker.tracked_action] @ [running_is_active] | <@[src]>"
 
 		if(running_action_tracker.IsStopped())
 			running_action_tracker = null
 
 	else if(selected_action) // ready to go
-		world << "SELECTED ACTION: [selected_action]"
+		world << "SELECTED ACTION: [selected_action] | <@[src]>"
 		running_action_tracker = DoAction(selected_action)
 		selected_action = null
 
 	else if(active_plan && active_plan.len)
-		world << "ACTIVE PLAN: [active_plan] ([active_plan.len])"
+		world << "ACTIVE PLAN: [active_plan] ([active_plan.len]) | <@[src]>"
 		if(active_plan.len) //step done, move on to the next
 			selected_action = lpop(active_plan)
 
@@ -266,7 +277,7 @@
 						active_plan = raw_active_plan
 
 					else
-						world.log << "Failed to create a plan"
+						world.log << "Failed to create a plan | <@[src]>"
 
 
 			else //satisfied, can be lazy
@@ -297,8 +308,8 @@
 	var/decay_per_dsecond = 0.1
 
 
-/datum/brain/concrete/sim/New(var/list/actions, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null)
-	..(actions, init_memories, init_action, with_hivemind, init_personality)
+/datum/brain/concrete/sim/New(var/list/actions, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null)
+	..(actions, init_memories, init_action, with_hivemind, init_personality, newname)
 
 	needs = list()
 	needs[MOTIVE_SLEEP] = NEED_THRESHOLD
@@ -306,7 +317,6 @@
 	needs[MOTIVE_FUN] = NEED_THRESHOLD
 
 	var/spawn_time = world.time
-	last_need_update_times = list()
 	last_mob_update_time = spawn_time
 	last_action_update_time = spawn_time
 
@@ -329,7 +339,7 @@
 	DecayNeeds()
 
 
-/datum/brain/concrete/sim/proc/GetMotive(var/motive_key)
+/datum/brain/concrete/proc/GetMotive(var/motive_key)
 	if(isnull(motive_key))
 		return
 
@@ -340,17 +350,17 @@
 	return curr_value
 
 
-/datum/brain/concrete/sim/proc/ChangeMotive(var/motive_key, var/value)
+/datum/brain/concrete/proc/ChangeMotive(var/motive_key, var/value)
 	if(isnull(motive_key))
 		return
 
 	var/fixed_value = min(NEED_MAXIMUM, max(NEED_MINIMUM, (value)))
 	needs[motive_key] = fixed_value
 	last_need_update_times[motive_key] = world.time
-	world.log << "Curr [motive_key] = [needs[motive_key]]"
+	world.log << "Curr [motive_key] = [needs[motive_key]] <@[src]>"
 
 
-/datum/brain/concrete/sim/proc/AddMotive(var/motive_key, var/amt)
+/datum/brain/concrete/proc/AddMotive(var/motive_key, var/amt)
 	if(isnull(motive_key))
 		return
 

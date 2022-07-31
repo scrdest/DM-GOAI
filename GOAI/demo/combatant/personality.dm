@@ -16,7 +16,7 @@
 	new_personality[KEY_PERS_MINSAFEDIST] = min_safe_dist
 
 	// Frustration Threshold
-	var/max_frustration_threshold = rand(1, 2)
+	var/max_frustration_threshold = rand(2, 4)
 
 	switch(max_frustration_threshold)
 		if(2)
