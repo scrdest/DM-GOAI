@@ -35,6 +35,9 @@
 // How much getting shot decays the AI's COMPOSURE need.
 # define MAGICNUM_COMPOSURE_LOSS_ONHIT 10
 
+// How much failing a movement decays the AI's COMPOSURE need.
+# define MAGICNUM_COMPOSURE_LOSS_FAILMOVE 5
+
 // Various keys used by 'AI ghost' data (last-known-pos stuff)
 # define KEY_GHOST_X "posX"
 # define KEY_GHOST_Y "posY"

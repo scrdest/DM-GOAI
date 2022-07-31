@@ -27,7 +27,7 @@
 	var/dense_neighbors = 0
 
 	for(var/turf/neigh in adjacents)
-		if(neigh.IsBlocked())
+		if(neigh.IsBlocked(FALSE))
 			dense_conn |= get_dir(neigh, src)
 			dense_neighbors++
 
@@ -59,12 +59,58 @@
 	return block(x1y1,x2y2)
 
 
-/turf/proc/IsBlocked()
+/turf/proc/ObjectBlocked()
+	// simplified version of the SS13 logic
+	// TODO: add directional logic for flipped tables etc.
+
+	for(var/obj/object in src.contents)
+		if(!object.density)
+			continue
+
+		if(object.density)
+			//world.log << "[src] hit dense object [object] @ [object.loc]"
+			return TRUE
+
+	//world.log << "[src] is not blocked"
+	return FALSE
+
+
+/proc/LinkBlocked(var/turf/A, var/turf/B)
+	if(A == null || B == null) return TRUE
+	var/adir = get_dir(A,B)
+	var/rdir = get_dir(B,A)
+	if((adir & (NORTH|SOUTH)) && (adir & (EAST|WEST)))	//	diagonal
+		var/iStep = get_step(A,adir&(NORTH|SOUTH))
+		if(!LinkBlocked(A,iStep) && !LinkBlocked(iStep,B)) return FALSE
+
+		var/pStep = get_step(A,adir&(EAST|WEST))
+		if(!LinkBlocked(A,pStep) && !LinkBlocked(pStep,B)) return FALSE
+		return TRUE
+
+	if(DirBlocked(A,adir)) return TRUE
+	if(DirBlocked(B,rdir)) return TRUE
+	return FALSE
+
+
+/proc/DirBlocked(var/turf/loc, var/dir)
+	for(var/obj/D in loc)
+		var/datum/directional_blocker/dirblocker = D.directional_blocker
+
+		if(isnull(dirblocker))
+			continue
+
+		if(dirblocker.Blocks(dir))
+			return TRUE
+
+	return FALSE
+
+
+/turf/proc/IsBlocked(var/check_objects = FALSE)
 	if(density)
 		return TRUE
 
-	//if(!LinkBlocked(src, t) && !TurfBlockedNonWindow(t))
-	//	adjacents += t // Fancy SS13 logic
+	if(check_objects && src.ObjectBlocked())
+		return TRUE
 
 	return FALSE
 
@@ -74,8 +120,9 @@
 
 	for(var/turf/t in (trange(1,src) - src))
 		if(check_blockage)
-			if(!(t.IsBlocked()))
-				adjacents += t
+			if(!(t.IsBlocked(TRUE)))
+				if(!(LinkBlocked(src, t)))
+					adjacents += t
 		else
 			adjacents += t
 
@@ -110,3 +157,17 @@
 			open_lines++
 
 	return open_lines
+
+
+
+/turf/IsCover(var/transitive = FALSE, var/for_dir = null, var/default_for_null_dir = FALSE)
+	. = ..(transitive, for_dir, default_for_null_dir)
+
+	if(.)
+		return . // there's a dot here. BYOOOOOND!
+
+	// Transitive means turfs *with* cover innit *are* cover too
+	if(transitive && src.HasCover(FALSE, for_dir, default_for_null_dir))
+		return TRUE
+
+	return FALSE

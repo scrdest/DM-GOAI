@@ -54,7 +54,7 @@
 		var/atom/bestpos_threat_neighbor = (curr_threat ? get_step_towards(best_local_pos, curr_threat) : null)
 
 		// Reevaluating plans as new threats pop up
-		var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover()))
+		var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover(TRUE, get_dir(bestpos_threat_neighbor, curr_threat), FALSE)))
 		var/currpos_is_unsafe = (
 			(tracker_frustration < frustration_repath_maxthresh) && (curr_threat_distance <= min_safe_dist) && (next_step_threat_distance < curr_threat_distance)
 		)
@@ -73,10 +73,14 @@
 		var/list/curr_view = brain?.perceptions?.Get(SENSE_SIGHT)
 
 		for(var/turf/cand in curr_view)
-			if(!(cand.Enter(src)))
+			// NOTE: This is DIFFERENT to cover moves! We're not doing a double-loop here!
+			if(!(cand?.Enter(src, src.loc)))
 				continue
 
 			if(cand in processed)
+				continue
+
+			if(!(cand in curr_view))
 				continue
 
 			var/penalty = 0
@@ -89,10 +93,13 @@
 				var/threat_angle = GetThreatAngle(cand, threat_ghost)
 				var/threat_dir = angle2dir(threat_angle)
 
+				var/tile_is_cover = (cand.IsCover(TRUE, threat_dir, FALSE))
+
 				var/atom/maybe_cover = get_step(cand, threat_dir)
 
-				if(maybe_cover && !(maybe_cover.density))  // is cover check
-					penalty += 50
+				if(maybe_cover && !(tile_is_cover || maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
+					invalid_tile = TRUE
+					break
 
 				if(threat_ghost && threat_dist < min_safe_dist)
 					invalid_tile = TRUE
@@ -124,7 +131,7 @@
 
 			penalty += -threat_dist  // the further from a threat, the better
 
-			var/datum/Quadruple/cover_quad = new(-penalty, threat_dist, -total_dist, cand)
+			var/datum/Quadruple/cover_quad = new(threat_dist, -penalty, -total_dist, cand)
 			cover_queue.Enqueue(cover_quad)
 			processed.Add(cand)
 
@@ -147,19 +154,21 @@
 			tracker.SetTriggered()
 
 	var/is_triggered = tracker.IsTriggered()
+	var/datum/brain/concrete/needybrain = brain
 
 	if(is_triggered)
 		if(tracker.TriggeredMoreThan(COMBATAI_AI_TICK_DELAY))
 			tracker.SetDone()
 
-			var/datum/brain/concrete/needybrain = brain
 			if(needybrain)
 				needybrain.ChangeMotive(NEED_COMPOSURE, NEED_SAFELEVEL)
 
 			SetState(STATE_PANIC, -1)
 
+
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))
 		tracker.SetFailed()
+
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 10))
 		tracker.SetFailed()

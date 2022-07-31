@@ -6,24 +6,26 @@
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
 "h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)
+"i" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
+"j" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
 
 (1,1,1) = {"
 abbaaaaaaaaaaaaaaa
 abbabbbbbbbbbbbbba
-aababbbbbbbbbbbbaa
-abbabbbbbbbbbbbbab
-abbaaabbbbabbbaaaa
-abbabbbbbbbbbbbbab
-abbabbbbcbbbfbbbaa
-abbabbbbbbdbbbbbab
-abbaaabbbbbbbbaaab
-abbabbbbgbbbbbbbaa
-abaabbbbebbbbbbbab
-abbabbbbbbbbbhbaab
-abbaaabbbbbbbbbbab
-abbabbbbbbfbbbbaaa
-aaaabbbbbbbbbbbbab
-abbbbbbbbbbbbbbbab
-abbbbabbbbbbbbbbab
+aababgbbibbbbbhbba
+abbabbbbbbbbbbhbbb
+abbaiibbbbibbbbbba
+abbabbbbbbbbbbbibb
+abbabbbbcbbbfbbbba
+abbabbbbbbdbbbbbjb
+abbaijbbbbbbbbbbbb
+abbabbbbbbbibbbhba
+abaabbbbebbbbbbhbb
+abbabbbbbbbbbbbhbb
+abbajjbbbbbbbbbbbb
+abbabbbbbbfjjbbbja
+aaaabgbbbbbbbbbbbb
+abbhbbbjbbbbbbbbbb
+abbbbabbbbbbbbbbbb
 aaaaaaaaaaaaaaaaaa
 "}

@@ -1,12 +1,12 @@
 // BEGIN_INTERNALS
 /*
 MAP_ZOOM: 1.000
-LAST_COMPILE_TIME: 1659265653
-DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions goap goap\testing icons\urist\turf icons\uristmob 
+LAST_COMPILE_TIME: 1659294832
+DIR: _datastructures basics demo demo\combatant demo\combatant\actions demo\spawners goap\testing icons icons\urist\turf 
 AUTO_FILE_DIR: OFF
 MAP_ICON_TYPE: 0
 LAST_COMPILE_VERSION: 514.1584
-WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\combatant\senses.dm;demo\combatant\core.dm;demo\combatant\_defines.dm;demo\_astar.dm;demo\combatant\personality.dm;demo\combatant\actions\panic_run.dm;demo\combatant\brain.dm;basics\senses.dm;_defines.dm;_datastructures\dict.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\coverleap_dir.dm
-FILE: demo\combatant\actions\coverleap_dir.dm
+WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\combatant\senses.dm;demo\combatant\core.dm;demo\combatant\_defines.dm;demo\_astar.dm;demo\combatant\personality.dm;GOAI.dme;combatmap_tabular.dmm;basics\turfs.dm;basics\_cover.dm;demo\covers.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\coverleap_dir.dm;demo\combatant\actions\panic_run.dm;_defines.dm
+FILE: demo\combatant\actions\panic_run.dm
 */
 // END_INTERNALS

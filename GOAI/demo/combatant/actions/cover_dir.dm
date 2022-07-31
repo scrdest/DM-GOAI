@@ -55,7 +55,7 @@
 		var/atom/bestpos_threat_neighbor = (curr_threat ? get_step_towards(best_local_pos, curr_threat) : null)
 
 		// Reevaluating plans as new threats pop up
-		var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover()))
+		var/bestpos_is_unsafe = (bestpos_threat_distance < min_safe_dist && !(bestpos_threat_neighbor?.IsCover(TRUE, get_dir(bestpos_threat_neighbor, curr_threat), FALSE)))
 		var/currpos_is_unsafe = (
 			(tracker_frustration < frustration_repath_maxthresh) && (curr_threat_distance <= min_safe_dist) && (next_step_threat_distance < curr_threat_distance)
 		)
@@ -76,21 +76,51 @@
 		var/list/curr_view = brain?.perceptions?.Get(SENSE_SIGHT)
 		curr_view.Add(startpos)
 
-		// TODO: Refactor for non-wall covers.
-		for(var/turf/wall/loc_wall in curr_view)
-			var/list/adjacents = loc_wall.CardinalTurfs(TRUE)
+		var/effective_waypoint_x = null
+		var/effective_waypoint_y = null
+
+		if(waypoint)
+			var/datum/memory/waypoint_mem = brain?.GetMemory(MEM_WAYPOINT_LKP, null, FALSE)
+			var/list/waypoint_memdata = waypoint_mem?.val
+			var/mem_waypoint_x = waypoint_memdata?[KEY_GHOST_X]
+			var/mem_waypoint_y = waypoint_memdata?[KEY_GHOST_Y]
+			world.log << "[src] waypoint positions: ([mem_waypoint_x], [mem_waypoint_y]) from [waypoint_memdata] from mem [waypoint_mem]"
+
+			if(!isnull(mem_waypoint_x) && !isnull(mem_waypoint_y))
+				world.log << "[src] found waypoint position in memory!"
+				effective_waypoint_x = mem_waypoint_x
+				effective_waypoint_y = mem_waypoint_y
+
+			else
+				var/datum/Tuple/waypoint_position = waypoint.CurrentPositionAsTuple()
+
+				effective_waypoint_x = waypoint_position.left + rand(-WAYPOINT_FUZZ_X, WAYPOINT_FUZZ_X)
+				effective_waypoint_y = waypoint_position.right + rand(-WAYPOINT_FUZZ_Y, WAYPOINT_FUZZ_Y)
+
+		for(var/atom/candidate_cover in curr_view)
+			var/has_cover = candidate_cover?.HasCover(null)
+
+			// IsCover here is Transitive=FALSE b/c has_cover will have checked transitives already)
+			if(!(has_cover || candidate_cover?.IsCover(FALSE, null, TRUE)))
+				continue
+
+			var/turf/cover_loc = (istype(candidate_cover, /turf) ? candidate_cover : candidate_cover?.loc)
+			var/list/adjacents = cover_loc?.CardinalTurfs(TRUE) || list()
+
+			if(has_cover)
+				adjacents.Add(candidate_cover)
 
 			if(!adjacents)
 				continue
 
 			for(var/turf/cand in adjacents)
+				if(!(cand?.Enter(src, src.loc)))
+					continue
+
 				if(cand in processed)
 					continue
 
 				if(!(cand in curr_view) && (cand != startpos))
-					continue
-
-				if(!(cand.Enter(src)))
 					continue
 
 				var/penalty = 0
@@ -103,9 +133,11 @@
 					var/threat_angle = GetThreatAngle(cand, threat_ghost)
 					var/threat_dir = angle2dir(threat_angle)
 
+					var/tile_is_cover = (cand.IsCover(TRUE, threat_dir, FALSE) && cand.Enter(src, src.loc))
+
 					var/atom/maybe_cover = get_step(cand, threat_dir)
 
-					if(maybe_cover && !(maybe_cover.density))  // is cover check
+					if(maybe_cover && !(tile_is_cover || maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
 						invalid_tile = TRUE
 						break
 
@@ -123,7 +155,11 @@
 					continue
 
 				var/cand_dist = ManhattanDistance(cand, src)
-				var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
+				var/targ_dist = 0
+
+				if(!isnull(effective_waypoint_x) && !isnull(effective_waypoint_y))
+					targ_dist = ManhattanDistanceNumeric(cand.x, cand.y, effective_waypoint_x, effective_waypoint_y)
+
 				var/total_dist = (cand_dist + targ_dist)
 
 				var/open_lines = cand.GetOpenness()
@@ -181,6 +217,7 @@
 		if(dist_to_pos < 1)
 			tracker.SetTriggered()
 
+	var/datum/brain/concrete/needybrain = brain
 	var/is_triggered = tracker.IsTriggered()
 
 	if(is_triggered)
@@ -188,9 +225,15 @@
 			tracker.SetDone()
 
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))
+		if(needybrain)
+			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
+
 		tracker.SetFailed()
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 10))
+		if(needybrain)
+			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
+
 		tracker.SetFailed()
 
 	return
