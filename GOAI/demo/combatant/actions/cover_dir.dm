@@ -31,9 +31,11 @@
 		threats[secondary_threat_ghost] = secondary_threat
 
 	// Shot-at logic (avoid known currently unsafe positions):
+	/*
 	var/datum/memory/shot_at_mem = brain?.GetMemory(MEM_SHOTAT, null, FALSE)
 	var/dict/shot_at_memdata = shot_at_mem?.val
 	var/datum/Tuple/shot_at_where = shot_at_memdata?.Get(KEY_GHOST_POS_TUPLE, null)
+	*/
 
 	// Reuse cached solution if it's good enough
 	if(isnull(best_local_pos) && active_path && (!(active_path.IsDone())) && active_path.target && active_path.frustration < 2)
@@ -98,10 +100,11 @@
 				effective_waypoint_y = waypoint_position.right + rand(-WAYPOINT_FUZZ_Y, WAYPOINT_FUZZ_Y)
 
 		for(var/atom/candidate_cover in curr_view)
-			var/has_cover = candidate_cover?.HasCover(null)
-
+			var/has_cover = candidate_cover?.HasCover(get_dir(candidate_cover, primary_threat), FALSE)
 			// IsCover here is Transitive=FALSE b/c has_cover will have checked transitives already)
-			if(!(has_cover || candidate_cover?.IsCover(FALSE, null, TRUE)))
+			var/is_cover = candidate_cover?.IsCover(FALSE, get_dir(candidate_cover, primary_threat), FALSE)
+
+			if(!(has_cover || is_cover))
 				continue
 
 			var/turf/cover_loc = (istype(candidate_cover, /turf) ? candidate_cover : candidate_cover?.loc)
@@ -125,6 +128,9 @@
 
 				var/penalty = 0
 
+				if(cand == candidate_cover)
+					penalty -= 25
+
 				var/threat_dist = PLUS_INF
 				var/invalid_tile = FALSE
 
@@ -137,7 +143,7 @@
 
 					var/atom/maybe_cover = get_step(cand, threat_dir)
 
-					if(maybe_cover && !(tile_is_cover || maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
+					if(maybe_cover && !(tile_is_cover ^ maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
 						invalid_tile = TRUE
 						break
 
@@ -148,11 +154,11 @@
 				if(invalid_tile)
 					continue
 
-				var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
+				//var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
 
-				if (curr_pos_tup ~= shot_at_where)
+				/*if (curr_pos_tup ~= shot_at_where)
 					world.log << "[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where"
-					continue
+					continue*/
 
 				var/cand_dist = ManhattanDistance(cand, src)
 				var/targ_dist = 0
@@ -195,6 +201,8 @@
 					5; 7
 				))
 
+				// Reminder to self: higher values are higher priority
+				// Smaller penalty => also higher priority
 				var/datum/Quadruple/cover_quad = new(-targ_dist, -penalty, -total_dist, cand)
 				cover_queue.Enqueue(cover_quad)
 				processed.Add(cand)

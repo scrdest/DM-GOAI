@@ -36,9 +36,11 @@
 	var/turf/prev_loc_memdata = prev_loc_mem?.val
 
 	// Shot-at logic (avoid known currently unsafe positions):
+	/*
 	var/datum/memory/shot_at_mem = brain?.GetMemory(MEM_SHOTAT, null, FALSE)
 	var/dict/shot_at_memdata = shot_at_mem?.val
 	var/datum/Tuple/shot_at_where = shot_at_memdata?.Get(KEY_GHOST_POS_TUPLE, null)
+	*/
 
 	// Reuse cached solution if it's good enough
 	if(isnull(best_local_pos) && active_path && (!(active_path.IsDone())) && active_path.target && active_path.frustration < 2)
@@ -104,10 +106,11 @@
 				effective_waypoint_y = waypoint_position.right + rand(-WAYPOINT_FUZZ_Y, WAYPOINT_FUZZ_Y)
 
 		for(var/atom/candidate_cover in curr_view)
-			var/has_cover = candidate_cover?.HasCover(null)
-
+			var/has_cover = candidate_cover?.HasCover(get_dir(candidate_cover, primary_threat), FALSE)
 			// IsCover here is Transitive=FALSE b/c has_cover will have checked transitives already)
-			if(!(has_cover || candidate_cover?.IsCover(FALSE, null, TRUE)))
+			var/is_cover = candidate_cover?.IsCover(FALSE, get_dir(candidate_cover, primary_threat), FALSE)
+
+			if(!(has_cover || is_cover))
 				continue
 
 			var/turf/cover_loc = (istype(candidate_cover, /turf) ? candidate_cover : candidate_cover?.loc)
@@ -131,6 +134,9 @@
 
 				var/penalty = 0
 
+				if(cand == candidate_cover)
+					penalty -= 25
+
 				if(prev_loc_memdata && prev_loc_memdata == cand)
 					//world.log << "Prev loc [prev_loc_memdata] matched candidate [cand]"
 					penalty += MAGICNUM_DISCOURAGE_SOFT
@@ -147,7 +153,7 @@
 
 					var/atom/maybe_cover = get_step(cand, threat_dir)
 
-					if(maybe_cover && !(tile_is_cover || maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
+					if(maybe_cover && !(tile_is_cover ^ maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
 						invalid_tile = TRUE
 						break
 
@@ -164,8 +170,8 @@
 					penalty += MAGICNUM_DISCOURAGE_SOFT
 					//continue
 
-				if (cand.CurrentPositionAsTuple() ~= shot_at_where)
-					penalty += MAGICNUM_DISCOURAGE_SOFT
+				/*if (cand.CurrentPositionAsTuple() ~= shot_at_where)
+					penalty += MAGICNUM_DISCOURAGE_SOFT*/
 					//continue
 
 				var/open_lines = cand.GetOpenness()

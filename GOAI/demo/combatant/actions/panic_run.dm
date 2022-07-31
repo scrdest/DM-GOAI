@@ -30,9 +30,11 @@
 		threats[secondary_threat_ghost] = secondary_threat
 
 	// Shot-at logic (avoid known currently unsafe positions):
+	/*
 	var/datum/memory/shot_at_mem = brain?.GetMemory(MEM_SHOTAT, null, FALSE)
 	var/dict/shot_at_memdata = shot_at_mem?.val
 	var/datum/Tuple/shot_at_where = shot_at_memdata?.Get(KEY_GHOST_POS_TUPLE, null)
+	*/
 
 	// Reuse cached solution if it's good enough
 	if(isnull(best_local_pos) && active_path && (!(active_path.IsDone())) && active_path.target && active_path.frustration < 2)
@@ -84,42 +86,26 @@
 				continue
 
 			var/penalty = 0
-
 			var/threat_dist = 0
-			var/invalid_tile = FALSE
+			var/heat = 0
 
 			for(var/dict/threat_ghost in threats)
 				threat_dist = GetThreatDistance(cand, threat_ghost)
-				var/threat_angle = GetThreatAngle(cand, threat_ghost)
-				var/threat_dir = angle2dir(threat_angle)
-
-				var/tile_is_cover = (cand.IsCover(TRUE, threat_dir, FALSE))
-
-				var/atom/maybe_cover = get_step(cand, threat_dir)
-
-				if(maybe_cover && !(tile_is_cover || maybe_cover.IsCover(TRUE, threat_dir, FALSE)))
-					invalid_tile = TRUE
-					break
 
 				if(threat_ghost && threat_dist < min_safe_dist)
-					invalid_tile = TRUE
-					break
+					heat++
 
-				/* Bit of a hack: for now, let's only consider primary threat
-				// for Panicking - this should mean that a Panic state is just
-				// trying to bail from the primary ASAP, even if it's a little
-				// bit irrational.
-				*/
-				break
+			if(heat == 1)
+				penalty += MAGICNUM_DISCOURAGE_SOFT
 
-			if(invalid_tile)
+			if(heat >= 2)
 				continue
 
-			var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
+			//var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
 
-			if (curr_pos_tup ~= shot_at_where)
+			/*if (curr_pos_tup ~= shot_at_where)
 				world.log << "[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where"
-				continue
+				continue*/
 
 			var/cand_dist = ManhattanDistance(cand, src)
 			//var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
@@ -167,10 +153,14 @@
 
 
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))
+		if(prob(10))
+			step_away(src, primary_threat || secondary_threat || src)
 		tracker.SetFailed()
 
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 10))
+		if(prob(10))
+			step_away(src, primary_threat || secondary_threat || src)
 		tracker.SetFailed()
 
 	return

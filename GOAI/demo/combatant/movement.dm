@@ -85,8 +85,5 @@
 
 /mob/goai/combatant/proc/randMove()
 	is_moving = 1
-	var/moving_to = 0 // otherwise it always picks 4
-	moving_to = pick(SOUTH, NORTH, WEST, EAST)
-	dir = moving_to //How about we turn them the direction they are moving, yay.
 	step(src, dir)
 	is_moving = 0

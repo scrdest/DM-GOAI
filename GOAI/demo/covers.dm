@@ -52,6 +52,8 @@
 
 /obj/cover/table/UpdateIcon()
 	icon_state = (flipped ? icon_flipped : icon_standing)
+
+	layer = ((flipped && (dir != NORTH)) ? (MOB_LAYER + 1) : OBJ_LAYER)
 	return
 
 

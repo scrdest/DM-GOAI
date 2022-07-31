@@ -33,7 +33,7 @@
 	/* TODO: add Time as a resource! */
 	var/list/new_actionslist = list(
 		// Cost, Req-ts, Effects
-		//"Idle" = new /datum/Triple (10, list(), list()),
+		"Idle" = new /datum/Triple (-999, list(), list(NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED, NEED_COMPOSURE = NEED_SATISFIED, STATE_PANIC = -1)),
 		"Take Cover" = new /datum/Triple (10, list(STATE_DOWNTIME = 1, STATE_PANIC = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
 		//"Cover Leapfrog" = new /datum/Triple (10, list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1)),
 		//"Directional Cover" = new /datum/Triple (4, list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED)),

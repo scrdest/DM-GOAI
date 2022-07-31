@@ -114,12 +114,8 @@
 	if(combatbrain && (combatbrain.GetMotive(NEED_COMPOSURE) || NEED_SATISFIED) < NEED_THRESHOLD)
 		SetState(STATE_PANIC, 1)
 
-	var/curr_panic_state = GetState(STATE_PANIC)
-	if(curr_panic_state >= 1)
-		if(prob(5))
-			// Break PANIC state eventually
-			// TODO: Refactor, this is a hacky POC solution
-			SetState(STATE_PANIC, -1)
+	else if(combatbrain && (combatbrain.GetMotive(NEED_COMPOSURE) || NEED_SATISFIED) >= NEED_THRESHOLD)
+		SetState(STATE_PANIC, -1)
 
 	if(brain)
 		brain.LifeTick()
