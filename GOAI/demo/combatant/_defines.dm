@@ -33,7 +33,7 @@
 # define MAGICNUM_DISCOURAGE_SOFT 10000
 
 // How much getting shot decays the AI's COMPOSURE need.
-# define MAGICNUM_COMPOSURE_LOSS_ONHIT 10
+# define MAGICNUM_COMPOSURE_LOSS_ONHIT 5
 
 // How much failing a movement decays the AI's COMPOSURE need.
 # define MAGICNUM_COMPOSURE_LOSS_FAILMOVE 5

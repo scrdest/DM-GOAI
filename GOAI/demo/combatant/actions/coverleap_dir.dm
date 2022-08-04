@@ -114,10 +114,11 @@
 				continue
 
 			var/turf/cover_loc = (istype(candidate_cover, /turf) ? candidate_cover : candidate_cover?.loc)
-			var/list/adjacents = cover_loc?.CardinalTurfs(TRUE) || list()
+			var/list/adjacents = (has_cover ? list(candidate_cover) : (cover_loc?.CardinalTurfs(TRUE) || list()))
+			/*var/list/adjacents = cover_loc?.CardinalTurfs(TRUE) || list()
 
 			if(has_cover)
-				adjacents.Add(candidate_cover)
+				adjacents.Add(candidate_cover)*/
 
 			if(!adjacents)
 				continue
@@ -134,8 +135,8 @@
 
 				var/penalty = 0
 
-				if(cand == candidate_cover)
-					penalty -= 25
+				if(cand == candidate_cover || cand == candidate_cover.loc)
+					penalty -= 50
 
 				if(prev_loc_memdata && prev_loc_memdata == cand)
 					//world.log << "Prev loc [prev_loc_memdata] matched candidate [cand]"
@@ -174,16 +175,16 @@
 					penalty += MAGICNUM_DISCOURAGE_SOFT*/
 					//continue
 
-				var/open_lines = cand.GetOpenness()
+				//var/open_lines = cand.GetOpenness()
 
 				var/targ_dist = 0
 
 				if(!isnull(effective_waypoint_x) && !isnull(effective_waypoint_y))
 					targ_dist = ManhattanDistanceNumeric(cand.x, cand.y, effective_waypoint_x, effective_waypoint_y)
 
-				penalty += -targ_dist  // the further from a threat, the better
+				penalty += -targ_dist  // the closer to target, the better
 				//penalty += -threat_dist  // the further from a threat, the better
-				penalty += abs(open_lines-pick(
+				/*penalty += abs(open_lines-pick(
 					/*
 					This is a bit un-obvious:
 
@@ -209,7 +210,7 @@
 					120; 3,
 					50; 4,
 					5; 7
-				))
+				))*/
 
 				// Reminder to self: higher values are higher priority
 				// Smaller penalty => also higher priority

@@ -75,7 +75,7 @@
 
 	memories = new /dict(init_memories)
 	hivemind = with_hivemind
-	personality = init_personality
+	personality = (isnull(init_personality) ? personality : init_personality)
 	last_need_update_times = list()
 	perceptions = new()
 
@@ -186,25 +186,46 @@
 	return
 
 
+/datum/brain/proc/GetAvailableActions(var/clone = TRUE)
+	/* Abstraction layer over Action updates.
+	// We need this to let nearby Smart Objects etc. yield
+	// Actions to the planner.
+	//
+	// - clone (bool): If TRUE (default), the list is a clone of the actionslist (slower, but safer).
+	//                 If FALSE, a reference to the list is returned (faster, but harder to predict)
+	*/
+	var/list/available_actions = (clone ? actionslist.Copy() : actionslist)
+	return available_actions
+
+
 /datum/brain/concrete
 
 
-/datum/brain/concrete/proc/CreatePlan(var/list/status, var/list/goal)
+/datum/brain/concrete/proc/CreatePlan(var/list/status, var/list/goal, var/list/actions = null)
 	is_planning = 1
 	var/list/path = null
+	var/list/available_actions = (isnull(actions) ? GetAvailableActions(FALSE) : actions)
 
 	var/list/params = list()
 	// You don't have to pass args like this; this is just to make things a bit more readable.
 	params["start"] = status
 	params["goal"] = goal
 	/* For functional API variant:
-	params["graph"] = mob_actions
+	params["graph"] = available_actions
 	params["adjacent"] = /proc/get_actions_agent
 	params["check_preconds"] = /proc/check_preconds_agent
 	params["goal_check"] = /proc/goal_checker_agent
 	params["get_effects"] = /proc/get_effects_agent
 	*/
 	params["cutoff_iter"] = planning_iter_cutoff
+
+	// For the classy API variant:
+	/* Dynamically update actions; this isn't strictly necessary for a simple AI,
+	// but it lets us do things like Smart Object updating our actionspace by
+	// serving 'their' actions (similar to how BYOND Verbs can broadcast themselves
+	// to other nearby objects with set src in whatever).
+	*/
+	planner.graph = available_actions
 
 
 	var/datum/Tuple/result = planner.Plan(arglist(params))
@@ -258,30 +279,31 @@
 			if (need_val < NEED_THRESHOLD)
 				goal_state[need_key] = NEED_SAFELEVEL
 
-			if (goal_state && goal_state.len && (!is_planning))
-				//world.log << "Creating plan!"
+		if (goal_state && goal_state.len && (!is_planning))
+			//world.log << "Creating plan!"
+			var/list/available_actions = GetAvailableActions(FALSE) // read-only, change to TRUE for *safe* mutability
 
-				spawn(0)
-					var/list/raw_active_plan = CreatePlan(curr_state, goal_state)
+			spawn(0)
+				var/list/raw_active_plan = CreatePlan(curr_state, goal_state, available_actions)
 
-					if(raw_active_plan)
-						//world.log << "Created plan [raw_active_plan]"
-						var/first_clean_pos = 0
+				if(raw_active_plan)
+					//world.log << "Created plan [raw_active_plan]"
+					var/first_clean_pos = 0
 
-						for (var/planstep in raw_active_plan)
-							first_clean_pos++
-							if(planstep in actionslist)
-								break
+					for (var/planstep in raw_active_plan)
+						first_clean_pos++
+						if(planstep in available_actions)
+							break
 
-						raw_active_plan.Cut(0, first_clean_pos)
-						active_plan = raw_active_plan
+					raw_active_plan.Cut(0, first_clean_pos)
+					active_plan = raw_active_plan
 
-					else
-						world.log << "Failed to create a plan | <@[src]>"
+				else
+					world.log << "Failed to create a plan | <@[src]>"
 
 
-			else //satisfied, can be lazy
-				Idle()
+		else //satisfied, can be lazy
+			Idle()
 
 	return
 

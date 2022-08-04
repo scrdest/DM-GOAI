@@ -108,10 +108,11 @@
 				continue
 
 			var/turf/cover_loc = (istype(candidate_cover, /turf) ? candidate_cover : candidate_cover?.loc)
-			var/list/adjacents = cover_loc?.CardinalTurfs(TRUE) || list()
+			var/list/adjacents = (has_cover ? list(candidate_cover) : (cover_loc?.CardinalTurfs(TRUE) || list()))
+			/*var/list/adjacents = cover_loc?.CardinalTurfs(TRUE) || list()
 
 			if(has_cover)
-				adjacents.Add(candidate_cover)
+				adjacents.Add(candidate_cover)*/
 
 			if(!adjacents)
 				continue
@@ -128,8 +129,8 @@
 
 				var/penalty = 0
 
-				if(cand == candidate_cover)
-					penalty -= 25
+				if(cand == candidate_cover || cand == candidate_cover.loc)
+					penalty -= 50
 
 				var/threat_dist = PLUS_INF
 				var/invalid_tile = FALSE
@@ -168,13 +169,13 @@
 
 				var/total_dist = (cand_dist + targ_dist)
 
-				var/open_lines = cand.GetOpenness()
+				//var/open_lines = cand.GetOpenness()
 
 				if(threat_dist < min_safe_dist)
 					continue
 
 				//penalty += -threat_dist  // the further from a threat, the better
-				penalty += abs(open_lines-pick(
+				/*penalty += abs(open_lines-pick(
 					/*
 					This is a bit un-obvious:
 
@@ -199,7 +200,7 @@
 					120; 3,
 					50; 4,
 					5; 7
-				))
+				))*/
 
 				// Reminder to self: higher values are higher priority
 				// Smaller penalty => also higher priority
