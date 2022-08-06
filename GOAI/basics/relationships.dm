@@ -75,7 +75,8 @@
 // =============================================================
 //
 // Broadly speaking, you'll want:
-// - Insert(k, v) => to upsert values
+// - Insert(k, v) => to upsert values (absolute value)
+// - Increase(k, dv) => to upsert values (relative value)
 // - GetRelationshipByTags(list<str>) => to retrieve values.
 //
 // Accessing stuff by attribute is technically possible, but
@@ -106,6 +107,23 @@
 	var/weight = relation.weight
 	data.Set(tag, relation)
 	total_weights += weight
+
+	return src
+
+
+/datum/relationships/proc/Increase(var/tag, var/amt, var/wgt_if_new = 1)
+	if(!(tag && amt))
+		return src
+
+	var/datum/relation_data/upd_relation = data.Get(tag, null)
+
+	if(isnull(upd_relation))
+		upd_relation = new(0 + amt, wgt_if_new)
+		Insert(tag, upd_relation)
+
+	else
+		var/curr_val = upd_relation.value || 0
+		upd_relation.value = curr_val + amt
 
 	return src
 
