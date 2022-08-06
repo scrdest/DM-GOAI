@@ -53,6 +53,10 @@
 	*/
 	var/dict/perceptions
 
+	/* Faction-esque data; relation modifiers by tag.
+	*/
+	var/datum/relationships
+
 	/* Bookkeeping for action execution */
 	var/is_planning = 0
 	var/selected_action = null
@@ -68,7 +72,7 @@
 	var/datum/GOAP/planner
 
 
-/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null)
+/datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null, var/dict/init_relationships = null)
 	..()
 
 	name = (newname ? newname : name)
@@ -78,6 +82,7 @@
 	personality = (isnull(init_personality) ? personality : init_personality)
 	last_need_update_times = list()
 	perceptions = new()
+	relationships = new(init_relationships)
 
 	if(actions)
 		actionslist = actions.Copy()

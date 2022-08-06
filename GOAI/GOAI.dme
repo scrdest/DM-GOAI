@@ -36,6 +36,7 @@
 #include "basics\brain.dm"
 #include "basics\memory.dm"
 #include "basics\projectile.dm"
+#include "basics\relationships.dm"
 #include "basics\senses.dm"
 #include "basics\turfs.dm"
 #include "demo\_astar.dm"
