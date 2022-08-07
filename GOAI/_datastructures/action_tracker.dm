@@ -1,5 +1,5 @@
 /datum/ActionTracker
-	var/tracked_action
+	var/datum/goai_action/tracked_action
 	var/timeout_ds = null
 	var/list/tracker_blackboard
 
@@ -11,8 +11,8 @@
 	var/last_check_time = null
 
 
-/datum/ActionTracker/New(var/action, var/timeout = null)
-	tracked_action = action
+/datum/ActionTracker/New(var/datum/goai_action/action, var/timeout = null)
+	tracked_action = action || tracked_action
 	timeout_ds = timeout
 	tracker_blackboard = list()
 
@@ -49,7 +49,7 @@
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
 	var/timeDelta = curr_time - creation_time
 
-	var/result = (timeDelta >= max_lag_ds) ? 1 : 0
+	var/result = (timeDelta >= max_lag_ds) ? TRUE : FALSE
 
 	// Need to update last visit time
 	last_check_time = world.time
@@ -64,7 +64,7 @@
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
 	var/timeDelta = curr_time - trigger_time
 
-	var/result = (timeDelta >= max_lag_ds) ? 1 : 0
+	var/result = (timeDelta >= max_lag_ds) ? TRUE : FALSE
 
 	// Need to update last visit time
 	last_check_time = world.time
@@ -76,7 +76,7 @@
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
 	var/timeDelta = curr_time - last_check_time
 
-	var/result = (timeDelta >= max_lag_ds) ? 1 : 0
+	var/result = (timeDelta >= max_lag_ds) ? TRUE : FALSE
 
 	return result
 
@@ -100,7 +100,7 @@
 /datum/ActionTracker/proc/IsAbandoned()
 	if (isnull(timeout_ds))
 		// tasks w/o a timeout are never abandonable
-		return 0
+		return FALSE
 
 	var/result = IsCheckStale(timeout_ds, world.time)
 	return result
@@ -128,18 +128,26 @@
 
 /datum/ActionTracker/proc/SetDone()
 	world.log << "Setting tracker to done!"
-	is_done = 1
+
+	if(!is_done)
+		tracked_action.ReduceCharges(1)
+		is_done = TRUE
+
 	return
 
 
 /datum/ActionTracker/proc/SetFailed()
 	world.log << "Setting tracker to failed!"
-	is_failed = 1
+	is_failed = TRUE
 	return
 
 
 /datum/ActionTracker/proc/Run()
 	while (IsRunning())
 		CheckAbandoned()
+
+		if(isnull(tracked_action))
+			SetFailed()
+
 		sleep(AI_TICK_DELAY)
 

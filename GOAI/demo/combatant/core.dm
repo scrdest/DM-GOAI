@@ -23,11 +23,11 @@
 	var/initial_action = null
 
 
-/mob/goai/combatant/proc/HandleAction(var/action, var/datum/ActionTracker/tracker)
+/mob/goai/combatant/proc/HandleAction(var/datum/goai_action/action, var/datum/ActionTracker/tracker)
 	MAYBE_LOG("Tracker: [tracker]")
 	var/running = 1
 
-	var/list/action_lookup = GetActionLookup()
+	var/list/action_lookup = actionlookup // abstract maybe
 	if(isnull(action_lookup))
 		return
 
@@ -39,9 +39,14 @@
 
 		spawn(0)
 			// task-specific logic goes here
-			MAYBE_LOG("[src]: HandleAction action is: [action]!")
+			MAYBE_LOG("[src]: HandleAction action is: [action]")
 
-			var/mob/goai/combatant/actionproc = ((action in action_lookup) ? action_lookup[action] : null)
+			var/mob/proc/actionproc = action_lookup[action.name]
+
+			/*for(var/alkey in action_lookup)
+				world.log << "[src] action lookup: [alkey] => [action_lookup[alkey]]"*/
+
+			//world.log << "[src]: Actionproc for [action] is [actionproc || "null"]"
 
 			if(isnull(actionproc))
 				tracker.SetFailed()

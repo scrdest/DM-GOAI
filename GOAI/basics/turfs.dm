@@ -115,13 +115,13 @@
 	return FALSE
 
 
-/turf/proc/AdjacentTurfs(var/check_blockage = TRUE)
+/turf/proc/AdjacentTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	var/list/adjacents = list()
 
 	for(var/turf/t in (trange(1,src) - src))
 		if(check_blockage)
-			if(!(t.IsBlocked(TRUE)))
-				if(!(LinkBlocked(src, t)))
+			if(!(t.IsBlocked(check_objects)))
+				if(!(check_links && LinkBlocked(src, t)))
 					adjacents += t
 		else
 			adjacents += t
@@ -129,15 +129,21 @@
 	return adjacents
 
 
-/turf/proc/CardinalTurfs(var/check_blockage = TRUE)
+/turf/proc/CardinalTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	var/list/adjacents = list()
 
-	for(var/ad in AdjacentTurfs(check_blockage))
+	for(var/ad in AdjacentTurfs(check_blockage, check_links, check_objects))
 		var/turf/T = ad
 		if(T.x == src.x || T.y == src.y)
 			adjacents += T
 
 	return adjacents
+
+
+/turf/proc/CardinalTurfsNoblocks()
+	var/result = CardinalTurfs(TRUE, FALSE, FALSE)
+	world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
+	return result
 
 
 /turf/proc/Distance(turf/t)

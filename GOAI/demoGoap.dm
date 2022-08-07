@@ -21,9 +21,9 @@
 	// o graph - assoc list representing the action graph; should have the neighbor_key as a key innit.
 	*/
 	var/cost = PLUS_INF
-	var/datum/Triple/action_data = (neighbor_key in graph) ? graph[neighbor_key] : null
-	if (action_data && action_data.left)
-		cost = action_data.left
+	var/datum/goai_action/action_data = (neighbor_key in graph) ? graph[neighbor_key] : null
+	if (action_data && !(isnull(action_data.cost)))
+		cost = action_data.cost
 
 	return cost
 
@@ -49,8 +49,8 @@
 	MAYBE_LOG("Current Pos: [current_pos]")
 	MAYBE_LOG("Graph: [graph]")
 	MAYBE_LOG("Graph @ Pos: [graph[current_pos]]")
-	var/datum/Triple/actiondata = graph[current_pos]
-	var/list/preconds = actiondata.middle
+	var/datum/goai_action/actiondata = graph[current_pos]
+	var/list/preconds = actiondata.preconditions
 	var/match = 1
 
 	for (var/req_key in preconds)
@@ -67,6 +67,6 @@
 
 
 /datum/GOAP/demoGoap/get_effects(var/action_key)
-	var/datum/Triple/actiondata = graph[action_key]
-	var/list/effects = actiondata.right
+	var/datum/goai_action/actiondata = graph[action_key]
+	var/list/effects = actiondata.effects
 	return effects

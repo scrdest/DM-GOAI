@@ -191,16 +191,42 @@
 	return
 
 
-/datum/brain/proc/GetAvailableActions(var/clone = TRUE)
+/datum/brain/proc/GetAvailableActions()
 	/* Abstraction layer over Action updates.
 	// We need this to let nearby Smart Objects etc. yield
 	// Actions to the planner.
+	*/
+
+	var/list/available_actions = list()
+
+	for(var/action_key in actionslist)
+		// Filter out actions w/o charges and non-action items.
+		var/datum/goai_action/action = actionslist[action_key]
+
+		if(!action)
+			continue
+
+		if(action.charges < 1)
+			continue
+
+		available_actions[action_key] = action
+
+	actionslist = available_actions
+	return available_actions
+
+
+/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, clone = FALSE)
+	/*
 	//
 	// - clone (bool): If TRUE (default), the list is a clone of the actionslist (slower, but safer).
 	//                 If FALSE, a reference to the list is returned (faster, but harder to predict)
 	*/
-	var/list/available_actions = (clone ? actionslist.Copy() : actionslist)
-	return available_actions
+	world.log << "Adding action [name] with [cost] cost, [charges] charges"
+	var/list/available_actions = (clone ? actionslist.Copy() : actionslist) || list()
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges)
+	available_actions[name] = newaction
+
+	return newaction
 
 
 /datum/brain/concrete
@@ -209,7 +235,6 @@
 /datum/brain/concrete/proc/CreatePlan(var/list/status, var/list/goal, var/list/actions = null)
 	is_planning = 1
 	var/list/path = null
-	var/list/available_actions = (isnull(actions) ? GetAvailableActions(FALSE) : actions)
 
 	var/list/params = list()
 	// You don't have to pass args like this; this is just to make things a bit more readable.
@@ -230,7 +255,7 @@
 	// serving 'their' actions (similar to how BYOND Verbs can broadcast themselves
 	// to other nearby objects with set src in whatever).
 	*/
-	planner.graph = available_actions
+	planner.graph = GetAvailableActions()
 
 
 	var/datum/Tuple/result = planner.Plan(arglist(params))
@@ -286,7 +311,7 @@
 
 		if (goal_state && goal_state.len && (!is_planning))
 			//world.log << "Creating plan!"
-			var/list/available_actions = GetAvailableActions(FALSE) // read-only, change to TRUE for *safe* mutability
+			var/list/available_actions = GetAvailableActions()
 
 			spawn(0)
 				var/list/raw_active_plan = CreatePlan(curr_state, goal_state, available_actions)
@@ -319,7 +344,19 @@
 	if(!(Act in actionslist))
 		return null
 
-	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(Act)
+	var/datum/goai_action/goai_act = actionslist[Act]
+
+	if(!goai_act)
+		//world.log << "[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]"
+		return null
+
+	//world.log << "[src]: RETRIEVED ACTION [goai_act] from [Act]"
+	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(goai_act)
+
+	if(!new_actiontracker)
+		world.log << "[src]: Failed to create a tracker for [goai_act]!"
+		return null
+
 	//world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
 	running_action_tracker = new_actiontracker
 

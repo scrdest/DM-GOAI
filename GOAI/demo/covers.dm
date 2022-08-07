@@ -65,13 +65,13 @@
 	return cover
 
 
-/obj/cover/table/proc/Flip(var/flip_dir = null)
+/obj/cover/table/proc/pFlip(var/flip_dir = null)
 	if(isnull(flip_dir))
 		return
 
 	dir = flip_dir
 	flipped = TRUE
-	cover?.is_active = TRUE
+	cover.is_active = TRUE
 	cover.cover_dir = flip_dir
 
 	if(isnull(directional_blocker))
@@ -81,3 +81,73 @@
 	directional_blocker.blocks = flip_dir
 
 	UpdateIcon()
+
+
+/obj/cover/table/proc/pUnflip()
+	if(!flipped)
+		return
+
+	flipped = FALSE
+	cover.is_active = FALSE
+
+	density = TRUE
+
+	if(directional_blocker)
+		directional_blocker.is_active = FALSE
+
+	UpdateIcon()
+
+
+/obj/cover/table/verb/Flip()
+	set src in view(1)
+
+	dir = get_dir(src, usr)
+	pFlip(dir)
+
+
+/obj/cover/table/verb/Unflip()
+	set src in view(1)
+	pUnflip()
+
+
+/obj/cover/door
+	icon = 'icons/obj/doors/mineral_doors.dmi'
+	icon_state = "wood"
+
+	var/open = FALSE
+	density = FALSE
+
+
+/obj/cover/door/proc/UpdateOpen()
+	density = (open ? FALSE : FALSE)
+	opacity = (open ? FALSE : TRUE)
+	icon_state = (open ? "woodopen" : "wood")
+
+	if(directional_blocker)
+		directional_blocker.is_active = (open ? FALSE : TRUE)
+
+	return src
+
+
+/obj/cover/door/GenerateCoverData()
+	cover = ..()
+	cover.is_active = (!open)
+	cover.cover_all = TRUE
+	return cover
+
+
+/obj/cover/door/Setup()
+	..()
+	name = "[name] @ ([x], [y])"
+	directional_blocker = new(null, TRUE, TRUE)
+	UpdateOpen()
+
+
+/obj/cover/door/proc/pOpen()
+	open = !open
+	UpdateOpen()
+
+
+/obj/cover/door/verb/Open()
+	set src in view(1)
+	pOpen()

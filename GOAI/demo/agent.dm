@@ -9,6 +9,7 @@
 	var/list/needs
 	var/list/states
 	var/list/actionslist
+	var/list/actionlookup
 	var/list/inventory
 	var/list/senses
 
@@ -42,19 +43,46 @@
 	return
 
 
-/mob/goai/proc/GetActionsList()
+/mob/goai/proc/InitActionLookup()
+	/* Largely redundant; initializes handlers, but
+	// InitActions should generally use AddAction
+	// with a handler arg to register them.
+	// Mostly a relic of past design iterations.
+	*/
+	var/list/new_actionlookup = list()
+	return new_actionlookup
+
+
+/mob/goai/proc/InitActionsList()
 	var/list/new_actionslist = list()
 	return new_actionslist
 
 
-/mob/goai/proc/generate_personality()
+/mob/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF)
+
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges)
+
+	actionslist = (isnull(actionslist) ? list() : actionslist)
+	actionslist[name] = newaction
+
+	if(handler)
+		actionlookup = (isnull(actionlookup) ? list() : actionlookup)
+		actionlookup[name] = handler
+
+	if(brain)
+		brain.AddAction(name, preconds, effects, cost, charges)
+
+	return newaction
+
+
+/mob/goai/proc/GeneratePersonality()
 	var/dict/new_personality = new()
 	return new_personality
 
 
 /mob/goai/proc/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
-	var/dict/new_personality = (isnull(custom_personality) ? generate_personality() : custom_personality)
+	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 	var/datum/brain/concrete/new_brain = new(new_actionslist, init_memories, init_action, with_hivemind, new_personality)
 	new_brain.states = states.Copy()
 	return new_brain
@@ -65,7 +93,8 @@
 
 	var/spawn_time = world.time
 	last_mob_update_time = spawn_time
-	actionslist = GetActionsList()
+	actionlookup = InitActionLookup()  // order matters!
+	actionslist = InitActionsList()
 
 	Equip()
 	brain = CreateBrain(actionslist)

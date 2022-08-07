@@ -1,5 +1,4 @@
-/mob/goai/combatant/generate_personality()
-	world.log << "[src]: Hit generate_personality()"
+/mob/goai/combatant/GeneratePersonality()
 
 	var/dict/new_personality = ..()
 	var/list/trait_tags = list()

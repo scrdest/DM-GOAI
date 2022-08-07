@@ -14,7 +14,7 @@
 
 // Subsystem loop schedules
 # define COMBATAI_SENSE_TICK_DELAY 3
-# define COMBATAI_AI_TICK_DELAY 5
+# define COMBATAI_AI_TICK_DELAY 4
 # define COMBATAI_MOVE_TICK_DELAY 5
 # define COMBATAI_FIGHT_TICK_DELAY 25
 
@@ -28,6 +28,7 @@
 # define MEM_WAYPOINT_LKP "WaypointLKP"
 # define MEM_CURRLOC "MyCurrLocation"
 # define MEM_PREVLOC "MyPrevLocation"
+# define MEM_OBSTRUCTION "Obstruction"
 
 // Penalty value that should entirely eliminate an option unless there's absolutely no alternatives:
 # define MAGICNUM_DISCOURAGE_SOFT 10000

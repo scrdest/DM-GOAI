@@ -2,7 +2,7 @@
 	var/obj/cover/table/newtable = new(spawnloc)
 
 	if(flip_dir)
-		newtable.Flip(flip_dir)
+		newtable.pFlip(flip_dir)
 
 
 /obj/spawner/oneshot/table_flipped
