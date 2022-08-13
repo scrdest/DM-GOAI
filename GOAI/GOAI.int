@@ -1,12 +1,12 @@
 // BEGIN_INTERNALS
 /*
 MAP_ZOOM: 1.000
-LAST_COMPILE_TIME: 1659905161
-DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions demo\spawners goap goap\testing icons icons\obj\doors icons\urist\turf 
+LAST_COMPILE_TIME: 1660232241
+DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions demo\spawners goap goap\testing icons icons\urist\turf 
 AUTO_FILE_DIR: OFF
 MAP_ICON_TYPE: 0
 LAST_COMPILE_VERSION: 514.1584
-WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\combatant\senses.dm;demo\combatant\_defines.dm;demo\combatant\personality.dm;demo\combatant\setup.dm;demo\combatant\core.dm;demo\covers.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\reorient.dm;basics\actions.dm;_datastructures\action_tracker.dm;demo\agent.dm;demo\_defines_action.dm
-FILE: demo\combatant\actions\reorient.dm
+WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\combatant\_defines.dm;demo\combatant\personality.dm;demo\combatant\setup.dm;demo\combatant\core.dm;demo\covers.dm
+FILE: demo\covers.dm
 */
 // END_INTERNALS

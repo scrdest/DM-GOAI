@@ -37,14 +37,14 @@
 	/* TODO: add Time as a resource! */
 	// Cost, Req-ts, Effects
 	AddAction("Idle", list(), list(), /mob/goai/combatant/proc/HandleIdling, -999)
-	AddAction("Take Cover", list(STATE_DOWNTIME = 1, STATE_PANIC = -1, "STATE_ORIENTED" = NEED_SATISFIED), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, "STATE_ORIENTED" = NEED_MINIMUM), /mob/goai/combatant/proc/HandleDirectionalCover, 10)
+	AddAction("Take Cover", list(STATE_DOWNTIME = 1, STATE_PANIC = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1), /mob/goai/combatant/proc/HandleDirectionalCover, 10)
 	//AddAction("Cover Leapfrog", list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 10)
 	//AddAction("Directional Cover", list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
-	AddAction("Directional Cover Leapfrog", list(STATE_DOWNTIME = -1, STATE_PANIC = -1, "STATE_ORIENTED" = NEED_SATISFIED), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED, "STATE_ORIENTED" = NEED_MINIMUM), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
+	AddAction("Directional Cover Leapfrog", list(STATE_DOWNTIME = -1, STATE_PANIC = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
 	//AddAction("Cover Fire", list(STATE_INCOVER = 1), list(NEED_COVER = NEED_MINIMUM, STATE_INCOVER = 0, NEED_ENEMIES = NEED_SATISFIED), /mob/goai/combatant/proc/HandleIdling, 5)
 	//AddAction("Shoot", list(STATE_CANFIRE = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleShoot, 10)
 	AddAction("Panic Run", list(STATE_PANIC = 1), list(NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED, NEED_COMPOSURE = NEED_SATISFIED, STATE_PANIC = -1), /mob/goai/combatant/proc/HandlePanickedRun, 10)
-	AddAction("Reorient", list(), list("STATE_ORIENTED" = NEED_MAXIMUM), /mob/goai/combatant/proc/HandleReorient, 1)
+	//AddAction("Reorient", list(), list("STATE_ORIENTED" = NEED_MAXIMUM), /mob/goai/combatant/proc/HandleReorient, 1)
 
 	return actionslist
 

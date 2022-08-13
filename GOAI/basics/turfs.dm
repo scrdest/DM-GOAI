@@ -142,7 +142,7 @@
 
 /turf/proc/CardinalTurfsNoblocks()
 	var/result = CardinalTurfs(TRUE, FALSE, FALSE)
-	world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
+	//world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
 	return result
 
 

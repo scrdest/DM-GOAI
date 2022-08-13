@@ -85,5 +85,5 @@
 
 /mob/goai/combatant/proc/randMove()
 	is_moving = 1
-	step(src, dir)
+	Move(src, dir)
 	is_moving = 0

@@ -252,12 +252,14 @@
 		if(needybrain)
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
+		randMove()
 		tracker.SetFailed()
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 10))
 		if(needybrain)
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
+		randMove()
 		tracker.SetFailed()
 
 	return

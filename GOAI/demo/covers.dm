@@ -151,3 +151,90 @@
 /obj/cover/door/verb/Open()
 	set src in view(1)
 	pOpen()
+
+
+/obj/cover/autodoor
+	icon = 'icons/obj/doors/Door1.dmi'
+	icon_state = "door1"
+
+	var/close_door_at = 0
+	var/autoclose = TRUE
+	var/autoclose_time = 50
+	var/open = FALSE
+	var/scheduled_reopen = FALSE
+	density = FALSE
+
+
+/obj/cover/autodoor/proc/UpdateOpen()
+	density = (open ? FALSE : FALSE)
+	opacity = (open ? FALSE : TRUE)
+	icon_state = (open ? "door0" : "door1")
+
+	if(directional_blocker)
+		directional_blocker.is_active = (open ? FALSE : TRUE)
+
+	return src
+
+
+/obj/cover/autodoor/proc/NextCloseTime()
+	var/curr_autoclose = (autoclose_time || world.time)
+	return curr_autoclose + autoclose_time
+
+
+/obj/cover/autodoor/GenerateCoverData()
+	cover = ..()
+	cover.is_active = (!open)
+	cover.cover_all = TRUE
+	return cover
+
+
+/obj/cover/autodoor/proc/ProcessTick()
+	if(close_door_at && world.time >= close_door_at)
+		if(autoclose)
+			close_door_at = NextCloseTime()
+			pClose()
+		else
+			close_door_at = 0
+
+
+/obj/cover/autodoor/Setup()
+	..()
+	name = "[name] @ ([x], [y])"
+	directional_blocker = new(null, TRUE, TRUE)
+	UpdateOpen()
+
+	spawn(0)
+		while(src)
+			ProcessTick()
+			sleep(autoclose_time / 4)
+
+
+/obj/cover/autodoor/proc/pOpen()
+	Toggle(FALSE)
+
+
+/obj/cover/autodoor/proc/pClose()
+	Toggle(TRUE)
+
+
+/obj/cover/autodoor/proc/Toggle(var/forced_state = null)
+	var/is_open = (isnull(forced_state) ? open : forced_state)
+
+	if(is_open)
+		var/turf/my_loc = get_turf(src)
+		if(my_loc)
+			for(var/mob/M in my_loc.contents)
+				if(M)
+					close_door_at = NextCloseTime()
+					return
+
+	open = !is_open
+	UpdateOpen()
+	close_door_at = NextCloseTime()
+
+	return
+
+
+/obj/cover/autodoor/verb/Open()
+	set src in view(1)
+	Toggle()

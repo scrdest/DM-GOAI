@@ -7,9 +7,10 @@
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
 "h" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
 "i" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
+"j" = (/obj/cover/autodoor,/turf/ground,/area)
 
 (1,1,1) = {"
-abbaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaa
 abbbbbabbbbabbbbba
 aaabbbabbbbabbdbaa
 abcbbbaaaacabbbbab
@@ -17,14 +18,14 @@ acaaaaabhhbacaaaaa
 abbbbbabbbbabbbbab
 abbabbaacaaaffbbaa
 abbgbbbbbbbabbbbab
-abbabbbbbbbaacaaab
+abbabbbbbbbaajaaab
 abbgbbbfbbbbbbbbaa
 abiabbbbfbbbbbbbab
 abbbbbbbbbbbbabaab
 abbabbbbbbbbbbbbab
-aaaaaabbbbbbbbbaaa
-abbbbacaiaiaiabbab
-abbebcbbbbbbbbbbab
-abbbbabbbbbbbbbbab
+aaaaaabbbbbbbabaaa
+aabbbacaiaiaiabaab
+abbebjbbbbbbbbbbab
+aabbbabbbbbbbbbbab
 aaaaaaaaaaaaaaaaaa
 "}

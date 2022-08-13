@@ -136,10 +136,148 @@
 	return
 
 
+/sense/combatant_obstruction_handler
+	/* Spots obstacles that can be overcome with an Action,
+	// such as doors (Open/Break), tables (Climb), etc.
+	// and updates the Owner with actions to handle that action.
+	*/
+
+
+/sense/combatant_obstruction_handler/proc/SpotObstacles(var/mob/goai/combatant/owner)
+	if(!owner)
+		// No mob - no point.
+		return
+
+	if(!(owner.brain))
+		// Nowhere to store results.
+		// Might not be a precondition later.
+		return
+
+	if(!(owner.waypoint))
+		// Nothing to spot.
+		// Might not be a precondition later.
+		return
+
+	var/list/path = null
+	var/turf/target = get_turf(owner.waypoint)
+
+	if(isnull(target))
+		target = get_turf(owner.waypoint.loc)
+
+	var/turf/startpos = get_turf(owner)
+	var/init_dist = 30
+	var/sqrt_dist = get_dist(startpos, target) ** 0.5
+
+	if(init_dist < 40)
+		world.log << "[owner] entering ASTARS STAGE"
+		path = AStar(owner, target, /turf/proc/CardinalTurfs, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		world.log << "[owner] found ASTAR 1 path from [startpos] to [target]: [path] ([path?.len])"
+
+		if(path)
+			world.log << "[owner] entering HAPPYPATH"
+
+		else if(!(path && path.len))
+			// No unobstructed path to target!
+			// Let's try to get a direct path and check for obstacles.
+			path = AStar(owner, target, /turf/proc/CardinalTurfsNoblocks, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+			world.log << "[src] found ASTAR 2 path from [startpos] to [target]: [path] ([path?.len])"
+
+			if(path)
+				var/path_pos = 0
+
+				for(var/turf/pathitem in path)
+					path_pos++
+					//world.log << "[owner]: [pathitem]"
+
+					if(isnull(pathitem))
+						continue
+
+					if(path_pos <= 1)
+						continue
+
+					var/turf/previous = path[path_pos-1]
+
+					if(isnull(previous))
+						continue
+
+					var/last_link_blocked = LinkBlocked(previous, pathitem)
+					if(last_link_blocked)
+						world.log << "[owner]: LINK BETWEEN [previous] & [pathitem] OBSTRUCTED"
+						// find the obstacle
+						var/atom/obstruction = null
+
+						if(!obstruction)
+							for(var/atom/potential_obstruction_curr in pathitem.contents)
+								var/datum/directional_blocker/blocker = potential_obstruction_curr?.directional_blocker
+								if(!blocker)
+									continue
+
+								var/dirDelta = get_dir(previous, potential_obstruction_curr)
+								var/blocks = blocker.Blocks(dirDelta)
+
+								if(blocks)
+									obstruction = potential_obstruction_curr
+									break
+
+						if(!obstruction && path_pos > 2) // check earlier steps
+							for(var/atom/potential_obstruction_prev in previous.contents)
+								var/datum/directional_blocker/blocker = potential_obstruction_prev?.directional_blocker
+								if(!blocker)
+									continue
+
+								var/dirDeltaPrev = get_dir(path[path_pos-2], potential_obstruction_prev)
+								var/blocksPrev = blocker.Blocks(dirDeltaPrev)
+
+								if(blocksPrev)
+									obstruction = potential_obstruction_prev
+									break
+
+						world.log << "[owner]: LINK OBSTRUCTION => [obstruction] @ [obstruction?.loc]"
+						var/obj/cover/door/D = obstruction
+
+						if(D && istype(D))
+							owner.brain.SetMemory(MEM_OBSTRUCTION, obstruction, 1000)
+							var/obs_need_key = "Passable @ [D]"
+							owner.needs[obs_need_key] = NEED_MINIMUM
+							owner.AddAction("Open [D]", list(), list(obs_need_key = NEED_MAXIMUM, NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleOpenDoor, 5, 1)
+							break
+						// Update Actions, somehow - fetch actions from obstruction?
+
+						var/obj/cover/autodoor/AD = obstruction
+
+						if(AD && istype(AD))
+							owner.brain.SetMemory(MEM_OBSTRUCTION, obstruction, 1000)
+							var/obs_need_key = "Passable @ [D]"
+							owner.needs[obs_need_key] = NEED_MINIMUM
+							owner.AddAction("Open [D]", list(), list(obs_need_key = NEED_MAXIMUM, NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleOpenAutodoor, 5, 1)
+							break
+
+						break
+	return
+
+
+/sense/combatant_obstruction_handler/ProcessTick(var/owner)
+	..(owner)
+
+	if(processing)
+		return
+
+	processing = TRUE
+
+	SpotObstacles(owner)
+
+	spawn(COMBATAI_AI_TICK_DELAY * 20)
+		// Sense-side delay to avoid spamming view() scans too much
+		processing = FALSE
+	return
+
+
 /mob/goai/combatant/InitSenses()
 	. = ..()
 	var/sense/combatant_eyes/eyes = new()
+	var/sense/combatant_obstruction_handler/obstacle_handler = new()
 	senses.Add(eyes)
+	senses.Add(obstacle_handler)
 	return
 
 

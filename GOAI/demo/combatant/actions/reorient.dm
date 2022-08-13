@@ -1,4 +1,4 @@
-/mob/goai/combatant/proc/HandleOpen(var/datum/ActionTracker/tracker)
+/mob/goai/combatant/proc/HandleOpenDoor(var/datum/ActionTracker/tracker)
 	if(!tracker)
 		return
 
@@ -25,19 +25,69 @@
 		tracker.SetFailed()
 		return
 
-	if(obstruction.open)
-		if(tracker.IsRunning())
-			tracker.SetDone()
-		return
+	var/list/path_to_door = tracker.BBGet("PathToDoor", null)
 
-	obstruction.pOpen()
+	if(isnull(path_to_door) || !active_path)
+		path_to_door = StartNavigateTo(obstruction, 1)
+		tracker.BBSet("PathToDoor", path_to_door)
 
-	if(tracker.IsRunning())
+	if(get_dist(src, obstruction) < 2)
+		if(!(obstruction.open))
+			obstruction.pOpen()
+			StartNavigateTo(obstruction, 0)
+
+	if(tracker.IsRunning() && obstruction.open)
+		//if(get_dist(get_turf(src), get_turf(obstruction)) < 1)
 		tracker.SetDone()
 
 	return
 
 
+/mob/goai/combatant/proc/HandleOpenAutodoor(var/datum/ActionTracker/tracker)
+	if(!tracker)
+		return
+
+	if(!brain)
+		world.log << "[src] HandleOpen - no brain!"
+		tracker.SetFailed()
+		return
+
+	var/datum/memory/obstruction_mem = brain.GetMemory(MEM_OBSTRUCTION, null)
+	if(isnull(obstruction_mem))
+		world.log << "[src] HandleOpen - no obstruction mem!"
+		tracker.SetFailed()
+		return
+
+	var/obj/cover/autodoor/obstruction = obstruction_mem?.val
+
+	if(isnull(obstruction))
+		world.log << "[src] HandleOpen - no Obstruction!"
+		tracker.SetFailed()
+		return
+
+	if(!istype(obstruction))
+		world.log << "[src] HandleOpen - wrong type!"
+		tracker.SetFailed()
+		return
+
+	var/list/path_to_door = tracker.BBGet("PathToDoor", null)
+
+	if(isnull(path_to_door) || !active_path)
+		path_to_door = StartNavigateTo(obstruction, 1)
+		tracker.BBSet("PathToDoor", path_to_door)
+
+	if(get_dist(src, obstruction) < 2)
+		if(!(obstruction.open))
+			obstruction.pOpen()
+			StartNavigateTo(obstruction, 0)
+
+	if(tracker.IsRunning() && obstruction.open)
+		//if(get_dist(get_turf(src), get_turf(obstruction)) < 1)
+		tracker.SetDone()
+
+	return
+
+/*
 /mob/goai/combatant/proc/HandleReorient(var/datum/ActionTracker/tracker)
 	if(!tracker)
 		return
@@ -57,10 +107,12 @@
 			target = get_turf(waypoint.loc)
 
 		var/turf/startpos = get_turf(src.loc)
+		var/init_dist = 30
+		var/sqrt_dist = get_dist(startpos, target) * 0.5
 
-		if(get_dist(startpos, target) < 80)
+		if(init_dist < 40)
 			world.log << "[src] entering ASTARS STAGE"
-			path = AStar(src, target, /turf/proc/CardinalTurfs, /turf/proc/Distance, null, 80, min_target_dist = 0, exclude = null)
+			path = AStar(src, target, /turf/proc/CardinalTurfs, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 			world.log << "[src] found ASTAR 1 path from [startpos] to [target]: [path] ([path?.len])"
 
 			if(path)
@@ -71,7 +123,7 @@
 			else if(!(path && path.len))
 				// No unobstructed path to target!
 				// Let's try to get a direct path and check for obstacles.
-				path = AStar(src, target, /turf/proc/CardinalTurfsNoblocks, /turf/proc/Distance, null, 80, min_target_dist = 0, exclude = null)
+				path = AStar(src, target, /turf/proc/CardinalTurfsNoblocks, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 				world.log << "[src] found ASTAR 2 path from [startpos] to [target]: [path] ([path?.len])"
 
 				if(path)
@@ -111,7 +163,7 @@
 										obstruction = potential_obstruction_curr
 										break
 
-							if(!obstruction && path_pos > 1) // check earlier steps
+							if(!obstruction && path_pos > 2) // check earlier steps
 								for(var/atom/potential_obstruction_prev in previous.contents)
 									var/datum/directional_blocker/blocker = potential_obstruction_prev?.directional_blocker
 									if(!blocker)
@@ -130,7 +182,7 @@
 								brain.SetMemory(MEM_OBSTRUCTION, obstruction, 1000)
 								var/obs_need_key = "Passable @ [D]"
 								needs[obs_need_key] = NEED_MINIMUM
-								AddAction("Open [D]", list(), list(obs_need_key = NEED_MAXIMUM, NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleOpen, 5, 1)
+								AddAction("Open [D]", list(), list(obs_need_key = NEED_MAXIMUM, NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleOpenDoor, 5, 1)
 							// Update Actions, somehow - fetch actions from obstruction?
 							break
 
@@ -139,3 +191,4 @@
 
 	tracker.SetDone()
 	return
+*/
