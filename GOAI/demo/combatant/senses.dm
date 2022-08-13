@@ -90,12 +90,18 @@
 	if(isnull(owner))
 		return
 
-	if(isnull(owner.waypoint))
-		return
-
 	var/datum/brain/owner_brain = owner?.brain
 	if(isnull(owner_brain))
-		// No point processing this if there's no memories to set
+		// No point processing this if there's no memories to use
+		return
+
+	var/datum/memory/waypoint_mem = owner.brain.GetMemory(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
+
+	if(isnull(waypoint_mem))
+		return
+
+	var/atom/waypoint = waypoint_mem?.val
+	if(isnull(waypoint))
 		return
 
 	if(owner_brain.GetMemory(MEM_WAYPOINT_LKP, FALSE, FALSE))
@@ -105,12 +111,12 @@
 	if(!(true_searchspace))
 		return
 
-	if(owner.waypoint in true_searchspace)
+	if(waypoint in true_searchspace)
 		var/list/waypoint_memory_data = list(
-			KEY_GHOST_X = owner.waypoint.x,
-			KEY_GHOST_Y = owner.waypoint.y,
-			KEY_GHOST_Z = owner.waypoint.z,
-			KEY_GHOST_POS_TUPLE = owner.waypoint.CurrentPositionAsTuple(),
+			KEY_GHOST_X = waypoint.x,
+			KEY_GHOST_Y = waypoint.y,
+			KEY_GHOST_Z = waypoint.z,
+			KEY_GHOST_POS_TUPLE = waypoint.CurrentPositionAsTuple(),
 		)
 		var/dict/waypoint_memory_ghost = new(waypoint_memory_data)
 		owner_brain.SetMemory(MEM_WAYPOINT_LKP, waypoint_memory_ghost, COMBATAI_AI_TICK_DELAY*20)
@@ -148,21 +154,28 @@
 		// No mob - no point.
 		return
 
-	if(!(owner.brain))
-		// Nowhere to store results.
+	var/datum/brain/owner_brain = owner?.brain
+	if(isnull(owner_brain))
+		// No point processing this if there's no memories to use
 		// Might not be a precondition later.
 		return
 
-	if(!(owner.waypoint))
+	var/datum/memory/waypoint_mem = owner.brain.GetMemory(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
+
+	if(isnull(waypoint_mem))
 		// Nothing to spot.
-		// Might not be a precondition later.
+		return
+
+	var/atom/waypoint = waypoint_mem?.val
+	if(isnull(waypoint))
+		// Nothing to spot.
 		return
 
 	var/list/path = null
-	var/turf/target = get_turf(owner.waypoint)
+	var/turf/target = get_turf(waypoint)
 
 	if(isnull(target))
-		target = get_turf(owner.waypoint.loc)
+		target = get_turf(waypoint.loc)
 
 	var/turf/startpos = get_turf(owner)
 	var/init_dist = 30

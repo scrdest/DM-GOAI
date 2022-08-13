@@ -60,6 +60,7 @@
 #include "demo\combatant\actions\coverleap_dir.dm"
 #include "demo\combatant\actions\panic_run.dm"
 #include "demo\combatant\actions\reorient.dm"
+#include "demo\combatant\actions\waypoint.dm"
 #include "demo\spawners\_base.dm"
 #include "demo\spawners\cover.dm"
 #include "goap\goap_classy.dm"

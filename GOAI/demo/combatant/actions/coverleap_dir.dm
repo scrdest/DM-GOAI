@@ -87,8 +87,11 @@
 		var/effective_waypoint_x = null
 		var/effective_waypoint_y = null
 
-		if(waypoint)
-			var/datum/memory/waypoint_mem = brain?.GetMemory(MEM_WAYPOINT_LKP, null, FALSE)
+		var/datum/memory/waypoint_ident_mem = brain?.GetMemory(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
+		var/atom/waypoint_ident = waypoint_ident_mem?.val
+
+		if(waypoint_ident)
+			var/datum/memory/waypoint_mem = brain?.GetMemory(MEM_WAYPOINT_LKP, null, FALSE, TRUE)
 			var/list/waypoint_memdata = waypoint_mem?.val
 			var/mem_waypoint_x = waypoint_memdata?[KEY_GHOST_X]
 			var/mem_waypoint_y = waypoint_memdata?[KEY_GHOST_Y]
@@ -100,7 +103,7 @@
 				effective_waypoint_y = mem_waypoint_y
 
 			else
-				var/datum/Tuple/waypoint_position = waypoint.CurrentPositionAsTuple()
+				var/datum/Tuple/waypoint_position = waypoint_ident.CurrentPositionAsTuple()
 
 				effective_waypoint_x = waypoint_position.left + rand(-WAYPOINT_FUZZ_X, WAYPOINT_FUZZ_X)
 				effective_waypoint_y = waypoint_position.right + rand(-WAYPOINT_FUZZ_Y, WAYPOINT_FUZZ_Y)

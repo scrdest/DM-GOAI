@@ -177,7 +177,12 @@
 
 
 /obj/cover/autodoor/proc/NextCloseTime()
-	var/curr_autoclose = (autoclose_time || world.time)
+	var/curr_autoclose = close_door_at
+
+	if(isnull(curr_autoclose))
+		curr_autoclose = world.time
+		close_door_at = 0
+
 	return curr_autoclose + autoclose_time
 
 

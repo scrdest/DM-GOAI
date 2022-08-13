@@ -25,6 +25,7 @@
 # define MEM_SHOTAT "ShotAt"
 # define MEM_THREAT "Threat"
 # define MEM_THREAT_SECONDARY "ThreatSecondary"
+# define MEM_WAYPOINT_IDENTITY "WaypointRef"
 # define MEM_WAYPOINT_LKP "WaypointLKP"
 # define MEM_CURRLOC "MyCurrLocation"
 # define MEM_PREVLOC "MyPrevLocation"

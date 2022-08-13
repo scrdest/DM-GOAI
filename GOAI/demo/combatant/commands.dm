@@ -42,9 +42,9 @@
 	SetState(STATE_DOWNTIME, TRUE)
 	usr << "Set [src] downtime-state to [TRUE]"
 
-	usr << (waypoint ? "[src] tracking [waypoint]" : "[src] no longer tracking waypoints")
+	//usr << (waypoint ? "[src] tracking [waypoint]" : "[src] no longer tracking waypoints")
 
-	return waypoint
+	return TRUE
 
 
 /mob/goai/combatant/verb/GiveFollowOrder(mob/M in world)
@@ -55,7 +55,12 @@
 	SetState(STATE_DOWNTIME, FALSE)
 	usr << "Set [src] downtime-state to [FALSE]"
 
-	waypoint = M
+	if(!(src?.brain))
+		return
+
+	var/datum/memory/created_mem = brain.SetMemory(MEM_WAYPOINT_IDENTITY, M, PLUS_INF)
+	var/atom/waypoint = created_mem?.val
+
 	usr << (waypoint ? "[src] now tracking [waypoint]" : "[src] not tracking waypoints")
 
 	return waypoint
@@ -73,10 +78,15 @@
 		usr << "Target position does not exist!"
 		return
 
+	if(!(src?.brain))
+		return
+
+	var/datum/memory/created_mem = brain.SetMemory(MEM_WAYPOINT_IDENTITY, position, PLUS_INF)
+	var/atom/waypoint = created_mem?.val
+
 	SetState(STATE_DOWNTIME, FALSE)
 	usr << "Set [src] downtime-state to [FALSE]"
 
-	waypoint = position
 	usr << (waypoint ? "[src] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[src] not tracking waypoints")
 
 	return waypoint

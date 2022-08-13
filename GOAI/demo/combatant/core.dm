@@ -17,8 +17,6 @@
 	icon = 'icons/uristmob/simpleanimals.dmi'
 	icon_state = "ANTAG"
 
-	var/atom/waypoint
-
 	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
 	var/initial_action = null
 
