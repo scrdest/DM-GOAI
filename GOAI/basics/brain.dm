@@ -6,6 +6,12 @@
 	var/list/actionslist
 	var/list/active_plan
 
+	/* Used to monitor if the brain has gotten 'stuck', unable to create a new plan.
+	// This can be observed downstream (even in other objects) by a handler.
+	// Successfully creating a plan resets this to TRUE.
+	*/
+	var/last_plan_successful = TRUE
+
 
 	/* Memory container; key-value map.
 	//
@@ -59,6 +65,7 @@
 
 	/* Bookkeeping for action execution */
 	var/is_planning = 0
+	var/list/pending_instant_actions = null
 	var/selected_action = null
 	var/datum/ActionTracker/running_action_tracker = null
 
@@ -83,6 +90,7 @@
 	last_need_update_times = list()
 	perceptions = new()
 	relationships = new(init_relationships)
+	pending_instant_actions = list()
 
 	if(actions)
 		actionslist = actions.Copy()
@@ -94,6 +102,40 @@
 	InitStates()
 
 	return
+
+
+/datum/brain/proc/GetState(var/key, var/default = null)
+	if(isnull(states))
+		return default
+
+	var/found = (key in states)
+	var/result = (found ? states[key] : default)
+	return result
+
+
+/datum/brain/proc/SetState(var/key, var/val)
+	if(isnull(states))
+		states = new()
+
+	states[key] = val
+	return TRUE
+
+
+/datum/brain/proc/GetNeed(var/key, var/default = null)
+	if(isnull(needs))
+		return default
+
+	var/found = (key in needs)
+	var/result = (found ? needs[key] : default)
+	return result
+
+
+/datum/brain/proc/SetNeed(var/key, var/val)
+	if(isnull(needs))
+		needs = new()
+
+	needs[key] = val
+	return TRUE
 
 
 /datum/brain/proc/HasMemory(var/mem_key)
@@ -142,6 +184,14 @@
 	return (isnull(hivemind_mem) ? default : hivemind_mem)
 
 
+/datum/brain/proc/GetMemoryValue(var/mem_key, var/default = null, var/by_age = FALSE, var/check_hivemind = FALSE, var/recursive = FALSE, var/prefer_hivemind = FALSE)
+	// Like GetMemory, but resolves the Memory object to the stored value.
+	// This is a bit lossy, but 99% of the time that's all you care about.
+	var/datum/memory/retrieved_mem = GetMemory(mem_key, null, by_age, check_hivemind, recursive, prefer_hivemind)
+	var/memory_value = retrieved_mem?.val
+	return (isnull(memory_value) ? default : memory_value)
+
+
 /datum/brain/proc/SetMemory(var/mem_key, var/mem_val, var/mem_ttl)
 	var/datum/memory/retrieved_mem = memories.Get(mem_key)
 
@@ -155,6 +205,11 @@
 		retrieved_mem.Update(mem_val)
 
 	return retrieved_mem
+
+
+/datum/brain/proc/DropMemory(var/mem_key)
+	memories.Set(mem_key, null)
+	return
 
 
 /datum/brain/proc/GetPersonalityTrait(var/trait_key, var/default = null)
@@ -215,7 +270,7 @@
 	return available_actions
 
 
-/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, clone = FALSE)
+/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, clone = FALSE)
 	/*
 	//
 	// - clone (bool): If TRUE (default), the list is a clone of the actionslist (slower, but safer).
@@ -257,11 +312,18 @@
 	*/
 	planner.graph = GetAvailableActions()
 
+	for(var/goalkey in goal)
+		world.log << "[src] CreatePlan goal: [goalkey] => [goal[goalkey]]"
+
 
 	var/datum/Tuple/result = planner.Plan(arglist(params))
 
-	if (result)
+	if(result)
 		path = result.right
+		last_plan_successful = TRUE
+
+	else
+		last_plan_successful = FALSE
 
 	is_planning = 0
 	return path
@@ -287,6 +349,7 @@
 
 		if(running_action_tracker.IsStopped())
 			running_action_tracker = null
+			pending_instant_actions = list()
 
 	else if(selected_action) // ready to go
 		world << "SELECTED ACTION: [selected_action] | <@[src]>"
@@ -294,9 +357,29 @@
 		selected_action = null
 
 	else if(active_plan && active_plan.len)
+		//step done, move on to the next
 		world << "ACTIVE PLAN: [active_plan] ([active_plan.len]) | <@[src]>"
-		if(active_plan.len) //step done, move on to the next
+
+		while(active_plan.len && isnull(selected_action))
+			// do instants in one tick
 			selected_action = lpop(active_plan)
+
+			if(!(selected_action in actionslist))
+				continue
+
+			var/datum/goai_action/goai_act = actionslist[selected_action]
+
+			if(!goai_act)
+				//world.log << "[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]"
+				continue
+
+			if(goai_act.instant)
+				world << "Instant ACTION: [selected_action] | <@[src]>"
+				DoInstantAction(selected_action)
+				selected_action = null
+
+			else
+				world << "Regular ACTION: [selected_action] | <@[src]>"
 
 	else //no plan & need to make one
 		var/list/curr_state = states.Copy()
@@ -327,6 +410,7 @@
 
 					raw_active_plan.Cut(0, first_clean_pos)
 					active_plan = raw_active_plan
+					last_plan_successful = TRUE
 
 				else
 					world.log << "Failed to create a plan | <@[src]>"
@@ -359,6 +443,32 @@
 
 	//world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
 	running_action_tracker = new_actiontracker
+
+	return new_actiontracker
+
+
+/datum/brain/verb/DoInstantAction(Act as anything in actionslist)
+	//world.log << "DoInstantAction act: [Act]"
+
+	if(!(Act in actionslist))
+		return null
+
+	var/datum/goai_action/goai_act = actionslist[Act]
+
+	if(!goai_act)
+		//world.log << "[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]"
+		return null
+
+	//world.log << "[src]: RETRIEVED ACTION [goai_act] from [Act]"
+	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(goai_act)
+
+	if(!new_actiontracker)
+		world.log << "[src]: Failed to create a tracker for [goai_act]!"
+		return null
+
+	//world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
+
+	pending_instant_actions.Add(new_actiontracker)
 
 	return new_actiontracker
 

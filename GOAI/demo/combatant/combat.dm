@@ -14,15 +14,14 @@
 
 	var/atom/target = GetTarget()
 
-	var/datum/memory/aim_mem = brain?.GetMemory(KEY_ACTION_AIM, null, FALSE)
-	var/datum/aim/target_aim = aim_mem?.val
+	var/datum/aim/target_aim = brain?.GetMemoryValue(KEY_ACTION_AIM, null, FALSE)
 
 	var/aim_time = GetAimTime(target)
 
 	if(isnull(target_aim) || target_aim.target != target)
 		if(brain)
 			target_aim = new(target)
-			aim_mem = brain?.SetMemory(KEY_ACTION_AIM, target_aim, aim_time*5)
+			brain?.SetMemory(KEY_ACTION_AIM, target_aim, aim_time*5)
 			// we started aiming, no point in moving forwards
 			// I guess unless/until I add melee...
 			return
@@ -89,18 +88,12 @@
 
 
 /mob/goai/combatant/proc/GetActiveThreat() // -> /dict
-	var/datum/memory/threat_mem = brain?.GetMemory(MEM_THREAT, null, FALSE)
-	//world.log << "[src] threat memory: [threat_mem]"
-
-	var/dict/threat_ghost = threat_mem?.val
+	var/dict/threat_ghost = brain?.GetMemoryValue(MEM_THREAT, null, FALSE)
 	return threat_ghost
 
 
 /mob/goai/combatant/proc/GetActiveSecondaryThreat() // -> /dict
-	var/datum/memory/threat_mem = brain?.GetMemory(MEM_THREAT_SECONDARY, null, FALSE)
-	//world.log << "[src] threat memory: [threat_mem]"
-
-	var/dict/threat_ghost = threat_mem?.val
+	var/dict/threat_ghost = brain?.GetMemoryValue(MEM_THREAT, null, FALSE)
 	return threat_ghost
 
 

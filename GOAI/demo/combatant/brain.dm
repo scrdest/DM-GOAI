@@ -38,13 +38,6 @@
 	//needs[NEED_ENEMIES] = 2
 	return needs
 
-
-/mob/goai/combatant/InitStates()
-	states = ..()
-	states[STATE_DOWNTIME] = TRUE
-	states[STATE_PANIC] = -1
-	return states
-
 /*
 /datum/brain/concrete/combat/InitNeeds()
 	needs = ..()

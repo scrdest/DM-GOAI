@@ -127,9 +127,8 @@
 
 
 /datum/ActionTracker/proc/SetDone()
-	world.log << "Setting tracker to done!"
-
 	if(!is_done)
+		world.log << "Setting tracker to done!"
 		tracked_action.ReduceCharges(1)
 		is_done = TRUE
 
@@ -137,8 +136,11 @@
 
 
 /datum/ActionTracker/proc/SetFailed()
-	world.log << "Setting tracker to failed!"
-	is_failed = TRUE
+	if(!is_failed)
+		world.log << "Setting tracker to failed!"
+		tracked_action.ReduceCharges(1)
+		is_failed = TRUE
+
 	return
 
 

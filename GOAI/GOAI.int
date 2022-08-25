@@ -1,12 +1,12 @@
 // BEGIN_INTERNALS
 /*
 MAP_ZOOM: 1.000
-LAST_COMPILE_TIME: 1660402079
-DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions demo\spawners goap goap\testing icons icons\urist\turf 
+LAST_COMPILE_TIME: 1661463514
+DIR: _algorithms _datastructures basics demo demo\combatant demo\combatant\actions demo\spawners goap goap\testing icons icons\urist icons\uristmob 
 AUTO_FILE_DIR: OFF
 MAP_ICON_TYPE: 0
 LAST_COMPILE_VERSION: 514.1584
-WINDOW: basics\atom.dm;demo\combatant\movement.dm;demo\combatant\combat.dm;basics\brain.dm;basics\projectile.dm;demo\combatant\_defines.dm;demo\combatant\personality.dm;demo\combatant\setup.dm;demo\combatant\core.dm;demo\covers.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\waypoint.dm;demo\combatant\commands.dm;demo\combatant\actions\coverleap_dir.dm;basics\memory.dm;demo\combatant\senses.dm
-FILE: demo\combatant\core.dm
+WINDOW: basics\atom.dm;demo\combatant\movement.dm;basics\brain.dm;basics\projectile.dm;demo\combatant\_defines.dm;demo\combatant\setup.dm;demo\combatant\core.dm;demo\covers.dm;demo\combatant\commands.dm;demo\combatant\actions\cover_dir.dm;demo\combatant\actions\waypoint.dm;basics\actions.dm;_datastructures\action_tracker.dm;demo\agent_debug.dm;demo\combatant\brain.dm;combatmap_doorland.dmm;demo\combatant\actions\obstacle_handlers.dm;demo\combatant\actions\panic_run.dm;demo\combatant\senses.dm;demo\combatant\combat.dm;basics\turfs.dm;demo\combatant\actions\coverleap_dir.dm
+FILE: demo\combatant\movement.dm
 */
 // END_INTERNALS

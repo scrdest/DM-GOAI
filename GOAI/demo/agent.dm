@@ -58,9 +58,11 @@
 	return new_actionslist
 
 
-/mob/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF)
+/mob/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE)
+	if(charges < 1)
+		return
 
-	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges)
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant)
 
 	actionslist = (isnull(actionslist) ? list() : actionslist)
 	actionslist[name] = newaction
@@ -70,7 +72,7 @@
 		actionlookup[name] = handler
 
 	if(brain)
-		brain.AddAction(name, preconds, effects, cost, charges)
+		brain.AddAction(name, preconds, effects, cost, charges, instant)
 
 	return newaction
 
@@ -84,7 +86,7 @@
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 	var/datum/brain/concrete/new_brain = new(new_actionslist, init_memories, init_action, with_hivemind, new_personality)
-	new_brain.states = states.Copy()
+	new_brain.states = states ? states.Copy() : new_brain.states
 	return new_brain
 
 
@@ -142,22 +144,28 @@
 	if(!key)
 		return
 
+	world.log << "[src]: setting state [key] => [val] on the mob!"
 	states[key] = val
 
 	if(brain)
-		brain.states[key] = val
+		//world.log << "[src]: brain found ([brain]), setting state [key] => [val]"
+		brain.SetState(key, val)
 
+	//world.log << "[src]: state for [key] is [GetState(key)]/[brain?.states?[key]]"
 	return TRUE
 
 
 /mob/goai/proc/GetState(var/key, var/default = null)
 	if(!key)
+		world.log << "[src]: [key] is null!"
 		return
 
 	if(brain && (key in brain.states))
-		return brain.states[key]
+		//world.log << "[src]: getting state [key] from the brain!"
+		return brain.GetState(key, default)
 
 	if(key in states)
+		//world.log << "[src]: getting state [key] from the mob!"
 		return states[key]
 
 	return default

@@ -146,13 +146,14 @@
 	return result
 
 
-/turf/proc/Distance(turf/t)
-	if(get_dist(src,t) == 1)
+/turf/proc/Distance(var/T)
+	var/turf/t = T
+	if(t && get_dist(src,t) == 1)
 		var/cost = (src.x - t.x) * (src.x - t.x) + (src.y - t.y) * (src.y - t.y)
 		cost *= (pathweight+t.pathweight)/2
 		return cost
 	else
-		return get_dist(src,t)
+		return get_dist(src, T)
 
 
 /turf/proc/GetOpenness(var/range = 1)

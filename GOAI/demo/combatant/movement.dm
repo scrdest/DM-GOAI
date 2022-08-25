@@ -1,7 +1,17 @@
 /* Movement system (in the ECS sense) and movement helpers. */
 
 /mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = NONE)
-	var/list/path = AStar(get_turf(loc), trg, /turf/proc/CardinalTurfs, /turf/proc/Distance, 0, pathing_dist_cutoff, min_target_dist = min_dist, exclude = avoid)
+	var/true_avoid = (avoid || src.brain?.GetMemoryValue("UnreachableTile", null))
+	var/list/path = AStar(
+		get_turf(loc),
+		get_turf(trg),
+		/turf/proc/CardinalTurfs,
+		/turf/proc/Distance,
+		0,
+		pathing_dist_cutoff,
+		min_target_dist = min_dist,
+		exclude = true_avoid
+	)
 	return path
 
 
@@ -15,8 +25,16 @@
 	return pathtracker
 
 
-/mob/goai/combatant/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0)
+/mob/goai/combatant/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0, var/refresh_loc_memories = TRUE)
 	is_repathing = 1
+
+	if(brain && refresh_loc_memories)
+		var/atom/previous_oldloc = brain.GetMemoryValue("Location-1")
+
+		if(previous_oldloc && prob(10))
+			brain.SetMemory("Location-2", previous_oldloc)
+
+		brain.SetMemory("Location-1", src.loc)
 
 	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, inh_frustration)
 
@@ -85,5 +103,6 @@
 
 /mob/goai/combatant/proc/randMove()
 	is_moving = 1
-	Move(src, dir)
+	var/movedir = pick(NORTH, EAST, SOUTH, WEST)
+	Move(get_step(src, movedir))
 	is_moving = 0

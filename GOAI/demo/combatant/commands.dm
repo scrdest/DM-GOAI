@@ -5,9 +5,9 @@
 
 /mob/goai/combatant/verb/InspectGoaiLife()
 	set src in view(1)
-	usr << "X=======================X"
+	usr << "X======================================X"
 	usr << "|"
-	usr << "| [name] - ALIVE: [life]"
+	usr << "|       [name] - ALIVE: [life]"
 	usr << "|"
 
 	var/path_list = (active_path ? active_path.path : "<No path for null>")
@@ -33,18 +33,9 @@
 	usr << "| PLANNING: [brain_is_planning]"
 	usr << "| REPATHING: [is_repathing]"
 	usr << "|"
-	usr << "X=======================X"
+	usr << "X======================================X"
 
-
-/mob/goai/combatant/verb/CancelOrders()
-	set src in view()
-
-	SetState(STATE_DOWNTIME, TRUE)
-	usr << "Set [src] downtime-state to [TRUE]"
-
-	//usr << (waypoint ? "[src] tracking [waypoint]" : "[src] no longer tracking waypoints")
-
-	return TRUE
+	return
 
 
 /mob/goai/combatant/verb/GiveFollowOrder(mob/M in world)
@@ -52,14 +43,18 @@
 	if(!M)
 		return
 
-	SetState(STATE_DOWNTIME, FALSE)
-	usr << "Set [src] downtime-state to [FALSE]"
-
 	if(!(src?.brain))
 		return
 
 	var/datum/memory/created_mem = brain.SetMemory(MEM_WAYPOINT_IDENTITY, M, PLUS_INF)
 	var/atom/waypoint = created_mem?.val
+
+	SetState(STATE_DOWNTIME, FALSE)
+	usr << "Set [src] downtime-state to [FALSE]"
+
+	// This is NOT equivalent to ~STATE_DOWNTIME!
+	SetState(STATE_HASWAYPOINT, TRUE)
+	usr << "Set [src] waypoint-state to [TRUE]"
 
 	usr << (waypoint ? "[src] now tracking [waypoint]" : "[src] not tracking waypoints")
 
@@ -87,9 +82,26 @@
 	SetState(STATE_DOWNTIME, FALSE)
 	usr << "Set [src] downtime-state to [FALSE]"
 
+	SetState(STATE_HASWAYPOINT, TRUE)
+	usr << "Set [src] waypoint-state to [TRUE]"
+
 	usr << (waypoint ? "[src] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[src] not tracking waypoints")
 
 	return waypoint
+
+
+/mob/goai/combatant/verb/CancelOrders()
+	set src in view()
+
+	SetState(STATE_DOWNTIME, TRUE)
+	usr << "Set [src] downtime-state to [TRUE]"
+
+	SetState(STATE_HASWAYPOINT, FALSE)
+	usr << "Set [src] waypoint-state to [FALSE]"
+
+	//usr << (waypoint ? "[src] tracking [waypoint]" : "[src] no longer tracking waypoints")
+
+	return TRUE
 
 
 /mob/goai/combatant/verb/Disarm()
@@ -106,15 +118,17 @@
 /mob/goai/combatant/verb/Panic()
 	set src in view()
 
-	if(isnull(brain))
-		usr << "[src] has no brain - command has no effect."
-		return
+	var/curr_panic_state = GetState(STATE_PANIC)
+	usr << "[src] curr_panic_state is [curr_panic_state]"
+	/* Panic/Calm are mutually exclusive, but we often need to express Action constraints
+	// on one or the other, and it's not possible without building some weirder, more fancy
+	// algebra of States, so the lazy solution is to just have two independent variables.
+	*/
+	needs[NEED_COMPOSURE] = (curr_panic_state ? NEED_SATISFIED : NEED_MINIMUM)
+	if(brain)
+		brain.SetNeed(NEED_COMPOSURE, (curr_panic_state ? NEED_SATISFIED : NEED_MINIMUM))
 
-	var/list/brainstates = brain.states
-
-	var/curr_panic_state = ((STATE_PANIC in brainstates) ? states[STATE_PANIC] : -1)
-	SetState(STATE_PANIC, -curr_panic_state)
-
-	usr << "[src] STATE_PANIC set to [brain.states[STATE_PANIC]]"
-
+	SetState(STATE_PANIC, (curr_panic_state ? FALSE : TRUE))
+	SetState(STATE_CALM, (curr_panic_state ? TRUE : FALSE))
+	usr << "[src] [curr_panic_state ? "unpanicked" : "panicked"]!"
 	return

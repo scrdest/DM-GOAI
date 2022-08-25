@@ -1,5 +1,5 @@
 
-/mob/goai/agent/verb/RebootGoai()
+/mob/goai/verb/RebootGoai()
 	set src in view(1)
 
 	life = 0
@@ -17,13 +17,11 @@
 
 		del(brain)
 
-	sleep(AI_TICK_DELAY + AI_TICK_DELAY)
+	sleep(0)
 	life = 1
 
 	var/datum/brain/new_brain = CreateBrain()
 	brain = new_brain
-
-	Life()
 
 	return
 
@@ -79,7 +77,7 @@
 	usr << "|              GOAI AGENT: [src]              "
 
 	for(var/A in src.actionslist)
-		usr << "| - [A] = [src.actionslist[A]]"
+		usr << "| - [A] = [src.actionslist[A]?.charges]"
 
 	usr << "#============================================#"
 

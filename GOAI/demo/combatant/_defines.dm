@@ -4,13 +4,29 @@
 # define NEED_ENEMIES "enemies"
 # define NEED_OBEDIENCE "obedience"
 # define NEED_COMPOSURE "composure"
+// We do o position here to avoid hash collisions; 'o' should be an atom
+# define NEED_OBSTACLE_OPEN(o) "open [o] @ ([o.x], [o.y], [o.z])"
+// We do a position here to avoid hash collisions; 'a' should be an atom
+// Need rather than State to allow 'incremental' plans,
+//  e.g. Plan<Near<Z>> = (Goto<X>(), Open<Y>(Near<Y>), Goto<Z>(OpenAt<Y>))
+# define NEED_NEAR_ATOM(a) "at [a] @ ([a.x], [a.y], [a.z])"
 
 // Keys for the states
 # define STATE_INCOVER "in_cover"
 # define STATE_DOWNTIME "no_orders"
 # define STATE_HASGUN "has_gun"
+# define STATE_HASWAYPOINT "has_waypoint"
 # define STATE_CANFIRE "can_shoot"
-# define STATE_PANIC "panic"
+/* This is pretty dumb, but some preconds to have something NOT in a
+// specific state (e.g. NOT be in cover, NOT have a gun, etc.).
+// We could either make a fancier state algebra, or split these in two.
+// Splitting is the lazier, probably more maintainable option, so...
+*/
+# define STATE_CALM "kalm"
+# define STATE_PANIC "panik"
+
+# define STATE_DISORIENTED "disoriented"
+# define STATE_ORIENTED "oriented"
 
 // Subsystem loop schedules
 # define COMBATAI_SENSE_TICK_DELAY 3
@@ -29,6 +45,7 @@
 # define MEM_WAYPOINT_LKP "WaypointLKP"
 # define MEM_CURRLOC "MyCurrLocation"
 # define MEM_PREVLOC "MyPrevLocation"
+# define MEM_SAFESPACE "LastSafeSpace"
 # define MEM_OBSTRUCTION "Obstruction"
 
 // Penalty value that should entirely eliminate an option unless there's absolutely no alternatives:

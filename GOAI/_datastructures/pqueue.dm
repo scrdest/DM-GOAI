@@ -1,3 +1,13 @@
+/*
+  Ripped off from SS13.
+
+  This implementation relies on the built-in list() type, which *acts* like a dynamic array.
+  Since a PQ needs to do a bunch of left-pops, this may be inefficient, depending on how DM
+  lists work - if it's a plain old dynarray, each Remove(idx) needs to shift (len-idx) entries.
+
+  As such, it might be good to implement a Binary Search Tree datum and port the PQ to use that
+  instead at some point in the future since PQs will be in the hot path of AI code frequently.
+*/
 // Insert an object A into a sorted list using cmp_proc (/code/_helpers/cmp.dm) for comparison.
 #define ADD_SORTED(list, A, cmp_proc) if(!list.len) {list.Add(A)} else {list.Insert(FindElementIndex(A, list, cmp_proc), A)}
 

@@ -28,7 +28,7 @@
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
 	// TODO: Refactor to accept objects/structures as threats (turrets, grenades...).
-	for(var/mob/goai/combatant/enemy in true_searchspace)
+	for(var/mob/goai/enemy in true_searchspace)
 		var/enemy_dist = ManhattanDistance(owner, enemy)
 
 		if (enemy_dist <= 0)
@@ -95,12 +95,8 @@
 		// No point processing this if there's no memories to use
 		return
 
-	var/datum/memory/waypoint_mem = owner.brain.GetMemory(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
+	var/atom/waypoint = owner.brain.GetMemoryValue(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
 
-	if(isnull(waypoint_mem))
-		return
-
-	var/atom/waypoint = waypoint_mem?.val
 	if(isnull(waypoint))
 		return
 
@@ -146,6 +142,8 @@
 	/* Spots obstacles that can be overcome with an Action,
 	// such as doors (Open/Break), tables (Climb), etc.
 	// and updates the Owner with actions to handle that action.
+
+	// WARNING: not currently used, kept to make sure the code doesn't go stale
 	*/
 
 
@@ -160,13 +158,7 @@
 		// Might not be a precondition later.
 		return
 
-	var/datum/memory/waypoint_mem = owner.brain.GetMemory(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
-
-	if(isnull(waypoint_mem))
-		// Nothing to spot.
-		return
-
-	var/atom/waypoint = waypoint_mem?.val
+	var/atom/waypoint = owner.brain.GetMemoryValue(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
 	if(isnull(waypoint))
 		// Nothing to spot.
 		return
@@ -285,12 +277,62 @@
 	return
 
 
+
+
+/sense/safespace_finder
+	/* Sense component. Runs periodically and updates the mob's safe spaces.
+	//
+	// This can be used to help agents run away from threats back to prior
+	// locations beyond their *current* visual range.
+	*/
+
+
+/sense/safespace_finder/proc/UpdateSafespace(var/mob/goai/owner)
+	if(!owner)
+		// useless in a vacuum
+		return
+
+	if(!(owner.brain))
+		// whole point is to set a memory, so no-go
+		return
+
+	var/turf/safespace = get_turf(src)
+	if(safespace)
+		owner.brain.SetMemory(MEM_SAFESPACE, safespace, COMBATAI_AI_TICK_DELAY * 100)
+
+	return
+
+
+/sense/safespace_finder/ProcessTick(var/owner)
+	..(owner)
+
+	if(processing)
+		return
+
+	processing = TRUE
+
+	UpdateSafespace(owner)
+
+	spawn(COMBATAI_AI_TICK_DELAY * 40)
+		// Sense-side delay to avoid spamming view() scans too much
+		processing = FALSE
+	return
+
+
 /mob/goai/combatant/InitSenses()
+	/* Parent stuff */
 	. = ..()
+
+	/* Initialize sense objects: */
 	var/sense/combatant_eyes/eyes = new()
-	var/sense/combatant_obstruction_handler/obstacle_handler = new()
+	//var/sense/combatant_obstruction_handler/obstacle_handler = new()
+	var/sense/safespace_finder/safety_finder = new()
+
+	/* Register each Sense: */
 	senses.Add(eyes)
-	senses.Add(obstacle_handler)
+	//senses.Add(obstacle_handler)
+	senses.Add(safety_finder)
+
 	return
 
 

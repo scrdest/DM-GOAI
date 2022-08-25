@@ -39,7 +39,7 @@
 			// task-specific logic goes here
 			MAYBE_LOG("[src]: HandleAction action is: [action]")
 
-			var/mob/proc/actionproc = action_lookup[action.name]
+			var/actionproc = action_lookup[action.name]
 
 			/*for(var/alkey in action_lookup)
 				world.log << "[src] action lookup: [alkey] => [action_lookup[alkey]]"*/
@@ -52,9 +52,31 @@
 			else
 				call(src, actionproc)(tracker)
 
+				if(action.instant)
+					break
+
 		sleep(COMBATAI_AI_TICK_DELAY)
 
 
+/mob/goai/combatant/proc/HandleInstantAction(var/datum/goai_action/action, var/datum/ActionTracker/tracker)
+	MAYBE_LOG("Tracker: [tracker]")
+
+	var/list/action_lookup = actionlookup // abstract maybe
+	if(isnull(action_lookup))
+		return
+
+	MAYBE_LOG("[src]: Tracker: [tracker] running @ [running]")
+	MAYBE_LOG("[src]: HandleAction action is: [action]")
+
+	var/actionproc = action_lookup[action.name]
+
+	if(isnull(actionproc))
+		tracker.SetFailed()
+
+	else
+		call(src, actionproc)(tracker)
+
+	return
 /*
 /mob/goai/combatant/verb/DoAction(Act as anything in actionslist)
 	world.log << "DoAction act: [Act]"
@@ -113,20 +135,40 @@
 /mob/goai/combatant/proc/LifeTick()
 	// quick hack:
 	var/datum/brain/concrete/combatbrain = brain
+	var/panicking = GetState(STATE_PANIC, FALSE)
+	var/is_different = FALSE
 
-	if(combatbrain && (combatbrain.GetMotive(NEED_COMPOSURE) || NEED_SATISFIED) < NEED_THRESHOLD)
-		SetState(STATE_PANIC, 1)
+	if(combatbrain && (combatbrain.GetNeed(NEED_COMPOSURE, NEED_SATISFIED) < NEED_THRESHOLD))
+		is_different = (panicking != TRUE)
+		panicking = TRUE
 
-	else if(combatbrain && (combatbrain.GetMotive(NEED_COMPOSURE) || NEED_SATISFIED) >= NEED_THRESHOLD)
-		SetState(STATE_PANIC, -1)
+	else if(combatbrain && (combatbrain.GetNeed(NEED_COMPOSURE, NEED_SATISFIED) >= NEED_THRESHOLD))
+		is_different = (panicking != FALSE)
+		panicking = FALSE
+
+	if(is_different)
+		SetState(STATE_PANIC, panicking)
+		SetState(STATE_CALM, !panicking)
+
 
 	if(brain)
+		if(!(brain.last_plan_successful))
+			world.log << "[src]: Getting disoriented!"
+			SetState(STATE_DISORIENTED, TRUE)
+			SetState(STATE_ORIENTED, FALSE)
+
 		brain.LifeTick()
+
+		for(var/datum/ActionTracker/instant_action_tracker in brain.pending_instant_actions)
+			var/tracked_instant_action = instant_action_tracker?.tracked_action
+			if(tracked_instant_action)
+				HandleInstantAction(tracked_instant_action, instant_action_tracker)
 
 		if(brain.running_action_tracker)
 			var/tracked_action = brain.running_action_tracker.tracked_action
 			if(tracked_action)
 				HandleAction(tracked_action, brain.running_action_tracker)
+
 
 	return
 
@@ -134,3 +176,8 @@
 /mob/goai/combatant/proc/Idle()
 	if(prob(50))
 		randMove()
+
+
+/mob/goai/dummy
+	icon = 'icons/uristmob/simpleanimals.dmi'
+	icon_state = "amorphic"
