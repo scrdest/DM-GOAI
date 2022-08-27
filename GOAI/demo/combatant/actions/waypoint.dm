@@ -108,7 +108,7 @@
 
 
 /mob/goai/combatant/proc/HandleWaypointObstruction(var/atom/obstruction, var/atom/waypoint, var/list/shared_preconds = null, var/list/target_preconds = null, var/move_action_name = "MoveTowards")
-	if(!obstruction || !waypoint || !move_action_name)
+	if(!waypoint || !move_action_name)
 		world.log << "HandleWaypointObstruction failed! <[obstruction], [waypoint], [move_action_name]>"
 		return FALSE
 
@@ -119,68 +119,73 @@
 
 	if(D && istype(D) && !(D.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-		//SetState(obs_need_key, FALSE)
-		SetState("DoorOpen", FALSE)
+		var/action_key = "Open [obstruction]"
 
 		var/list/open_door_preconds = common_preconds.Copy()
-		//open_door_preconds[obs_need_key] = FALSE
-		open_door_preconds["DoorOpen"] = FALSE
+		open_door_preconds[obs_need_key] = FALSE
+		open_door_preconds["UsedUpAction [action_key]"] = FALSE
+
+		var/list/open_door_effects = list()
+		open_door_effects["UsedUpAction [action_key]"] = TRUE
+		open_door_effects[obs_need_key] = TRUE
 
 		AddAction(
-			"Open [obstruction]",
+			action_key,
 			open_door_preconds,
-			list(
-				//obs_need_key = TRUE,
-				"DoorOpen" = TRUE,
-			),
+			open_door_effects,
 			/mob/goai/combatant/proc/HandleOpenDoor,
 			5,
 			1
 		)
 
-		goto_preconds["DoorOpen"] = TRUE
-		//goto_preconds[obs_need_key] = TRUE
+		goto_preconds[obs_need_key] = TRUE
 
 
 	var/obj/cover/autodoor/AD = obstruction
 
 	if(AD && istype(AD) && !(AD.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-		SetState(obs_need_key, FALSE)
+		var/action_key = "Open [obstruction]"
 
+		/* TRIGGER WARNING: DM being cancer.
+		//
+		// Would be cool to use variable assoc list keys, right?
+		// WRONG. This A) does NOT work & B) *fails silently*.
+		// So, instead we construct an empty list and enter keys
+		// one by one, because this approach DOES work. Consistency!
+		*/
 		var/list/open_autodoor_preconds = common_preconds.Copy()
-		//open_autodoor_preconds[obs_need_key] = FALSE
-		open_autodoor_preconds["DoorOpen"] = FALSE
+		open_autodoor_preconds[obs_need_key] = FALSE
+		open_autodoor_preconds["UsedUpAction [action_key]"] = FALSE
+
+		var/list/open_autodoor_effects = list()
+		open_autodoor_effects["UsedUpAction [action_key]"] = TRUE
+		open_autodoor_effects[obs_need_key] = TRUE
 
 		AddAction(
-			"Open [obstruction]",
+			action_key,
 			open_autodoor_preconds,
-			list(
-				//obs_need_key = TRUE,
-				"DoorOpen" = TRUE,
-			),
+			open_autodoor_effects,
 			/mob/goai/combatant/proc/HandleOpenAutodoor,
 			5,
 			1
 		)
 
-		goto_preconds["DoorOpen"] = TRUE
-		//goto_preconds[obs_need_key] = TRUE
+		goto_preconds[obs_need_key] = TRUE
 
 
 	AddAction(
-		"[move_action_name] [waypoint]",
+		"[move_action_name] [waypoint] - [obstruction] @ [ref(obstruction)]",
 		goto_preconds,
 		list(
 			NEED_COVER = NEED_SATISFIED,
 			NEED_OBEDIENCE = NEED_SATISFIED,
 			STATE_INCOVER = 1,
-			//STATE_DISORIENTED = 1,
+			STATE_DISORIENTED = 1,
 		),
 		/mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
+		10,
 		1,
-		//1, /* It would MAKE SENSE to limit charges on this (so a new PathPlan readds a new charge)
-		//      except for the fact that for some reason IT DOESN'T WORK ARGH (yet, probably - TODO) */
 		PLUS_INF
 	)
 
@@ -205,7 +210,7 @@
 	src.SpotObstacles(src, waypoint, FALSE)
 
 	var/list/goto_preconds = list(
-		//STATE_HASWAYPOINT = TRUE,
+		STATE_HASWAYPOINT = TRUE,
 		STATE_PANIC = -TRUE,
 		//STATE_DISORIENTED = -TRUE,
 	)

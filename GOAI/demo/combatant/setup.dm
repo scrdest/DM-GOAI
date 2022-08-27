@@ -36,14 +36,15 @@
 /mob/goai/combatant/InitActionsList()
 	/* TODO: add Time as a resource! */
 	// Name, Req-ts, Effects, Priority, [Charges]
+	// Priority - higher is better; -INF would only be used if there's no other option.
 
-	AddAction(
+	/*AddAction(
 		"Idle",
 		list("Idled" = FALSE),
 		list("Idled" = TRUE),
 		/mob/goai/combatant/proc/HandleIdling,
-		-999
-	)
+		-99999
+	)*/
 
 	AddAction(
 		"Take Cover Pathfind",
