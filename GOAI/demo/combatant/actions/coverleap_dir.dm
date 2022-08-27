@@ -212,7 +212,7 @@
 		if(brain)
 			brain.SetMemory("DirectionalCoverleapBestpos", best_local_pos)
 
-	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 5))
+	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 3))
 		tracker.SetFailed()
 
 	return
@@ -339,5 +339,4 @@
 		tracker.SetFailed()
 
 	SetState(STATE_DISORIENTED, TRUE)
-	SetState(STATE_ORIENTED, FALSE)
 	return

@@ -24,7 +24,7 @@
 #include "_algorithms\linear_algebra.dm"
 #include "_algorithms\metrics.dm"
 #include "_algorithms\statistics.dm"
-#include "_algorithms\testing\linreg_debug.dm"
+#include "_algorithms\testing\beams.dm"
 #include "_datastructures\action_tracker.dm"
 #include "_datastructures\dict.dm"
 #include "_datastructures\lists.dm"

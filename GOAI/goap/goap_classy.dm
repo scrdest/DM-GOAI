@@ -475,8 +475,8 @@ X================================================================X
 		sleep(-1) // this is a safe time to pause things and catch up with reality
 
 		result = SearchIteration(arglist(next_params))
-		continue_search = result ? result.left : 0
-		var/list/new_params = result.right
+		continue_search = result?.left || FALSE
+		var/list/new_params = result?.right
 
 		next_params = new_params
 

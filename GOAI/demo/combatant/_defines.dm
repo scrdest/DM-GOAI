@@ -5,7 +5,7 @@
 # define NEED_OBEDIENCE "obedience"
 # define NEED_COMPOSURE "composure"
 // We do o position here to avoid hash collisions; 'o' should be an atom
-# define NEED_OBSTACLE_OPEN(o) "open [o] @ ([o.x], [o.y], [o.z])"
+# define NEED_OBSTACLE_OPEN(o) "open [o] [ref(o)]"
 // We do a position here to avoid hash collisions; 'a' should be an atom
 // Need rather than State to allow 'incremental' plans,
 //  e.g. Plan<Near<Z>> = (Goto<X>(), Open<Y>(Near<Y>), Goto<Z>(OpenAt<Y>))
@@ -17,16 +17,9 @@
 # define STATE_HASGUN "has_gun"
 # define STATE_HASWAYPOINT "has_waypoint"
 # define STATE_CANFIRE "can_shoot"
-/* This is pretty dumb, but some preconds to have something NOT in a
-// specific state (e.g. NOT be in cover, NOT have a gun, etc.).
-// We could either make a fancier state algebra, or split these in two.
-// Splitting is the lazier, probably more maintainable option, so...
-*/
-# define STATE_CALM "kalm"
 # define STATE_PANIC "panik"
 
 # define STATE_DISORIENTED "disoriented"
-# define STATE_ORIENTED "oriented"
 
 // Subsystem loop schedules
 # define COMBATAI_SENSE_TICK_DELAY 3

@@ -1,7 +1,7 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
 "c" = (/obj/cover/door,/turf/ground,/area)
-"d" = (/mob/goai/combatant,/turf/ground,/area)
+"d" = (/mob/goai/dummy,/turf/ground,/area)
 "e" = (/mob/goai/combatant{icon_state = "skrellorist"; name = "combatant 2"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)

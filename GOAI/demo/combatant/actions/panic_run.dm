@@ -1,3 +1,4 @@
+
 /mob/goai/combatant/proc/ChoosePanicRunLandmark(var/atom/primary_threat = null, var/list/threats = null, min_safe_dist = null)
 	// Pathfinding/search
 	var/list/_threats = (threats || list())

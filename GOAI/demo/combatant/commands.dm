@@ -129,6 +129,5 @@
 		brain.SetNeed(NEED_COMPOSURE, (curr_panic_state ? NEED_SATISFIED : NEED_MINIMUM))
 
 	SetState(STATE_PANIC, (curr_panic_state ? FALSE : TRUE))
-	SetState(STATE_CALM, (curr_panic_state ? TRUE : FALSE))
 	usr << "[src] [curr_panic_state ? "unpanicked" : "panicked"]!"
 	return

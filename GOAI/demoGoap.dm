@@ -1,3 +1,12 @@
+# define DEMOGOAP_DEBUG_LOGGING 1
+
+# ifdef DEMOGOAP_DEBUG_LOGGING
+# define DEMOGOAP_DEBUG_LOG(X) world.log << X
+# define DEMOGOAP_DEBUG_LOG_TOSTR(X) world.log << #X + ": [X]"
+# else
+# define DEMOGOAP_DEBUG_LOG(X)
+# define DEMOGOAP_DEBUG_LOG_TOSTR(X)
+# endif
 
 // Demo implementation
 /datum/GOAP/demoGoap
@@ -59,10 +68,60 @@
 			continue
 
 		var/blackboard_val = (req_key in blackboard) ? blackboard[req_key] : null
-		if (isnull(blackboard_val) || (blackboard_val < req_val))
+
+		/*             Funky preconditions algebra
+		// Because spliting booleans into two states is painful.
+		//
+		// Normal requirements are fairly straightforward:
+		// it is a simple minimum threshold; e.g. REQ=2 means
+		// 'REQ must be >= 2', so +5 would be fine, but +1 is not.
+		//
+		// We interpret a non-positive requirement -REQ for FOO as
+		// 'FOO must NOT meet the threshold of REQ if REQ were positive'.
+		//
+		//   e.g. for a simple boolean:
+		// - Foo<Armed = +TRUE> requires the mob to be Armed (TRUE+ == 1+),
+		// - Foo<Armed = -TRUE> requires the mob to NOT be Armed (since (+1) >= -(-1) && (-1) <= 0).
+		// - Foo<Armed = FALSE> also requires the mob to NOT be Armed (since (+1) >= 0 && 0 <= 0)
+		//
+		//   or, to illustrate more generically:
+		// - Foo<Bullets =  3> requires the mob to have 3+ bullets left
+		// - Foo<Bullets =  0> requires the mob to have NO bullets left
+		// - Foo<Bullets = -3> requires that the mob does NOT have 3+ bullets available (so 0-2 is fine)
+		//
+		// Note that this is just preconditions; for the states/needs themselves, negative and positive
+		// values are treated the same in the underlying logic, nothing special *there* (e.g. -3 < 2).
+		*/
+
+		if (req_val == 0)
+			if(isnull(blackboard_val))
+				continue
+
+			if(blackboard_val > req_val)
+				DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ zero FOUND [blackboard_val]")
+				match = 0
+				break
+
+		else if (isnull(blackboard_val))
+			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [req_val] FOUND null")
 			match = 0
 			break
 
+		if (req_val > 0 && blackboard_val < req_val)
+			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [req_val] FOUND [blackboard_val]")
+			match = 0
+			break
+
+		else if (req_val < 0 && blackboard_val > -req_val)
+			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [-req_val] FOUND [blackboard_val]")
+			match = 0
+			break
+
+		/*else
+			DEMOGOAP_DEBUG_LOG("[current_pos] passed - [req_key] REQ [req_val] FOUND [blackboard_val]")*/
+
+	if(match)
+		DEMOGOAP_DEBUG_LOG("[current_pos] passed - ALL REQUIREMENTS SATISFIED!")
 	return match
 
 

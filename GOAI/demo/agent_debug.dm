@@ -2,6 +2,20 @@
 /mob/goai/verb/RebootGoai()
 	set src in view(1)
 
+	LobotomizeGoai()
+
+	sleep(0)
+	life = 1
+
+	var/datum/brain/new_brain = CreateBrain()
+	brain = new_brain
+
+	return
+
+
+/mob/goai/verb/LobotomizeGoai()
+	set src in view(1)
+
 	life = 0
 
 	if(brain)
@@ -16,12 +30,6 @@
 			brain.running_action_tracker = null
 
 		del(brain)
-
-	sleep(0)
-	life = 1
-
-	var/datum/brain/new_brain = CreateBrain()
-	brain = new_brain
 
 	return
 

@@ -107,6 +107,86 @@
 	return
 
 
+/mob/goai/combatant/proc/HandleWaypointObstruction(var/atom/obstruction, var/atom/waypoint, var/list/shared_preconds = null, var/list/target_preconds = null, var/move_action_name = "MoveTowards")
+	if(!obstruction || !waypoint || !move_action_name)
+		world.log << "HandleWaypointObstruction failed! <[obstruction], [waypoint], [move_action_name]>"
+		return FALSE
+
+	var/list/common_preconds = shared_preconds?.Copy() || list()
+	var/list/goto_preconds = target_preconds?.Copy() || list()
+
+	var/obj/cover/door/D = obstruction
+
+	if(D && istype(D) && !(D.open))
+		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
+		//SetState(obs_need_key, FALSE)
+		SetState("DoorOpen", FALSE)
+
+		var/list/open_door_preconds = common_preconds.Copy()
+		//open_door_preconds[obs_need_key] = FALSE
+		open_door_preconds["DoorOpen"] = FALSE
+
+		AddAction(
+			"Open [obstruction]",
+			open_door_preconds,
+			list(
+				//obs_need_key = TRUE,
+				"DoorOpen" = TRUE,
+			),
+			/mob/goai/combatant/proc/HandleOpenDoor,
+			5,
+			1
+		)
+
+		goto_preconds["DoorOpen"] = TRUE
+		//goto_preconds[obs_need_key] = TRUE
+
+
+	var/obj/cover/autodoor/AD = obstruction
+
+	if(AD && istype(AD) && !(AD.open))
+		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
+		SetState(obs_need_key, FALSE)
+
+		var/list/open_autodoor_preconds = common_preconds.Copy()
+		//open_autodoor_preconds[obs_need_key] = FALSE
+		open_autodoor_preconds["DoorOpen"] = FALSE
+
+		AddAction(
+			"Open [obstruction]",
+			open_autodoor_preconds,
+			list(
+				//obs_need_key = TRUE,
+				"DoorOpen" = TRUE,
+			),
+			/mob/goai/combatant/proc/HandleOpenAutodoor,
+			5,
+			1
+		)
+
+		goto_preconds["DoorOpen"] = TRUE
+		//goto_preconds[obs_need_key] = TRUE
+
+
+	AddAction(
+		"[move_action_name] [waypoint]",
+		goto_preconds,
+		list(
+			NEED_COVER = NEED_SATISFIED,
+			NEED_OBEDIENCE = NEED_SATISFIED,
+			STATE_INCOVER = 1,
+			//STATE_DISORIENTED = 1,
+		),
+		/mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
+		1,
+		//1, /* It would MAKE SENSE to limit charges on this (so a new PathPlan readds a new charge)
+		//      except for the fact that for some reason IT DOESN'T WORK ARGH (yet, probably - TODO) */
+		PLUS_INF
+	)
+
+	return TRUE
+
+
 /mob/goai/combatant/proc/HandleWaypoint(var/datum/ActionTracker/tracker)
 	// Locate waypoint
 	// Capture any obstacles
@@ -125,94 +205,22 @@
 	src.SpotObstacles(src, waypoint, FALSE)
 
 	var/list/goto_preconds = list(
-		STATE_HASWAYPOINT = TRUE,
-		STATE_CALM = TRUE,
-		STATE_ORIENTED = TRUE,
+		//STATE_HASWAYPOINT = TRUE,
+		STATE_PANIC = -TRUE,
+		//STATE_DISORIENTED = -TRUE,
+	)
+
+	var/list/common_preconds = list(
+		STATE_PANIC = -TRUE,
+		//STATE_DISORIENTED = -TRUE,
 	)
 
 	var/atom/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION)
 
-	var/obj/cover/door/D = obstruction
-
-	if(D && istype(D) && !(D.open))
-		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-		SetState(obs_need_key, NEED_MINIMUM)
-		SetState("DoorClosed", (D.open ? NEED_MINIMUM : NEED_MAXIMUM))
-
-		AddAction(
-			"Open [obstruction]",
-			list(
-				"DoorClosed" = NEED_MAXIMUM,
-				STATE_CALM = 1,
-				STATE_ORIENTED = TRUE,
-			),
-			list(
-				obs_need_key = NEED_MAXIMUM,
-				"DoorClosed" = NEED_MINIMUM,
-				"DoorOpen" = TRUE,
-			),
-			/mob/goai/combatant/proc/HandleOpenDoor,
-			5,
-			1
-		)
-		//goto_preconds[obs_need_key] = NEED_THRESHOLD
-		goto_preconds[obs_need_key] = NEED_MINIMUM
-		goto_preconds["DoorOpen"] = TRUE
-
-	var/obj/cover/autodoor/AD = obstruction
-
-	if(AD && istype(AD) && !(AD.open))
-		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-		SetState(obs_need_key, NEED_MINIMUM)
-		SetState("DoorClosed", NEED_MAXIMUM)
-
-		AddAction(
-			"Open [obstruction]",
-			list(
-				"DoorClosed" = NEED_MAXIMUM,
-				STATE_CALM = 1,
-				STATE_ORIENTED = TRUE,
-			),
-			list(
-				obs_need_key = NEED_MAXIMUM,
-				"DoorClosed" = NEED_MINIMUM,
-				"DoorOpen" = TRUE,
-			),
-			/mob/goai/combatant/proc/HandleOpenAutodoor,
-			5,
-			1
-		)
-		//goto_preconds[obs_need_key] = NEED_THRESHOLD
-		goto_preconds[obs_need_key] = NEED_MINIMUM
-		goto_preconds["DoorOpen"] = TRUE
-
-	// Add need to get near Waypoint
-
-	/* Add any 'target-flavoured' actions, e.g.
-		CoverleapDirTo<Waypoint>(
-			prereqs=(normal_prereqs + obstacles),
-			effects=(normal + need to be at target fulfilled)
-		)
-	*/
-
-	AddAction(
-		"MoveTowards [waypoint]",
-		goto_preconds,
-		list(
-			NEED_COVER = NEED_SATISFIED,
-			NEED_OBEDIENCE = NEED_SATISFIED,
-			STATE_INCOVER = 1,
-			STATE_DISORIENTED = 1,
-		),
-		/mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
-		1,
-		//1, /* It would MAKE SENSE to limit charges on this (so a new PathPlan readds a new charge)
-		//      except for the fact that for some reason IT DOESN'T WORK ARGH (yet, probably - TODO) */
-		PLUS_INF
-	)
+	HandleWaypointObstruction(obstruction, waypoint, common_preconds, goto_preconds)
 
 	SetState(STATE_DISORIENTED, FALSE)
-	SetState(STATE_ORIENTED, TRUE)
 
 	tracker.SetDone()
 	return
+

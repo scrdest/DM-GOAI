@@ -315,6 +315,9 @@
 	for(var/goalkey in goal)
 		world.log << "[src] CreatePlan goal: [goalkey] => [goal[goalkey]]"
 
+	/*for(var/graphkey in planner.graph)
+		world.log << "[src] CreatePlan Planner graph: [graphkey] => [planner.graph[graphkey]]"*/
+
 
 	var/datum/Tuple/result = planner.Plan(arglist(params))
 
@@ -394,10 +397,10 @@
 
 		if (goal_state && goal_state.len && (!is_planning))
 			//world.log << "Creating plan!"
-			var/list/available_actions = GetAvailableActions()
+			var/list/curr_available_actions = GetAvailableActions()
 
 			spawn(0)
-				var/list/raw_active_plan = CreatePlan(curr_state, goal_state, available_actions)
+				var/list/raw_active_plan = CreatePlan(curr_state, goal_state, curr_available_actions)
 
 				if(raw_active_plan)
 					//world.log << "Created plan [raw_active_plan]"
@@ -405,7 +408,7 @@
 
 					for (var/planstep in raw_active_plan)
 						first_clean_pos++
-						if(planstep in available_actions)
+						if(planstep in curr_available_actions)
 							break
 
 					raw_active_plan.Cut(0, first_clean_pos)

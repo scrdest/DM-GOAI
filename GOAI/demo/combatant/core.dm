@@ -65,7 +65,7 @@
 	if(isnull(action_lookup))
 		return
 
-	MAYBE_LOG("[src]: Tracker: [tracker] running @ [running]")
+	MAYBE_LOG("[src]: Tracker: [tracker] running @ [tracker?.IsRunning()]")
 	MAYBE_LOG("[src]: HandleAction action is: [action]")
 
 	var/actionproc = action_lookup[action.name]
@@ -148,14 +148,12 @@
 
 	if(is_different)
 		SetState(STATE_PANIC, panicking)
-		SetState(STATE_CALM, !panicking)
 
 
 	if(brain)
 		if(!(brain.last_plan_successful))
 			world.log << "[src]: Getting disoriented!"
 			SetState(STATE_DISORIENTED, TRUE)
-			SetState(STATE_ORIENTED, FALSE)
 
 		brain.LifeTick()
 

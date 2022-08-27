@@ -22,13 +22,11 @@
 	*/
 	states[STATE_CANFIRE] = 1
 
-	states[STATE_CALM] = TRUE
 	states[STATE_PANIC] = FALSE
 
 	/* A pseudo-need used to inject a step to movements
 	*/
 	states[STATE_DISORIENTED] = TRUE
-	states[STATE_ORIENTED] = FALSE
 	states["HasTakeCoverPath"] = FALSE
 	states["HasPanicRunPath"] = FALSE
 
@@ -41,8 +39,8 @@
 
 	AddAction(
 		"Idle",
-		list(),
-		list(),
+		list("Idled" = FALSE),
+		list("Idled" = TRUE),
 		/mob/goai/combatant/proc/HandleIdling,
 		-999
 	)
@@ -51,8 +49,8 @@
 		"Take Cover Pathfind",
 		list(
 			STATE_DOWNTIME = TRUE,
-			STATE_CALM = TRUE,
-			"HasTakeCoverPath" = FALSE,
+			STATE_PANIC = -TRUE,
+			"HasTakeCoverPath" = -TRUE,
 		),
 		list(
 			"HasTakeCoverPath" = TRUE,
@@ -67,7 +65,7 @@
 		"Take Cover",
 		list(
 			STATE_DOWNTIME = TRUE,
-			STATE_CALM = TRUE,
+			STATE_PANIC = -TRUE,
 			"HasTakeCoverPath" = TRUE,
 		),
 		list(
@@ -81,7 +79,7 @@
 
 	//AddAction("Cover Leapfrog", list(STATE_DOWNTIME = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 10)
 	//AddAction("Directional Cover", list(STATE_DOWNTIME = -1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
-	//AddAction("Directional Cover Leapfrog", list(STATE_DOWNTIME = -1, STATE_CALM = TRUE, "STATE_ORIENTED" = TRUE), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
+	//AddAction("Directional Cover Leapfrog", list(STATE_DOWNTIME = -1, STATE_PANIC = -TRUE, STATE_DISORIENTED = -TRUE), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
 	//AddAction("Cover Fire", list(STATE_INCOVER = 1), list(NEED_COVER = NEED_MINIMUM, STATE_INCOVER = 0, NEED_ENEMIES = NEED_SATISFIED), /mob/goai/combatant/proc/HandleIdling, 5)
 	//AddAction("Shoot", list(STATE_CANFIRE = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleShoot, 10)
 
@@ -89,7 +87,7 @@
 		"Panic Run Pathfind",
 		list(
 			STATE_PANIC = TRUE,
-			"HasPanicRunPath" = FALSE,
+			"HasPanicRunPath" = -TRUE,
 		),
 		list(
 			"HasPanicRunPath" = TRUE,
@@ -115,7 +113,7 @@
 		/mob/goai/combatant/proc/HandlePanickedRun,
 		11
 	)
-	//AddAction("Reorient", list(), list("STATE_ORIENTED" = NEED_MAXIMUM), /mob/goai/combatant/proc/HandleReorient, 1)
+	//AddAction("Reorient", list(), list(STATE_DISORIENTED = NEED_MINIMUM), /mob/goai/combatant/proc/HandleReorient, 1)
 
 	AddAction(
 		"Plan Path",
@@ -128,17 +126,16 @@
 		list(
 			STATE_HASWAYPOINT = TRUE,
 			STATE_DISORIENTED = TRUE,
-			STATE_ORIENTED = FALSE,
-			STATE_CALM = TRUE,
+			STATE_PANIC = -TRUE,
 		),
 		list(
 			STATE_DISORIENTED = FALSE,
-			STATE_ORIENTED = TRUE,
 			NEED_COVER = NEED_SATISFIED,
 			NEED_OBEDIENCE = NEED_SATISFIED,
+			NEED_COMPOSURE = NEED_SATISFIED,
 		),
 		/mob/goai/combatant/proc/HandleWaypoint,
-		-1,
+		100,
 		PLUS_INF,
 		TRUE
 	)
