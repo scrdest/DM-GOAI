@@ -105,7 +105,7 @@
 
 
 /mob/goai/combatant/Life()
-	// Movement updates
+	// Perception updates
 	spawn(0)
 		while(life)
 			SensesSystem()

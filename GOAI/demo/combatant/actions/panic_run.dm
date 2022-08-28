@@ -82,81 +82,28 @@
 
 		// Obstacles:
 		var/atom/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION)
-		var/handled = FALSE
-		var/list/goto_preconds = list(
-			STATE_PANIC = TRUE,
-		)
+		var/handled = isnull(obstruction) // if obs is null, counts as handled
 
-		var/obj/cover/door/D = obstruction
+		if(obstruction)
+			var/list/shared_preconds = list(
 
-		if(D && istype(D) && !(D.open))
-			var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-			SetState(obs_need_key, NEED_MINIMUM)
-			SetState("DoorClosed", (D.open ? NEED_MINIMUM : NEED_MAXIMUM))
-
-			AddAction(
-				"Open [obstruction]",
-				list(
-					"DoorClosed" = NEED_MAXIMUM,
-				),
-				list(
-					obs_need_key = NEED_MAXIMUM,
-					"DoorClosed" = NEED_MINIMUM,
-					"DoorOpen" = TRUE,
-				),
-				/mob/goai/combatant/proc/HandleOpenDoor,
-				5,
-				1
-			)
-			//goto_preconds[obs_need_key] = NEED_THRESHOLD
-			goto_preconds[obs_need_key] = NEED_MINIMUM
-			goto_preconds["DoorOpen"] = TRUE
-			handled = TRUE
-
-		var/obj/cover/autodoor/AD = obstruction
-
-		if(AD && istype(AD) && !(AD.open))
-			var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-			SetState(obs_need_key, NEED_MINIMUM)
-			SetState("DoorClosed", NEED_MAXIMUM)
-
-			AddAction(
-				"Open [obstruction]",
-				list(
-					"DoorClosed" = NEED_MAXIMUM,
-				),
-				list(
-					obs_need_key = NEED_MAXIMUM,
-					"DoorClosed" = NEED_MINIMUM,
-					"DoorOpen" = TRUE,
-				),
-				/mob/goai/combatant/proc/HandleOpenAutodoor,
-				5,
-				1
-			)
-			//goto_preconds[obs_need_key] = NEED_THRESHOLD
-			goto_preconds[obs_need_key] = NEED_MINIMUM
-			goto_preconds["DoorOpen"] = TRUE
-			handled = TRUE
-
-		if(handled)
-			AddAction(
-				"PanicRun Towards [best_local_pos]",
-				goto_preconds,
-				list(
-					NEED_COVER = NEED_SATISFIED,
-					NEED_OBEDIENCE = NEED_SATISFIED,
-					STATE_INCOVER = 1,
-					STATE_DISORIENTED = 1,
-				),
-				/mob/goai/combatant/proc/HandlePanickedRun,
-				1,
-				//1, /* It would MAKE SENSE to limit charges on this (so a new PathPlan readds a new charge)
-				//      except for the fact that for some reason IT DOESN'T WORK ARGH (yet, probably - TODO) */
-				PLUS_INF
 			)
 
-		else
+			var/list/movement_preconds = list(
+				STATE_PANIC = TRUE,
+			)
+
+			handled = HandleWaypointObstruction(
+				obstruction = obstruction,
+				waypoint = best_local_pos,
+				shared_preconds = shared_preconds,
+				target_preconds = movement_preconds,
+				move_action_name = "PanicRun towards",
+				unique = FALSE,
+				allow_failed = TRUE
+			)
+
+		if(!handled)
 			brain?.SetMemory("UnreachableTile", best_local_pos)
 			best_local_pos = null
 

@@ -107,15 +107,18 @@
 	return
 
 
-/mob/goai/combatant/proc/HandleWaypointObstruction(var/atom/obstruction, var/atom/waypoint, var/list/shared_preconds = null, var/list/target_preconds = null, var/move_action_name = "MoveTowards")
+/mob/goai/combatant/proc/HandleWaypointObstruction(var/atom/obstruction, var/atom/waypoint, var/list/shared_preconds = null, var/list/target_preconds = null, var/move_action_name = "MoveTowards", var/unique = TRUE, var/allow_failed = TRUE)
 	if(!waypoint || !move_action_name)
 		world.log << "HandleWaypointObstruction failed! <[obstruction], [waypoint], [move_action_name]>"
 		return FALSE
 
-	var/list/common_preconds = shared_preconds?.Copy() || list()
-	var/list/goto_preconds = target_preconds?.Copy() || list()
+	var/handled = isnull(obstruction)
+
+	var/list/common_preconds = (isnull(shared_preconds) ? list() : shared_preconds.Copy())
+	var/list/goto_preconds = (isnull(target_preconds) ? list() : target_preconds.Copy())
 
 	var/obj/cover/door/D = obstruction
+	var/obj/cover/autodoor/AD = obstruction
 
 	if(D && istype(D) && !(D.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
@@ -139,11 +142,10 @@
 		)
 
 		goto_preconds[obs_need_key] = TRUE
+		handled = TRUE
 
 
-	var/obj/cover/autodoor/AD = obstruction
-
-	if(AD && istype(AD) && !(AD.open))
+	else if(AD && istype(AD) && !(AD.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
 		var/action_key = "Open [obstruction]"
 
@@ -172,24 +174,50 @@
 		)
 
 		goto_preconds[obs_need_key] = TRUE
+		handled = TRUE
 
 
-	AddAction(
-		"[move_action_name] [waypoint] - [obstruction] @ [ref(obstruction)]",
-		goto_preconds,
-		list(
-			NEED_COVER = NEED_SATISFIED,
-			NEED_OBEDIENCE = NEED_SATISFIED,
-			STATE_INCOVER = 1,
-			STATE_DISORIENTED = 1,
-		),
-		/mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
-		10,
-		1,
-		PLUS_INF
-	)
+	if(handled || allow_failed)
+		var/action_name = "[move_action_name] [waypoint]"
+		if(unique)
+			/* Non-Unique (Generic) Actions are fungible, so (ironically)
+			// we only have one of each, e.g. OpenDoor<>.
+			//
+			// Unique actions are identified by their name AND params,
+			// e.g. OpenDoor<doorA>, so we can have as many
+			// as we have different param combinations.
+			//
+			// == DESIGN NOTE: ==
+			// Keep in mind that unique != parametrized.
+			// We can easily add Generic Actions that take parameters
+			// from another system, e.g. Brain's Memory system.
+			//
+			// The difference is that Unique actions can have preconds and effects
+			// that are SPECIFIC to their param, e.g. Go<3> may require At<2>,
+			// while a Generic Move<> would have to pick any valid move from the
+			// current location non-specifically, e.g. Move<>@3 could go to 2 or 4.
+			//
+			// Dynamically added Unique actions can stuff up memory quickly,
+			// so use them only where absolutely necessary.
+			*/
+			action_name = "[action_name] - [obstruction] @ [ref(obstruction)]"
 
-	return TRUE
+		AddAction(
+			action_name,
+			goto_preconds,
+			list(
+				NEED_COVER = NEED_SATISFIED,
+				NEED_OBEDIENCE = NEED_SATISFIED,
+				STATE_INCOVER = 1,
+				STATE_DISORIENTED = 1,
+			),
+			/mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
+			10,
+			1,
+			PLUS_INF
+		)
+
+	return handled
 
 
 /mob/goai/combatant/proc/HandleWaypoint(var/datum/ActionTracker/tracker)
@@ -222,10 +250,15 @@
 
 	var/atom/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION)
 
-	HandleWaypointObstruction(obstruction, waypoint, common_preconds, goto_preconds)
+	var/handled = HandleWaypointObstruction(obstruction, waypoint, common_preconds, goto_preconds)
 
 	SetState(STATE_DISORIENTED, FALSE)
 
-	tracker.SetDone()
+	if(handled)
+		tracker.SetDone()
+
+	else
+		tracker.SetFailed()
+
 	return
 

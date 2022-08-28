@@ -23,23 +23,34 @@
 		tracker.SetFailed()
 		return
 
-	if(tracker.IsRunning() && obstruction.open)
-		if(get_dist(get_turf(src), get_turf(obstruction)) < 1)
-			tracker.SetDone()
-			return
+	var/dist_to_obs = get_dist(get_turf(src), get_turf(obstruction))
+	var/opened = FALSE
 
-	var/list/path_to_door = tracker.BBGet("PathToDoor", null)
+	if(dist_to_obs < 2 && !(obstruction.open))
+		// Within 1-tile range diagonally? Open it.
+		opened = obstruction.pOpen()
 
-	if(isnull(path_to_door) || !active_path)
-		path_to_door = StartNavigateTo(obstruction, 1, refresh_loc_memories = FALSE)
-		tracker.BBSet("PathToDoor", path_to_door)
+	if(obstruction.open || opened)
+		if(dist_to_obs < 1)
+			// Literally in the doorway - we're done.
+			if(tracker.IsRunning())
+				tracker.SetDone()
 
-	if(get_dist(src, obstruction) < 2)
-		if(!(obstruction.open))
-			obstruction.pOpen()
-			StartNavigateTo(obstruction, 0, refresh_loc_memories = FALSE)
+		else
+			// Body-block the door so it doesn't close.
+			var/entering_door = tracker.BBGet("entering_door", FALSE)
+			if(!entering_door)
+				StartNavigateTo(obstruction, 0)
+				tracker.BBSet("entering_door", TRUE)
 
-	//SetState(STATE_DISORIENTED, TRUE)
+	else
+		// Closed and too far to open? Move to adjacent tile.
+		var/list/path_to_door = tracker.BBGet("PathToDoor", null)
+
+		if(isnull(path_to_door) || !active_path)
+			path_to_door = StartNavigateTo(obstruction, 1)
+			tracker.BBSet("PathToDoor", path_to_door)
+
 	return
 
 
@@ -68,20 +79,32 @@
 		tracker.SetFailed()
 		return
 
-	if(tracker.IsRunning() && obstruction.open)
-		if(get_dist(get_turf(src), get_turf(obstruction)) < 1)
-			tracker.SetDone()
-			return
+	var/dist_to_obs = get_dist(get_turf(src), get_turf(obstruction))
+	var/opened = FALSE
 
-	var/list/path_to_door = tracker.BBGet("PathToDoor", null)
+	if(dist_to_obs < 2 && !(obstruction.open))
+		// Within 1-tile range diagonally? Open it.
+		opened = obstruction.pOpen()
 
-	if(isnull(path_to_door) || !active_path)
-		path_to_door = StartNavigateTo(obstruction, 1)
-		tracker.BBSet("PathToDoor", path_to_door)
+	if(obstruction.open || opened)
+		if(dist_to_obs < 1)
+			// Literally in the doorway - we're done.
+			if(tracker.IsRunning())
+				tracker.SetDone()
 
-	if(get_dist(src, obstruction) < 2)
-		if(!(obstruction.open))
-			obstruction.pOpen()
-			StartNavigateTo(obstruction, 0)
+		else
+			// Body-block the door so it doesn't close.
+			var/entering_door = tracker.BBGet("entering_door", FALSE)
+			if(!entering_door)
+				StartNavigateTo(obstruction, 0)
+				tracker.BBSet("entering_door", TRUE)
+
+	else
+		// Closed and too far to open? Move to adjacent tile.
+		var/list/path_to_door = tracker.BBGet("PathToDoor", null)
+
+		if(isnull(path_to_door) || !active_path)
+			path_to_door = StartNavigateTo(obstruction, 1)
+			tracker.BBSet("PathToDoor", path_to_door)
 
 	return

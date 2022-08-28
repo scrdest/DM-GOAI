@@ -4,6 +4,7 @@
 	return FALSE
 
 
+/* Abstract Base Class */
 /obj/cover
 	// Abstract Base Class, do not use directly!
 	icon = 'icons/obj/structures.dmi'
@@ -30,11 +31,13 @@
 	UpdateIcon()
 
 
+/* Barricade. Simple obj-based (as opposed to turf-based) cover. */
 /obj/cover/barricade
 	name = "Barricade"
 	icon_state = "woodenbarricade"
 
 
+/* Table. Flippable. If flipped, acts as a unidirectional barricade. */
 /obj/cover/table
 	name = "Table"
 	icon_state = "wood_table" // fsr cannot use a var here
@@ -81,6 +84,7 @@
 	directional_blocker.blocks = flip_dir
 
 	UpdateIcon()
+	return flipped
 
 
 /obj/cover/table/proc/pUnflip()
@@ -96,20 +100,24 @@
 		directional_blocker.is_active = FALSE
 
 	UpdateIcon()
+	return flipped
 
 
 /obj/cover/table/verb/Flip()
 	set src in view(1)
 
 	dir = get_dir(src, usr)
-	pFlip(dir)
+	var/result = pFlip(dir)
+	return result
 
 
 /obj/cover/table/verb/Unflip()
 	set src in view(1)
-	pUnflip()
+	var/result = pUnflip()
+	return result
 
 
+/* Simple, non-powered door */
 /obj/cover/door
 	icon = 'icons/obj/doors/mineral_doors.dmi'
 	icon_state = "wood"
@@ -146,13 +154,16 @@
 /obj/cover/door/proc/pOpen()
 	open = !open
 	UpdateOpen()
+	return open
 
 
 /obj/cover/door/verb/Open()
 	set src in view(1)
-	pOpen()
+	var/result = pOpen()
+	return result
 
 
+/* Automated, self-closing door */
 /obj/cover/autodoor
 	icon = 'icons/obj/doors/Door1.dmi'
 	icon_state = "door1"
@@ -216,10 +227,12 @@
 
 /obj/cover/autodoor/proc/pOpen()
 	Toggle(FALSE)
+	return open
 
 
 /obj/cover/autodoor/proc/pClose()
 	Toggle(TRUE)
+	return open
 
 
 /obj/cover/autodoor/proc/Toggle(var/forced_state = null)
@@ -237,9 +250,10 @@
 	UpdateOpen()
 	close_door_at = NextCloseTime()
 
-	return
+	return open
 
 
 /obj/cover/autodoor/verb/Open()
 	set src in view(1)
-	Toggle()
+	var/result = Toggle()
+	return result

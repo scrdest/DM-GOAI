@@ -34,14 +34,49 @@
 	return
 
 
+/mob/goai/verb/PauseGoai()
+	set src in view(1)
+	life = 0
+	return
+
+
+/mob/goai/verb/UnpauseGoai()
+	set src in view(1)
+	life = 1
+	Life() // reboot AI systems
+	return
+
+
 /mob/goai/verb/InspectAgentVars()
 	set src in view(1)
 
 	usr << "#============================================#"
 	usr << "|              GOAI AGENT: [src]              "
+	usr << "#============================================#"
+	usr << "|"
 
 	for(var/V in src.vars)
 		usr << "| - [V] = [src.vars[V]]"
+
+	usr << "#============================================#"
+
+	return
+
+
+/mob/goai/verb/InspectAgentBrainVars()
+	set src in view(1)
+
+	if(!(src.brain))
+		usr << "[src] has no brain!"
+		return
+
+	usr << "#============================================#"
+	usr << "|              GOAI BRAIN: [src]              "
+	usr << "#============================================#"
+	usr << "|"
+
+	for(var/V in (src.brain.vars))
+		usr << "| - [V] = [src.brain.vars[V]]"
 
 	usr << "#============================================#"
 
@@ -54,6 +89,8 @@
 
 	usr << "#============================================#"
 	usr << "|              GOAI AGENT: [src]              "
+	usr << "#============================================#"
+	usr << "|"
 
 	for(var/N in src.needs)
 		usr << "| - [N] = [src.needs[N]]"
@@ -69,6 +106,8 @@
 
 	usr << "#============================================#"
 	usr << "|              GOAI AGENT: [src]              "
+	usr << "#============================================#"
+	usr << "|"
 
 	for(var/S in src.states)
 		usr << "| - [S] = [src.states[S]]"
@@ -83,6 +122,8 @@
 
 	usr << "#============================================#"
 	usr << "|              GOAI AGENT: [src]              "
+	usr << "#============================================#"
+	usr << "|"
 
 	for(var/A in src.actionslist)
 		usr << "| - [A] = [src.actionslist[A]?.charges]"
