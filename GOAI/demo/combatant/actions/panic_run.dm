@@ -1,10 +1,17 @@
 
+/* The most fundamental pathfinding proc here;
+// the rest are higher-level abstractions and
+// integrations w/ other subsystems (e.g. memory)
+*/
 /mob/goai/combatant/proc/ChoosePanicRunLandmark(var/atom/primary_threat = null, var/list/threats = null, min_safe_dist = null)
 	// Pathfinding/search
+	var/turf/best_local_pos = brain?.GetMemoryValue(MEM_BESTPOS_PANIC, null)
+	if(best_local_pos)
+		return best_local_pos
+
 	var/list/_threats = (threats || list())
 	var/_min_safe_dist = (isnull(min_safe_dist) ? 0 : min_safe_dist)
 
-	var/turf/best_local_pos = null
 	var/list/processed = list()
 	var/PriorityQueue/cover_queue = new /PriorityQueue(/datum/Quadruple/proc/TriCompare)
 
@@ -98,32 +105,65 @@
 				waypoint = best_local_pos,
 				shared_preconds = shared_preconds,
 				target_preconds = movement_preconds,
-				move_action_name = "PanicRun towards",
+				move_action_name = "PanicRun",
+				move_handler = /mob/goai/combatant/proc/HandlePanickedRun,
 				unique = FALSE,
 				allow_failed = TRUE
 			)
 
 		if(!handled)
+			world.log << "PanicRun target [best_local_pos] is unreachable!"
 			brain?.SetMemory("UnreachableTile", best_local_pos)
-			best_local_pos = null
+
+	if(best_local_pos)
+		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*3)
 
 	return best_local_pos
 
 
-/mob/goai/combatant/proc/HandleChoosePanicRunLandmark(var/datum/ActionTracker/tracker)
-	world.log << "Running HandleChoosePanicRunLandmark"
+/* Wrapper over ChoosePanicRunLandmark();
+//
+// Adds integrations w/ Threat system and ActionTracker data, but is otherwise
+// generally stateless (not *fully*, b/c we call some potentially impure methods)
+*/
+/mob/goai/combatant/proc/pureHandleChoosePanicRunLandmark(var/mob/goai/combatant/owner = null, var/atom/bestpos = null, var/min_safe_dist = 2, var/list/cached_threats = null)
+	// Abstracted ownership, but defaults to src for convenience.
+	var/mob/goai/combatant/true_owner = (owner || src)
 
 	var/turf/best_local_pos = null
-	best_local_pos = best_local_pos || tracker?.BBGet("bestpos", null)
+	best_local_pos = (best_local_pos || bestpos)
 
 	if(best_local_pos)
 		return
 
-	var/list/threats = new()
-	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
+	var/list/threats = (cached_threats ? cached_threats.Copy() : list())
+	var/primary_threat = threats?[1]
+
+	// Run pathfind
+	best_local_pos = true_owner.ChoosePanicRunLandmark(primary_threat, threats, min_safe_dist)
+
+	return best_local_pos
+
+
+/* Wrapper over pureHandleChoosePanicRunLandmark();
+//
+// Adds a full integration w/ ActionTracker and thus can run
+// as a GOAI Action. Also provides defaults, caching, etc.
+*/
+/mob/goai/combatant/proc/HandleChoosePanicRunLandmark(var/datum/ActionTracker/tracker)
+	world.log << "Running HandleChoosePanicRunLandmark"
+
+	var/turf/best_local_pos = brain?.GetMemoryValue(MEM_BESTPOS_PANIC, null)
+	best_local_pos = best_local_pos || tracker?.BBGet(MEM_BESTPOS_PANIC, null)
+
+	if(best_local_pos)
+		return
+
+	var/list/threats = list()
+	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, null) || 2)
 
 	// Main threat:
-	var/dict/primary_threat_ghost = GetActiveThreat()
+	var/dict/primary_threat_ghost = GetActiveThreatDict()
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
@@ -133,7 +173,7 @@
 		threats[primary_threat_ghost] = primary_threat
 
 	// Secondary threat:
-	var/dict/secondary_threat_ghost = GetActiveSecondaryThreat()
+	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
@@ -143,36 +183,47 @@
 		threats[secondary_threat_ghost] = secondary_threat
 
 	// Run pathfind
-	best_local_pos = ChooseDirectionalCoverLandmark(primary_threat, threats, min_safe_dist)
+	best_local_pos = pureHandleChoosePanicRunLandmark(
+		src,
+		best_local_pos,
+		primary_threat,
+		min_safe_dist,
+		threats
+	)
 
 	if(best_local_pos)
-		tracker.BBSet("bestpos", best_local_pos)
-		tracker.SetDone()
+		tracker?.BBSet(MEM_BESTPOS_PANIC, best_local_pos)
+		tracker?.SetDone()
 
-		if(brain)
-			brain.SetMemory("PanicRunBestpos", best_local_pos)
+		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos)
 
-	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 5))
-		tracker.SetFailed()
+	else if(active_path && tracker?.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 5))
+		tracker?.SetFailed()
 
-	return
+	return best_local_pos
 
 
+/* And now for something completely different...
+//
+// This is the *actual* logic for Running The Hell Away.
+//
+*/
 /mob/goai/combatant/proc/HandlePanickedRun(var/datum/ActionTracker/tracker)
-	var/tracker_frustration = tracker.BBSetDefault("frustration", 0)
+	var/tracker_frustration = tracker?.BBSetDefault("frustration", 0)
 
 	var/turf/best_local_pos = null
-	best_local_pos = best_local_pos || tracker?.BBGet("bestpos", null)
-	if(brain && isnull(best_local_pos))
-		best_local_pos = brain.GetMemoryValue("PanicRunBestpos", best_local_pos)
+	best_local_pos = best_local_pos || tracker?.BBGet(MEM_BESTPOS_PANIC, null)
 
-	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2) * 2
-	var/frustration_repath_maxthresh = brain.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || world.log << "Missed KEY_PERS_FRUSTRATION_THRESH" || 3
+	if(isnull(best_local_pos))
+		best_local_pos = brain?.GetMemoryValue(MEM_BESTPOS_PANIC, null)
+
+	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST) || 2)
+	var/frustration_repath_maxthresh = brain.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || 3
 
 	var/list/threats = new()
 
 	// Main threat:
-	var/dict/primary_threat_ghost = GetActiveThreat()
+	var/dict/primary_threat_ghost = GetActiveThreatDict()
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
@@ -184,7 +235,7 @@
 	//world.log << "[src]: Threat for [src]: [threat || "NONE"]"
 
 	// Secondary threat:
-	var/dict/secondary_threat_ghost = GetActiveSecondaryThreat()
+	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
@@ -226,19 +277,25 @@
 		)
 
 		if(bestpos_is_unsafe || currpos_is_unsafe)
-			tracker.BBSet("frustration", tracker_frustration+1)
-			world.log << "[src]: Dropping PanicRun bestpos - unsafe!"
+			if(tracker_frustration <= 3)
+				tracker.BBSet("frustration", tracker_frustration+1)
+				world.log << "[src]: Dropping PanicRun bestpos - unsafe!"
 
-			CancelNavigate()
-			best_local_pos = null
-			tracker.BBSet("bestpos", null)
-			brain?.DropMemory("DirectionalCoverBestpos")
-			break
+				CancelNavigate()
+				best_local_pos = null
+				tracker.BBSet(MEM_BESTPOS_PANIC, null)
+				brain?.DropMemory(MEM_BESTPOS_PANIC)
+				break
+
+			else
+				world.log << "[src]: PanicRun bestpos unsafe, but too frustrated to care."
 
 
 	if(isnull(best_local_pos))
 		best_local_pos = ChoosePanicRunLandmark(primary_threat, threats, min_safe_dist)
-		tracker.BBSet("bestpos", best_local_pos)
+		world.log << "[src]: Found run away waypoint [best_local_pos]"
+		tracker.BBSet(MEM_BESTPOS_PANIC, best_local_pos)
+		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*3)
 		world.log << (isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos [best_local_pos]")
 
 	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
@@ -257,8 +314,8 @@
 		if(tracker.TriggeredMoreThan(COMBATAI_AI_TICK_DELAY))
 			tracker.SetDone()
 
-			if(needybrain)
-				needybrain.ChangeMotive(NEED_COMPOSURE, NEED_SAFELEVEL)
+			/*if(needybrain)
+				needybrain.ChangeMotive(NEED_COMPOSURE, NEED_SAFELEVEL)*/ // revert once panic is tested
 
 
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))

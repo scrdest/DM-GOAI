@@ -40,6 +40,7 @@
 # define MEM_PREVLOC "MyPrevLocation"
 # define MEM_SAFESPACE "LastSafeSpace"
 # define MEM_OBSTRUCTION "Obstruction"
+# define MEM_BESTPOS_PANIC "BestPosPanic"
 
 // Penalty value that should entirely eliminate an option unless there's absolutely no alternatives:
 # define MAGICNUM_DISCOURAGE_SOFT 10000
@@ -49,6 +50,9 @@
 
 // How much failing a movement decays the AI's COMPOSURE need.
 # define MAGICNUM_COMPOSURE_LOSS_FAILMOVE 5
+
+
+# define PANIC_SENSE_THROTTLE (1 * COMBATAI_AI_TICK_DELAY)
 
 // Various keys used by 'AI ghost' data (last-known-pos stuff)
 # define KEY_GHOST_X "posX"

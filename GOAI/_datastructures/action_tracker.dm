@@ -2,19 +2,22 @@
 	var/datum/goai_action/tracked_action
 	var/timeout_ds = null
 	var/list/tracker_blackboard
+	var/sleep_time = AI_TICK_DELAY
 
-	var/is_done = 0
-	var/is_failed = 0
+	var/is_done = FALSE
+	var/is_failed = FALSE
+	var/is_aborted = FALSE
 
 	var/creation_time = null
 	var/trigger_time = null
 	var/last_check_time = null
 
 
-/datum/ActionTracker/New(var/datum/goai_action/action, var/timeout = null)
+/datum/ActionTracker/New(var/datum/goai_action/action, var/timeout = null, var/tick_delay = null)
 	tracked_action = action || tracked_action
 	timeout_ds = timeout
 	tracker_blackboard = list()
+	sleep_time = (isnull(tick_delay) ? (sleep_time || AI_TICK_DELAY) : tick_delay)
 
 	var/curr_time = world.time
 	creation_time = curr_time
@@ -24,10 +27,13 @@
 		Run()
 
 
+/* == Blackboard (hence 'BB') management == */
 /datum/ActionTracker/proc/BBGet(var/key, var/default = null)
 	var/rval = default
+
 	if (key in tracker_blackboard)
 		rval = tracker_blackboard[key]
+
 	return rval
 
 
@@ -45,6 +51,7 @@
 	return rval
 
 
+/* == State management == */
 /datum/ActionTracker/proc/IsOlderThan(var/max_lag_ds, var/relativeTo = null)
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
 	var/timeDelta = curr_time - creation_time
@@ -59,7 +66,7 @@
 
 /datum/ActionTracker/proc/TriggeredMoreThan(var/max_lag_ds, var/relativeTo = null)
 	if(isnull(trigger_time))
-		return 0
+		return FALSE
 
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
 	var/timeDelta = curr_time - trigger_time
@@ -106,6 +113,10 @@
 	return result
 
 
+/datum/ActionTracker/proc/ShouldAbort()
+	return is_aborted
+
+
 /datum/ActionTracker/proc/CheckAbandoned()
 	var/abandoned = IsAbandoned()
 	if(abandoned)
@@ -144,6 +155,20 @@
 	return
 
 
+/datum/ActionTracker/proc/RaiseAbort()
+	/* While the code is similar, the purpose of ABORTs is different than
+	// normal DONE/FAILED states, hence the different name (Raise vs Set).
+	//
+	// The latter two are for 'internal' signalling; ABORTs are meant for
+	// signalling to the Plan that, for whatever reason, the Plan is no
+	// longer valid *as a whole* and needs to be cancelled.
+	*/
+	world.log << "Setting tracker to ABORT!!!"
+	is_aborted = TRUE
+	return
+
+
+/* Core loop */
 /datum/ActionTracker/proc/Run()
 	while (IsRunning())
 		CheckAbandoned()
@@ -151,5 +176,5 @@
 		if(isnull(tracked_action))
 			SetFailed()
 
-		sleep(AI_TICK_DELAY)
+		sleep(sleep_time)
 

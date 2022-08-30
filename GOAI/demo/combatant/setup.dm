@@ -83,7 +83,7 @@
 	//AddAction("Directional Cover Leapfrog", list(STATE_DOWNTIME = -1, STATE_PANIC = -TRUE, STATE_DISORIENTED = -TRUE), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog, 4)
 	//AddAction("Cover Fire", list(STATE_INCOVER = 1), list(NEED_COVER = NEED_MINIMUM, STATE_INCOVER = 0, NEED_ENEMIES = NEED_SATISFIED), /mob/goai/combatant/proc/HandleIdling, 5)
 	//AddAction("Shoot", list(STATE_CANFIRE = 1), list(NEED_COVER = NEED_SATISFIED, STATE_INCOVER = 1, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleShoot, 10)
-
+/*
 	AddAction(
 		"Panic Run Pathfind",
 		list(
@@ -115,7 +115,7 @@
 		11
 	)
 	//AddAction("Reorient", list(), list(STATE_DISORIENTED = NEED_MINIMUM), /mob/goai/combatant/proc/HandleReorient, 1)
-
+*/
 	AddAction(
 		"Plan Path",
 		/* This is a bit convoluted: we need this step to insert new actions (Goto<Targ>/HandleObstacle<Obs>) at runtime.

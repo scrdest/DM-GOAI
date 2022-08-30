@@ -170,7 +170,7 @@
 	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
 
 	// Main threat:
-	var/dict/primary_threat_ghost = GetActiveThreat()
+	var/dict/primary_threat_ghost = GetActiveThreatDict()
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
@@ -180,7 +180,7 @@
 		threats[primary_threat_ghost] = primary_threat
 
 	// Secondary threat:
-	var/dict/secondary_threat_ghost = GetActiveSecondaryThreat()
+	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
@@ -221,7 +221,7 @@
 	var/list/threats = new()
 
 	// Main threat:
-	var/dict/primary_threat_ghost = GetActiveThreat()
+	var/dict/primary_threat_ghost = GetActiveThreatDict()
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
@@ -233,7 +233,7 @@
 	//world.log << "[src]: Threat for [src]: [threat || "NONE"]"
 
 	// Secondary threat:
-	var/dict/secondary_threat_ghost = GetActiveSecondaryThreat()
+	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))

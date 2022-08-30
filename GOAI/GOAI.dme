@@ -53,6 +53,7 @@
 #include "demo\combatant\commands.dm"
 #include "demo\combatant\core.dm"
 #include "demo\combatant\movement.dm"
+#include "demo\combatant\obstacle_traversal.dm"
 #include "demo\combatant\personality.dm"
 #include "demo\combatant\senses.dm"
 #include "demo\combatant\setup.dm"

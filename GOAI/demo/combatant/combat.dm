@@ -87,18 +87,18 @@
 	return .
 
 
-/mob/goai/combatant/proc/GetActiveThreat() // -> /dict
+/mob/goai/combatant/proc/GetActiveThreatDict() // -> /dict
 	var/dict/threat_ghost = brain?.GetMemoryValue(MEM_THREAT, null, FALSE)
 	return threat_ghost
 
 
-/mob/goai/combatant/proc/GetActiveSecondaryThreat() // -> /dict
+/mob/goai/combatant/proc/GetActiveSecondaryThreatDict() // -> /dict
 	var/dict/threat_ghost = brain?.GetMemoryValue(MEM_THREAT, null, FALSE)
 	return threat_ghost
 
 
 /mob/goai/combatant/proc/GetThreatPosTuple(var/dict/curr_threat = null) // -> num
-	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreat() : curr_threat
+	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreatDict() : curr_threat
 
 	var/threat_pos_x = 0
 	var/threat_pos_y = 0
@@ -157,7 +157,7 @@
 // and the singular, 'scalar' Threat methods.
 // These will probably get removed, unless I figure out why it's such a pain right now.
 
-/mob/goai/combatant/proc/GetActiveThreats() // -> list(/dict)
+/mob/goai/combatant/proc/GetActiveThreatDicts() // -> list(/dict)
 	var/datum/memory/threat_mem_block = brain?.GetMemory(MEM_THREAT, null, FALSE)
 	//world.log << "[src] threat memory: [threat_mem]"
 	var/list/threat_block = threat_mem_block?.val // list(memory)
@@ -178,7 +178,7 @@
 /mob/goai/combatant/proc/GetThreatDistances(var/atom/relative_to = null, var/list/curr_threats = null, var/default = 0, var/check_max = null) // -> num
 	var/atom/rel_source = isnull(relative_to) ? src : relative_to
 	var/list/threat_distances = list()
-	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreats() : curr_threats
+	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreatDicts() : curr_threats
 
 	var/checked_count = 0
 
@@ -213,7 +213,7 @@
 /mob/goai/combatant/proc/GetThreatAngles(var/atom/relative_to = null, var/list/curr_threats = null, var/check_max = null)
 	var/atom/rel_source = isnull(relative_to) ? src : relative_to
 	var/list/threat_angles = list()
-	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreats() : curr_threats
+	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreatDicts() : curr_threats
 
 	var/checked_count = 0
 

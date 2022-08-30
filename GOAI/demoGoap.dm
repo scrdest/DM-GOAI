@@ -1,4 +1,4 @@
-# define DEMOGOAP_DEBUG_LOGGING 1
+// # define DEMOGOAP_DEBUG_LOGGING 0
 
 # ifdef DEMOGOAP_DEBUG_LOGGING
 # define DEMOGOAP_DEBUG_LOG(X) world.log << X
@@ -112,7 +112,7 @@
 			match = 0
 			break
 
-		else if (req_val < 0 && blackboard_val > -req_val)
+		else if (req_val < 0 && blackboard_val >= -req_val)
 			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [-req_val] FOUND [blackboard_val]")
 			match = 0
 			break

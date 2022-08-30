@@ -1,3 +1,13 @@
+// # define ADD_ACTION_DEBUG_LOGGING 0
+
+# ifdef ADD_ACTION_DEBUG_LOGGING
+# define ADD_ACTION_DEBUG_LOG(X) world.log << X
+# define ADD_ACTION_DEBUG_LOG_TOSTR(X) world.log << #X + ": [X]"
+# else
+# define ADD_ACTION_DEBUG_LOG(X)
+# define ADD_ACTION_DEBUG_LOG_TOSTR(X)
+# endif
+
 /datum/brain
 	var/name = "brain"
 	var/life = 1
@@ -102,6 +112,79 @@
 	InitStates()
 
 	return
+
+
+/datum/brain/proc/InitNeeds()
+	needs = list()
+	return needs
+
+
+/datum/brain/proc/InitStates()
+	states = list()
+	return states
+
+
+/datum/brain/proc/Life()
+	/* Something like the commented-out block below *SHOULD* be here as it's a base class
+	// but since this runs an infinite ticker loop, I didn't want to waste CPU cycles running
+	// procs that just do a 'return' forever. May get restored later at some point if having
+	// a solid ABC outweighs the risks.
+
+	while(life)
+		LifeTick()
+		sleep(AI_TICK_DELAY)
+	*/
+	return
+
+
+/datum/brain/proc/LifeTick()
+	return
+
+
+/datum/brain/proc/CreatePlan(var/list/status, var/list/goal, var/list/actions = null)
+	return
+
+
+/datum/brain/proc/AbortPlan()
+	return
+
+
+/datum/brain/proc/GetAvailableActions()
+	/* Abstraction layer over Action updates.
+	// We need this to let nearby Smart Objects etc. yield
+	// Actions to the planner.
+	*/
+
+	var/list/available_actions = list()
+
+	for(var/action_key in actionslist)
+		// Filter out actions w/o charges and non-action items.
+		var/datum/goai_action/action = actionslist[action_key]
+
+		if(!action)
+			continue
+
+		if(action.charges < 1)
+			continue
+
+		available_actions[action_key] = action
+
+	actionslist = available_actions
+	return available_actions
+
+
+/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, clone = FALSE)
+	/*
+	//
+	// - clone (bool): If TRUE (default), the list is a clone of the actionslist (slower, but safer).
+	//                 If FALSE, a reference to the list is returned (faster, but harder to predict)
+	*/
+	ADD_ACTION_DEBUG_LOG("Adding action [name] with [cost] cost, [charges] charges")
+	var/list/available_actions = (clone ? actionslist.Copy() : actionslist) || list()
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges)
+	available_actions[name] = newaction
+
+	return newaction
 
 
 /datum/brain/proc/GetState(var/key, var/default = null)
@@ -219,75 +302,11 @@
 	return personality.Get(trait_key, default)
 
 
-/datum/brain/proc/InitNeeds()
-	needs = list()
-	return needs
-
-
-/datum/brain/proc/InitStates()
-	states = list()
-	return states
-
-
-/datum/brain/proc/Life()
-	/* Something like the commented-out block below *SHOULD* be here as it's a base class
-	// but since this runs an infinite ticker loop, I didn't want to waste CPU cycles running
-	// procs that just do a 'return' forever. May get restored later at some point if having
-	// a solid ABC outweighs the risks.
-
-	while(life)
-		LifeTick()
-		sleep(AI_TICK_DELAY)
-	*/
-	return
-
-
-/datum/brain/proc/LifeTick()
-	return
-
-
-/datum/brain/proc/GetAvailableActions()
-	/* Abstraction layer over Action updates.
-	// We need this to let nearby Smart Objects etc. yield
-	// Actions to the planner.
-	*/
-
-	var/list/available_actions = list()
-
-	for(var/action_key in actionslist)
-		// Filter out actions w/o charges and non-action items.
-		var/datum/goai_action/action = actionslist[action_key]
-
-		if(!action)
-			continue
-
-		if(action.charges < 1)
-			continue
-
-		available_actions[action_key] = action
-
-	actionslist = available_actions
-	return available_actions
-
-
-/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, clone = FALSE)
-	/*
-	//
-	// - clone (bool): If TRUE (default), the list is a clone of the actionslist (slower, but safer).
-	//                 If FALSE, a reference to the list is returned (faster, but harder to predict)
-	*/
-	world.log << "Adding action [name] with [cost] cost, [charges] charges"
-	var/list/available_actions = (clone ? actionslist.Copy() : actionslist) || list()
-	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges)
-	available_actions[name] = newaction
-
-	return newaction
-
-
+/* Concrete implementation of the Brain logic using GOAP planners */
 /datum/brain/concrete
 
 
-/datum/brain/concrete/proc/CreatePlan(var/list/status, var/list/goal, var/list/actions = null)
+/datum/brain/concrete/CreatePlan(var/list/status, var/list/goal, var/list/actions = null)
 	is_planning = 1
 	var/list/path = null
 
@@ -480,7 +499,23 @@
 	return
 
 
+/datum/brain/concrete/AbortPlan()
+	// Cancel current tracker, if any is running
+	running_action_tracker?.SetFailed()
+	running_action_tracker = null
 
+	// Cancel all instant and regular Actions
+	pending_instant_actions = list()
+	active_plan = null
+
+	// Mark the plan as failed
+	last_plan_successful = FALSE
+
+	return TRUE
+
+
+
+/* Brain with decaying Motives, a'la The Sims */
 /datum/brain/concrete/sim
 	var/decay_per_dsecond = 0.1
 

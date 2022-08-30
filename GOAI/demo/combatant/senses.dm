@@ -163,102 +163,39 @@
 		// Nothing to spot.
 		return
 
-	var/list/path = null
-	var/turf/target = get_turf(waypoint)
+	owner.SpotObstacles(
+		owner = owner,
+		target = waypoint,
+	)
 
-	if(isnull(target))
-		target = get_turf(waypoint.loc)
+	// Obstacles:
+	var/atom/obstruction = owner_brain.GetMemoryValue(MEM_OBSTRUCTION)
+	var/handled = isnull(obstruction) // if obs is null, counts as handled
 
-	var/turf/startpos = get_turf(owner)
-	var/init_dist = 30
-	var/sqrt_dist = get_dist(startpos, target) ** 0.5
+	if(obstruction)
+		var/list/goto_preconds = list(
+			STATE_HASWAYPOINT = TRUE,
+			STATE_PANIC = -TRUE,
+			//STATE_DISORIENTED = -TRUE,
+		)
 
-	if(init_dist < 40)
-		world.log << "[owner] entering ASTARS STAGE"
-		path = AStar(owner, target, /turf/proc/CardinalTurfs, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
-		world.log << "[owner] found ASTAR 1 path from [startpos] to [target]: [path] ([path?.len])"
+		var/list/common_preconds = list(
+			STATE_PANIC = -TRUE,
+			//STATE_DISORIENTED = -TRUE,
+		)
 
-		if(path)
-			world.log << "[owner] entering HAPPYPATH"
+		handled = owner.HandleWaypointObstruction(
+			obstruction = obstruction,
+			waypoint = waypoint,
+			shared_preconds = common_preconds,
+			target_preconds = goto_preconds,
+			move_action_name = "Move towards",
+			move_handler = /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
+			unique = FALSE,
+			allow_failed = TRUE
+		)
 
-		else if(!(path && path.len))
-			// No unobstructed path to target!
-			// Let's try to get a direct path and check for obstacles.
-			path = AStar(owner, target, /turf/proc/CardinalTurfsNoblocks, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
-			world.log << "[src] found ASTAR 2 path from [startpos] to [target]: [path] ([path?.len])"
-
-			if(path)
-				var/path_pos = 0
-
-				for(var/turf/pathitem in path)
-					path_pos++
-					//world.log << "[owner]: [pathitem]"
-
-					if(isnull(pathitem))
-						continue
-
-					if(path_pos <= 1)
-						continue
-
-					var/turf/previous = path[path_pos-1]
-
-					if(isnull(previous))
-						continue
-
-					var/last_link_blocked = LinkBlocked(previous, pathitem)
-					if(last_link_blocked)
-						world.log << "[owner]: LINK BETWEEN [previous] & [pathitem] OBSTRUCTED"
-						// find the obstacle
-						var/atom/obstruction = null
-
-						if(!obstruction)
-							for(var/atom/potential_obstruction_curr in pathitem.contents)
-								var/datum/directional_blocker/blocker = potential_obstruction_curr?.directional_blocker
-								if(!blocker)
-									continue
-
-								var/dirDelta = get_dir(previous, potential_obstruction_curr)
-								var/blocks = blocker.Blocks(dirDelta)
-
-								if(blocks)
-									obstruction = potential_obstruction_curr
-									break
-
-						if(!obstruction && path_pos > 2) // check earlier steps
-							for(var/atom/potential_obstruction_prev in previous.contents)
-								var/datum/directional_blocker/blocker = potential_obstruction_prev?.directional_blocker
-								if(!blocker)
-									continue
-
-								var/dirDeltaPrev = get_dir(path[path_pos-2], potential_obstruction_prev)
-								var/blocksPrev = blocker.Blocks(dirDeltaPrev)
-
-								if(blocksPrev)
-									obstruction = potential_obstruction_prev
-									break
-
-						world.log << "[owner]: LINK OBSTRUCTION => [obstruction] @ [obstruction?.loc]"
-						var/obj/cover/door/D = obstruction
-
-						if(D && istype(D))
-							owner.brain.SetMemory(MEM_OBSTRUCTION, obstruction, 1000)
-							var/obs_need_key = "Passable @ [D]"
-							owner.needs[obs_need_key] = NEED_MINIMUM
-							owner.AddAction("Open [D]", list(), list(obs_need_key = NEED_MAXIMUM, NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleOpenDoor, 5, 1)
-							break
-						// Update Actions, somehow - fetch actions from obstruction?
-
-						var/obj/cover/autodoor/AD = obstruction
-
-						if(AD && istype(AD))
-							owner.brain.SetMemory(MEM_OBSTRUCTION, obstruction, 1000)
-							var/obs_need_key = "Passable @ [D]"
-							owner.needs[obs_need_key] = NEED_MINIMUM
-							owner.AddAction("Open [D]", list(), list(obs_need_key = NEED_MAXIMUM, NEED_COVER = NEED_SATISFIED, NEED_OBEDIENCE = NEED_SATISFIED), /mob/goai/combatant/proc/HandleOpenAutodoor, 5, 1)
-							break
-
-						break
-	return
+	return handled
 
 
 /sense/combatant_obstruction_handler/ProcessTick(var/owner)
@@ -269,7 +206,8 @@
 
 	processing = TRUE
 
-	SpotObstacles(owner)
+	// This is the Sense's proc, not the mob's; name's the same:
+	src.SpotObstacles(owner)
 
 	spawn(COMBATAI_AI_TICK_DELAY * 20)
 		// Sense-side delay to avoid spamming view() scans too much
@@ -278,7 +216,111 @@
 
 
 
+// PANIC PATHFINDER SERVICE
+/sense/combatant_panic_pathfinder
+	/* Sense component.
+	// Runs periodically and finds a path to run away to if the Owner panics.
+	//
+	// As this is a pathfinding service, it should be run on a fairly sparse schedule.
+	*/
 
+/sense/combatant_panic_pathfinder/ProcessTick(var/owner)
+	..(owner)
+
+	if(processing)
+		return
+
+	processing = TRUE
+
+	// This is the Sense's proc, not the mob's; name's the same:
+	src.SpotObstacles(owner)
+
+	spawn(PANIC_SENSE_THROTTLE*2)
+		// Sense-side delay to avoid spamming Astars too much
+		processing = FALSE
+	return
+
+
+/sense/combatant_panic_pathfinder/proc/SpotObstacles(var/mob/goai/combatant/owner)
+	if(!owner)
+		// No mob - no point.
+		return
+
+	var/datum/brain/owner_brain = owner?.brain
+	if(isnull(owner_brain))
+		// No point processing this if there's no memories to use
+		// Might not be a precondition later.
+		return
+
+	var/list/threats = list()
+	var/min_safe_dist = owner_brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
+
+	// Main threat:
+	var/dict/primary_threat_ghost = owner.GetActiveThreatDict()
+	var/datum/Tuple/primary_threat_pos_tuple = owner.GetThreatPosTuple(primary_threat_ghost)
+	var/atom/primary_threat = null
+	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, owner.z)
+
+	if(primary_threat_ghost)
+		threats[primary_threat_ghost] = primary_threat
+
+	// Secondary threat:
+	var/dict/secondary_threat_ghost = owner.GetActiveSecondaryThreatDict()
+	var/datum/Tuple/secondary_threat_pos_tuple = owner.GetThreatPosTuple(secondary_threat_ghost)
+	var/atom/secondary_threat = null
+	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, owner.z)
+
+	if(secondary_threat_ghost)
+		threats[secondary_threat_ghost] = secondary_threat
+
+	var/atom/waypoint = owner.ChoosePanicRunLandmark(
+		primary_threat = primary_threat,
+		threats = threats,
+		min_safe_dist = min_safe_dist
+	)
+
+
+	if(isnull(waypoint))
+		// Nothing to spot.
+		return
+
+	owner.SpotObstacles(
+		owner = owner,
+		target = waypoint,
+	)
+
+	// Obstacles:
+	var/atom/obstruction = owner_brain.GetMemoryValue(MEM_OBSTRUCTION)
+	var/handled = isnull(obstruction) // if obs is null, counts as handled
+
+	var/list/shared_preconds = list(
+		STATE_PANIC = TRUE,
+	)
+
+	var/list/movement_preconds = list(
+		STATE_PANIC = TRUE,
+	)
+
+	handled = owner.HandleWaypointObstruction(
+		obstruction = obstruction,
+		waypoint = waypoint,
+		shared_preconds = shared_preconds,
+		target_preconds = movement_preconds,
+		move_action_name = "PanicRun",
+		move_handler = /mob/goai/combatant/proc/HandlePanickedRun,
+		unique = FALSE,
+		allow_failed = TRUE
+	)
+
+	if(handled)
+		owner_brain?.SetMemory(MEM_BESTPOS_PANIC, waypoint, PANIC_SENSE_THROTTLE*3)
+
+	return handled
+
+
+// SAFESPACE FINDER
 /sense/safespace_finder
 	/* Sense component. Runs periodically and updates the mob's safe spaces.
 	//
@@ -326,11 +368,13 @@
 	/* Initialize sense objects: */
 	var/sense/combatant_eyes/eyes = new()
 	//var/sense/combatant_obstruction_handler/obstacle_handler = new()
+	var/sense/combatant_panic_pathfinder/panicpath_handler = new()
 	var/sense/safespace_finder/safety_finder = new()
 
 	/* Register each Sense: */
 	senses.Add(eyes)
 	//senses.Add(obstacle_handler)
+	senses.Add(panicpath_handler)
 	senses.Add(safety_finder)
 
 	return
