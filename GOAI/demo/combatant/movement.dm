@@ -1,23 +1,57 @@
 /* Movement system (in the ECS sense) and movement helpers. */
 
-/mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = NONE)
-	var/true_avoid = (avoid || src.brain?.GetMemoryValue("UnreachableTile", null))
+/mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/proc/adjproc = NONE, var/proc/distanceproc = NONE, var/list/adjargs = NONE)
+	var/true_avoid = (avoid || src.brain?.GetMemoryValue("BadStartTile", null))
+
+	var/proc/true_adjproc = (isnull(adjproc) ? /turf/proc/CardinalTurfs : adjproc)
+	var/proc/true_distproc = (isnull(distanceproc) ? /turf/proc/Distance : distanceproc)
+
 	var/list/path = AStar(
-		get_turf(loc),
-		get_turf(trg),
-		/turf/proc/CardinalTurfs,
-		/turf/proc/Distance,
-		0,
-		pathing_dist_cutoff,
+		start = get_turf(loc),
+		end = get_turf(trg),
+		adjacent = true_adjproc,
+		dist = true_distproc,
+		max_nodes = 0,
+		max_node_depth = pathing_dist_cutoff,
 		min_target_dist = min_dist,
+		min_node_dist = null,
+		adj_args = adjargs,
 		exclude = true_avoid
 	)
 	return path
 
 
+/turf/proc/CombatantAdjacents(var/mob/goai/combatant/owner)
+	var/list/base_adjs = src.CardinalTurfsNoblocks()
+	var/list/out_adjs = list()
+
+	var/cut_link = owner?.brain?.GetMemoryValue("BadStartTile", null)
+
+	for(var/adj in base_adjs)
+		if(cut_link && src == cut_link)
+			world.log << "[src] is a cut link!"
+			continue
+
+		out_adjs.Add(adj)
+
+	return out_adjs
+
+
+
 /mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0)
 	var/datum/ActivePathTracker/pathtracker = null
+
 	var/list/path = FindPathTo(trg,  min_dist, avoid)
+	if(!path)
+		var/list/adjacency_args = list(owner = src)
+		path = FindPathTo(
+			trg,
+			world.view,
+			avoid,
+			adjproc=/turf/proc/CombatantAdjacents,
+			adjargs = adjacency_args,
+			distanceproc=/turf/proc/ObstaclePenaltyDistance,
+		)
 
 	if(path)
 		pathtracker = new /datum/ActivePathTracker(trg, path, min_dist, inh_frustration)
@@ -40,9 +74,13 @@
 
 	if(pathtracker)
 		active_path = pathtracker
+	else
+		var/atom/curr_loc = get_turf(src)
+		world.log << "[src]: Could not build a pathtracker to [trg] @ [curr_loc]"
+		//brain?.SetMemory("BadStartTile", curr_loc, 1000)
 
-	if(istype(trg, /turf))
-		var/turf/trg_turf = trg
+	var/turf/trg_turf = trg
+	if(trg_turf)
 		trg_turf.DrawVectorbeam()
 
 	is_repathing = 0
@@ -65,27 +103,34 @@
 	var/atom/followup_step = ((active_path.path && active_path.path.len >= 2) ? active_path.path[2] : null)
 
 	if(next_step)
-		step_towards(src, next_step, 0)
 
-		success = ((src.x == next_step.x) && (src.y == next_step.y))
+		if(active_path.frustration > 2)
+			//brain?.SetMemory("UnreachableTile", active_path.target)
+			randMove()
+			return
+
+		if(active_path.frustration > 4 && (is_repathing <= 0) && followup_step && followup_step != active_path.target)
+			// repath
+			var/frustr_x = followup_step.x
+			var/frustr_y = followup_step.y
+			world.log << "[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
+			StartNavigateTo(active_path.target, active_path.min_dist, next_step, active_path.frustration)
+			return
+
+		var/step_result = step_towards(src, next_step, 0)
+		//success = (is_moving || step_result)
+
+		success = (
+			step_result || (
+				(src.x == next_step.x) && (src.y == next_step.y)
+			)
+		)
 
 		if(success)
 			active_path.frustration = 0
 
 		else
 			active_path.frustration++
-
-		if(active_path.frustration > 2)
-			randMove()
-
-		if(active_path.frustration > 7 && (is_repathing <= 0) && followup_step && followup_step != active_path.target)
-			// repath
-			var/frustr_x = followup_step.x
-			var/frustr_y = followup_step.y
-			world.log << "[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
-			StartNavigateTo(active_path.target, active_path.min_dist, next_step, active_path.frustration)
-
-
 	else
 		world.log << "[src]: Setting path to Done"
 		active_path.SetDone()
@@ -102,7 +147,17 @@
 
 
 /mob/goai/combatant/proc/randMove()
+	if(is_moving)
+		return FALSE
+
 	is_moving = 1
-	var/movedir = pick(NORTH, EAST, SOUTH, WEST)
-	Move(get_step(src, movedir))
+
+	var/turf/curr_loc = get_turf(src)
+	var/list/neighbors = curr_loc.CombatantAdjacents(src)
+
+	if(neighbors)
+		var/movedir = pick(neighbors)
+		step_to(src, movedir)
+
 	is_moving = 0
+	return TRUE

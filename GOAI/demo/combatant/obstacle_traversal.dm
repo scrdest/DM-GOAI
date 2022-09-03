@@ -16,7 +16,11 @@
 	var/obj/cover/door/D = obstruction
 	var/obj/cover/autodoor/AD = obstruction
 
-	if(D && istype(D) && !(D.open))
+	if(obstruction == src)
+		// Embarassing case...
+		handled = TRUE
+
+	else if(D && istype(D) && !(D.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
 		var/action_key = "Open [obstruction] for [waypoint]"
 

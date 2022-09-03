@@ -45,6 +45,7 @@
 
 	for(var/atom/candidate_cover in curr_view)
 		if(unreachable && candidate_cover == unreachable)
+			//world.log << "Cover [candidate_cover] is unreachable!"
 			continue
 
 		var/has_cover = candidate_cover?.HasCover(get_dir(candidate_cover, primary_threat), FALSE)
@@ -55,7 +56,7 @@
 			continue
 
 		var/turf/cover_loc = (istype(candidate_cover, /turf) ? candidate_cover : candidate_cover?.loc)
-		var/list/adjacents = (has_cover ? list(candidate_cover) : (cover_loc?.CardinalTurfs(TRUE) || list()))
+		var/list/adjacents = (has_cover ? list(candidate_cover) : (cover_loc?.CardinalTurfs(TRUE, TRUE, TRUE) || list()))
 		/*var/list/adjacents = cover_loc?.CardinalTurfs(TRUE) || list()
 
 		if(has_cover)
@@ -65,7 +66,11 @@
 			continue
 
 		for(var/turf/cand in adjacents)
-			if(!(cand?.Enter(src, src.loc)))
+			if(unreachable && cand == unreachable)
+				world.log << "Cover [cand] is unreachable!"
+				continue
+
+			if(!(cand?.Enter(src, get_turf(candidate_cover))))
 				continue
 
 			if(cand in processed)
@@ -159,13 +164,26 @@
 			cover_queue.Enqueue(cover_quad)
 			processed.Add(cand)
 
-	var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
+	while(cover_queue && cover_queue.L)
+		// Iterate over found positions, AStar-ing into them and
+		//   throwing out candidates that are unreachable.
+		//
+		// Most of the time, this should succeed on the first try;
+		//   the point is to avoid the AI getting stuck in a spot forever.
+		var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
 
-	best_local_pos = istype(best_cand_quad) ? best_cand_quad?.fourth : null
-	/* We could do this here^ but I'm not sure if it's the right move yet
-	// So I'm doing it as a separate line to make it easy to comment in/out.
-	*/
-	//best_local_pos = isnull(best_local_pos) ? src.loc : best_local_pos
+		best_local_pos = istype(best_cand_quad) ? best_cand_quad?.fourth : null
+		if(!best_local_pos)
+			continue
+
+		// NOTE TO SELF: Optimization: taint turfs in a radius around the first failed
+		var/list/found_path = FindPathTo(best_local_pos,  0, null)
+		if(found_path)
+			break
+
+		// This might take a while, better yield to higher-priority tasks
+		sleep(-1)
+
 
 	return best_local_pos
 
@@ -227,8 +245,8 @@
 	if(brain && isnull(best_local_pos))
 		best_local_pos = brain.GetMemoryValue("DirectionalCoverleapBestpos", best_local_pos)
 
-	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
-	var/frustration_repath_maxthresh = brain.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, 3)
+	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, null) || 2)
+	var/frustration_repath_maxthresh = (brain?.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || 3)
 
 	var/list/threats = new()
 
@@ -327,14 +345,16 @@
 		if(needybrain)
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
+		CancelNavigate()
 		randMove()
-		brain?.SetMemory("UnreachableTile", active_path.target, MEM_TIME_LONGTERM)
+		//brain?.SetMemory("UnreachableTile", active_path.target, MEM_TIME_LONGTERM)
 		tracker.SetFailed()
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 10))
 		if(needybrain)
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
+		CancelNavigate()
 		randMove()
 		tracker.SetFailed()
 

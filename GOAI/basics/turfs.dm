@@ -22,7 +22,7 @@
 	. = ..()
 	name += " ([x], [y])"
 
-	var/list/adjacents = src.CardinalTurfs(FALSE)
+	var/list/adjacents = src.CardinalTurfs(FALSE, FALSE, FALSE)
 	var/dense_conn = 0
 	var/dense_neighbors = 0
 
@@ -79,6 +79,7 @@
 	if(A == null || B == null) return TRUE
 	var/adir = get_dir(A,B)
 	var/rdir = get_dir(B,A)
+
 	if((adir & (NORTH|SOUTH)) && (adir & (EAST|WEST)))	//	diagonal
 		var/iStep = get_step(A,adir&(NORTH|SOUTH))
 		if(!LinkBlocked(A,iStep) && !LinkBlocked(iStep,B)) return FALSE
@@ -87,14 +88,25 @@
 		if(!LinkBlocked(A,pStep) && !LinkBlocked(pStep,B)) return FALSE
 		return TRUE
 
-	if(DirBlocked(A,adir)) return TRUE
-	if(DirBlocked(B,rdir)) return TRUE
+	if(DirBlocked(A,adir))
+		//world.log << "A -> B blocked; A=[A], B=[B]"
+		return TRUE
+
+	if(DirBlocked(B,rdir))
+		//world.log << "B -> A blocked; A=[A], B=[B]"
+		return TRUE
+
 	return FALSE
 
 
-/proc/DirBlocked(var/turf/loc, var/dir)
-	for(var/obj/D in loc)
+/proc/DirBlocked(var/atom/trg, var/dir, var/log=FALSE)
+	if(log)
+		world.log << "DirBlocked for [trg] called!"
+
+	for(var/atom/D in trg)
 		var/datum/directional_blocker/dirblocker = D.directional_blocker
+		if(log)
+			world.log << "DirBlocker for [trg] is [D]"
 
 		if(isnull(dirblocker))
 			continue
@@ -117,11 +129,12 @@
 
 /turf/proc/AdjacentTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	var/list/adjacents = list()
+	var/turf/src_turf = get_turf(src)
 
 	for(var/turf/t in (trange(1,src) - src))
 		if(check_blockage)
 			if(!(t.IsBlocked(check_objects)))
-				if(!(check_links && LinkBlocked(src, t)))
+				if(!(check_links && LinkBlocked(src_turf, t)))
 					adjacents += t
 		else
 			adjacents += t
@@ -156,6 +169,18 @@
 		return get_dist(src, T)
 
 
+/turf/proc/ObstaclePenaltyDistance(var/T)
+	var/turf/t = get_turf(T)
+	var/base_dist = Distance(t)
+	var/block_penalty = 0
+
+	if(t && LinkBlocked(t))
+		block_penalty = 10
+
+	var/total_dist = base_dist + block_penalty
+	return total_dist
+
+
 /turf/proc/GetOpenness(var/range = 1)
 	var/open_lines = 0
 
@@ -178,3 +203,7 @@
 		return TRUE
 
 	return FALSE
+
+
+/world
+	turf = /turf/ground

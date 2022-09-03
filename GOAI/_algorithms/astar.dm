@@ -77,7 +77,8 @@ proc/PathWeightCompare(PathNode/a, PathNode/b)
 	return a.estimated_cost - b.estimated_cost
 
 
-proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, var/max_node_depth = 30, var/min_target_dist = 0, var/min_node_dist, var/id, var/exclude)
+proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, var/max_node_depth = 30, var/min_target_dist = 0, var/proc/min_node_dist, var/list/adj_args = null, var/exclude)
+	//ADJ ARGS HANDLING TODO
 	var/PriorityQueue/open = new /PriorityQueue(/proc/PathWeightCompare)
 	var/list/closed = list()
 	var/list/path
@@ -110,7 +111,7 @@ proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, 
 			if(current.nodes_traversed >= max_node_depth)
 				continue
 
-		for(var/datum in call(current.position, adjacent)(id))
+		for(var/datum in call(current.position, adjacent)(arglist(adj_args)))
 			if(datum == exclude)
 				continue
 
