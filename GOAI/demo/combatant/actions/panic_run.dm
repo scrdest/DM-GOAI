@@ -81,10 +81,9 @@
 		cover_queue.Enqueue(cover_quad)
 		processed.Add(cand)
 
-	var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
+	best_local_pos = ValidateWaypoint(cover_queue, TRUE)
 
-	if(best_cand_quad)
-		best_local_pos = best_cand_quad?.fourth
+	if(best_local_pos)
 		SpotObstacles(src, best_local_pos, FALSE)
 
 		// Obstacles:

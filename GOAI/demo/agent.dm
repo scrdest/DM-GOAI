@@ -3,7 +3,7 @@
 
 
 /mob/goai
-	var/life = 1
+	var/life = GOAI_AI_ENABLED
 	icon = 'icons/mob/human_races/r_human.dmi'
 	icon_state = "preview"
 	var/list/needs

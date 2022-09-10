@@ -21,6 +21,40 @@
 	return path
 
 
+
+/mob/goai/combatant/proc/ValidateWaypoint(var/PriorityQueue/queue, var/trust_first = null)
+	var/atom/best_local_pos = null
+
+	var/_trust_first = trust_first
+	if(isnull(trust_first))
+		_trust_first = brain?.GetMemoryValue(MEM_TRUST_BESTPOS, TRUE)
+
+	while(queue && queue.L)
+		// Iterate over found positions, AStar-ing into them and
+		//   throwing out candidates that are unreachable.
+		//
+		// Most of the time, this should succeed on the first try;
+		//   the point is to avoid the AI getting stuck in a spot forever.
+		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
+
+		best_local_pos = istype(best_cand_quad) ? best_cand_quad?.fourth : null
+		if(!best_local_pos)
+			continue
+
+		if(_trust_first)
+			break
+
+		// NOTE TO SELF: Optimization: taint turfs in a radius around the first failed
+		var/list/found_path = FindPathTo(best_local_pos,  0, null)
+		if(found_path)
+			break
+
+		// This might take a while, better yield to higher-priority tasks
+		sleep(-1)
+
+	return best_local_pos
+
+
 /turf/proc/CombatantAdjacents(var/mob/goai/combatant/owner)
 	var/list/base_adjs = src.CardinalTurfsNoblocks()
 	var/list/out_adjs = list()

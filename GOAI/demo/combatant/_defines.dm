@@ -41,6 +41,7 @@
 # define MEM_SAFESPACE "LastSafeSpace"
 # define MEM_OBSTRUCTION "Obstruction"
 # define MEM_BESTPOS_PANIC "BestPosPanic"
+# define MEM_TRUST_BESTPOS "TrustFirstBestpos"
 
 // Penalty value that should entirely eliminate an option unless there's absolutely no alternatives:
 # define MAGICNUM_DISCOURAGE_SOFT 10000

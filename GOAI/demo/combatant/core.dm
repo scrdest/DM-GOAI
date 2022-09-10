@@ -151,9 +151,12 @@
 
 
 	if(brain)
-		if(!(brain.last_plan_successful))
+		if(brain.last_plan_successful)
+			//brain.SetMemory(MEM_TRUST_BESTPOS, TRUE)
+		else
 			world.log << "[src]: Getting disoriented!"
 			SetState(STATE_DISORIENTED, TRUE)
+			//brain.SetMemory(MEM_TRUST_BESTPOS, FALSE, 1000)
 
 		brain.LifeTick()
 

@@ -1,4 +1,4 @@
-/mob/goai/combatant/proc/ChooseCoverleapLandmark(var/atom/startpos, var/atom/primary_threat = null, var/turf/prev_loc_memdata = null, var/list/threats = null, min_safe_dist = null)
+/mob/goai/combatant/proc/ChooseCoverleapLandmark(var/atom/startpos, var/atom/primary_threat = null, var/turf/prev_loc_memdata = null, var/list/threats = null, var/min_safe_dist = null, var/trust_first = null)
 	// Pathfinding/search
 	var/atom/_startpos = (startpos || src.loc)
 	var/list/_threats = (threats || list())
@@ -164,27 +164,7 @@
 			cover_queue.Enqueue(cover_quad)
 			processed.Add(cand)
 
-	while(cover_queue && cover_queue.L)
-		// Iterate over found positions, AStar-ing into them and
-		//   throwing out candidates that are unreachable.
-		//
-		// Most of the time, this should succeed on the first try;
-		//   the point is to avoid the AI getting stuck in a spot forever.
-		var/datum/Quadruple/best_cand_quad = cover_queue.Dequeue()
-
-		best_local_pos = istype(best_cand_quad) ? best_cand_quad?.fourth : null
-		if(!best_local_pos)
-			continue
-
-		// NOTE TO SELF: Optimization: taint turfs in a radius around the first failed
-		var/list/found_path = FindPathTo(best_local_pos,  0, null)
-		if(found_path)
-			break
-
-		// This might take a while, better yield to higher-priority tasks
-		sleep(-1)
-
-
+	best_local_pos = ValidateWaypoint(cover_queue, trust_first)
 	return best_local_pos
 
 
@@ -346,7 +326,8 @@
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
-		randMove()
+		brain.SetMemory(MEM_TRUST_BESTPOS, FALSE)
+		//randMove()
 		//brain?.SetMemory("UnreachableTile", active_path.target, MEM_TIME_LONGTERM)
 		tracker.SetFailed()
 
@@ -355,7 +336,7 @@
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
-		randMove()
+		//randMove()
 		tracker.SetFailed()
 
 	SetState(STATE_DISORIENTED, TRUE)

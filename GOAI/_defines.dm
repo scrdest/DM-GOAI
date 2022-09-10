@@ -1,6 +1,7 @@
 # define PI 3.14159265
 # define LOG2(x) log(2, x)
 
+# define GOAI_AI_ENABLED 1
 # define AI_TICK_DELAY 5
 
 # define NEED_MINIMUM 0
@@ -33,3 +34,6 @@
 # define GUN_DISPERSION 5
 
 # define SENSE_SIGHT "Sight"
+
+// 1 (SOUTH) + 2 (NORTH) + 4 (EAST) + 8 (WEST) == 15
+# define ALL_CARDINAL_DIRS 15
