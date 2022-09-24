@@ -277,3 +277,31 @@
 
 	return perimeter_turfs
 
+
+/proc/chunkwidth2radius(var/width)
+	if(!width || width < 0)
+		return
+
+	var/target_radius = floor(width / 2)
+	return target_radius
+
+
+/proc/tperimeter_from_width(var/width = 3, var/centreX = null, var/centreY = null, var/centreZ = null, var/dirs = ALL_CARDINAL_DIRS)
+	if(isnull(centreX) || isnull(centreY) || isnull(centreZ) || isnull(dirs))
+		return
+
+	var/is_odd = width % 2
+	var/exclude_centre = !is_odd
+
+	var/target_radius = chunkwidth2radius(width)
+
+	var/result = tperimeter(
+		radius = target_radius,
+		centreX = centreX,
+		centreY = centreY,
+		centreZ = centreZ,
+		dirs = dirs,
+		exclude_centre_tile = exclude_centre
+	)
+
+	return result

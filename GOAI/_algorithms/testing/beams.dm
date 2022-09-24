@@ -72,16 +72,20 @@
 		del(src)
 
 
-/turf/verb/DrawVectorbeam()
-	set src in view()
+/atom/proc/pDrawVectorbeam(var/atom/start)
+	var/dist = EuclidDistance(start, src)
 
-	var/dist = EuclidDistance(usr, src)
-
-	var/dx = (src.x - usr.x)
-	var/dy = (src.y - usr.y)
+	var/dx = (src.x - start.x)
+	var/dy = (src.y - start.y)
 	var/angle = arctan(dx, dy)
 
 	var/Vector2d/vec_length = dist
 
-	var/obj/vectorbeam/vanishing/new_beam = new(usr.loc, vec_length, vec_length, angle)
+	var/obj/vectorbeam/vanishing/new_beam = new(get_turf(start), vec_length, vec_length, angle)
+	return new_beam
+
+
+/atom/verb/DrawVectorbeam()
+	set src in view()
+	var/obj/vectorbeam/vanishing/new_beam = src.pDrawVectorbeam(usr)
 	usr << "Spawned new beam [new_beam]"

@@ -326,7 +326,7 @@
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
-		brain.SetMemory(MEM_TRUST_BESTPOS, FALSE)
+		//brain.SetMemory(MEM_TRUST_BESTPOS, FALSE)
 		//randMove()
 		//brain?.SetMemory("UnreachableTile", active_path.target, MEM_TIME_LONGTERM)
 		tracker.SetFailed()

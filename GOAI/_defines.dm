@@ -3,6 +3,8 @@
 
 # define GOAI_AI_ENABLED 1
 # define AI_TICK_DELAY 5
+# define CHUNK_SIZE_DEFAULT 5
+# define CHUNK_OVERLAP_DEFAULT 1
 
 # define NEED_MINIMUM 0
 # define NEED_THRESHOLD 50

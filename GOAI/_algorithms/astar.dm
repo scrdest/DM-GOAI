@@ -83,7 +83,7 @@ proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, 
 	var/list/closed = list()
 	var/list/path
 	var/list/path_node_by_position = list()
-	start = get_turf(start)
+
 	if(!start)
 		return 0
 

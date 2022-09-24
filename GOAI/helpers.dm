@@ -17,6 +17,7 @@
 	//world << "GT: [result], L: [left], R: [right]"
 	return result
 
+
 /proc/dir2name(var/dir)
 	var/qry = "[dir]"
 
@@ -35,3 +36,22 @@
 
 	var/result = lookup[qry]
 	return result
+
+
+/proc/dir2opposite(var/dir)
+	var/result = null
+
+	switch(dir)
+		if(SOUTH) result = NORTH
+		if(NORTH) result = SOUTH
+		if(WEST)  result = EAST
+		if(EAST)  result = WEST
+		if(NORTHEAST) result = SOUTHWEST
+		if(NORTHWEST) result = SOUTHEAST
+		if(SOUTHEAST) result = NORTHWEST
+		if(SOUTHWEST) result = NORTHEAST
+		if(UP) result = DOWN
+		if(DOWN) result = UP
+
+	return result
+

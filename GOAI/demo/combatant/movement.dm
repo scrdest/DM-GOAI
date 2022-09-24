@@ -27,7 +27,7 @@
 
 	var/_trust_first = trust_first
 	if(isnull(trust_first))
-		_trust_first = brain?.GetMemoryValue(MEM_TRUST_BESTPOS, TRUE)
+		_trust_first = brain?.GetMemoryValue(MEM_TRUST_BESTPOS, FALSE)
 
 	while(queue && queue.L)
 		// Iterate over found positions, AStar-ing into them and
