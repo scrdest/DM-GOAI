@@ -30,6 +30,7 @@
 		curr_view.Add(safespace_loc)
 
 	var/turf/unreachable = brain?.GetMemoryValue("UnreachableTile", null)
+	var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
 
 	for(var/turf/cand in curr_view)
 		// NOTE: This is DIFFERENT to cover moves! We're not doing a double-loop here!
@@ -49,11 +50,20 @@
 		var/threat_dist = 0
 		var/heat = 0
 
-		for(var/dict/threat_ghost in _threats)
-			threat_dist = GetThreatDistance(cand, threat_ghost)
+		var/datum/chunk/candchunk = chunkserver.ChunkForAtom(cand)
 
-			if(threat_ghost && threat_dist < _min_safe_dist)
-				heat++
+		for(var/dict/threat_ghost in _threats)
+
+			if(threat_ghost)
+
+				threat_dist = GetThreatDistance(cand, threat_ghost)
+				var/datum/chunk/threatchunk = GetThreatChunk(threat_ghost)
+
+				if(threat_dist < _min_safe_dist)
+					heat++
+
+				else if(threatchunk == candchunk)
+					heat++
 
 		if(heat == 1)
 			penalty += MAGICNUM_DISCOURAGE_SOFT
@@ -112,7 +122,7 @@
 
 		if(!handled)
 			world.log << "PanicRun target [best_local_pos] is unreachable!"
-			brain?.SetMemory("UnreachableTile", best_local_pos)
+			//brain?.SetMemory("UnreachableTile", best_local_pos)
 
 	if(best_local_pos)
 		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*3)

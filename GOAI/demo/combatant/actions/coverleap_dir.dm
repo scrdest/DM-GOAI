@@ -7,7 +7,11 @@
 	var/turf/best_local_pos = null
 	//var/list/processed = list(_startpos)
 	var/list/processed = list()
+
 	var/PriorityQueue/cover_queue = new /PriorityQueue(/datum/Quadruple/proc/TriCompare)
+
+	var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
+	var/datum/chunk/startchunk = chunkserver.ChunkForAtom(_startpos)
 
 	var/list/curr_view = brain?.perceptions?.Get(SENSE_SIGHT)
 	curr_view.Add(_startpos)
@@ -20,6 +24,7 @@
 	var/effective_waypoint_y = null
 
 	var/atom/waypoint_ident = brain?.GetMemoryValue(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
+	var/datum/chunk/waypointchunk = null
 
 	if(waypoint_ident)
 		// This only applies to the case where the brain has a Waypoint stored, i.e. when we're
@@ -40,6 +45,8 @@
 
 			effective_waypoint_x = waypoint_position.left + rand(-WAYPOINT_FUZZ_X, WAYPOINT_FUZZ_X)
 			effective_waypoint_y = waypoint_position.right + rand(-WAYPOINT_FUZZ_Y, WAYPOINT_FUZZ_Y)
+
+		waypointchunk = chunkserver.ChunkForTile(effective_waypoint_x, effective_waypoint_y, src.z)
 
 	var/turf/unreachable = brain?.GetMemoryValue("UnreachableTile", null)
 
@@ -65,6 +72,17 @@
 		if(!adjacents)
 			continue
 
+		var/same_chunk_penalty = 0
+
+		var/datum/chunk/candchunk = chunkserver.ChunkForAtom(candidate_cover)
+
+		// We want substantial progress and not just oscillations around the same bad position...
+		if(candchunk == startchunk)
+			// ... unless we're close to the target - then we can make small adjustments.
+			if(candchunk != waypointchunk)
+				continue
+				//same_chunk_penalty = MAGICNUM_DISCOURAGE_SOFT
+
 		for(var/turf/cand in adjacents)
 			if(unreachable && cand == unreachable)
 				world.log << "Cover [cand] is unreachable!"
@@ -80,6 +98,7 @@
 				continue
 
 			var/penalty = 0
+			penalty += same_chunk_penalty
 
 			if(cand == candidate_cover || cand == candidate_cover.loc)
 				penalty -= 50

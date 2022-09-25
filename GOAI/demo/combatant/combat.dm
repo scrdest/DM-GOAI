@@ -132,6 +132,24 @@
 	return threat_dist
 
 
+/mob/goai/combatant/proc/GetThreatChunk(var/dict/curr_threat) // -> turfchunk
+	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
+
+	if(isnull(ghost_pos_tuple))
+		return
+
+	var/threat_pos_x = ghost_pos_tuple?.left
+	var/threat_pos_y = ghost_pos_tuple?.right
+
+	var/datum/chunk/threat_chunk = null
+
+	if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
+		var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
+		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, src.z)
+
+	return threat_chunk
+
+
 /mob/goai/combatant/proc/GetThreatAngle(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = null)
 	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
 

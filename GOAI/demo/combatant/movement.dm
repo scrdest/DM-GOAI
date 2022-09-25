@@ -37,7 +37,11 @@
 		//   the point is to avoid the AI getting stuck in a spot forever.
 		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
 
-		best_local_pos = istype(best_cand_quad) ? best_cand_quad?.fourth : null
+		if(!best_cand_quad)
+			world.log << "No Quad found, breaking the ValidateWaypoint loop!"
+			break
+
+		best_local_pos = best_cand_quad.fourth
 		if(!best_local_pos)
 			continue
 
@@ -70,6 +74,11 @@
 
 	return out_adjs
 
+
+/mob/goai/combatant/proc/GetCurrentChunk()
+	var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
+	var/datum/chunk/startchunk = chunkserver.ChunkForAtom(src)
+	return startchunk
 
 
 /mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0)

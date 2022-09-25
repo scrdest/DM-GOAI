@@ -13,6 +13,8 @@
 
 
 /obj/cover/proc/Setup()
+	// Generic New() code, except New() handles some stuff on top.
+	// So, effectively a lifecycle hook.
 	return
 
 
@@ -126,6 +128,7 @@
 	density = FALSE
 
 
+
 /obj/cover/door/proc/UpdateOpen()
 	density = (open ? FALSE : FALSE)
 	opacity = (open ? FALSE : TRUE)
@@ -190,7 +193,7 @@
 /obj/cover/autodoor/proc/NextCloseTime()
 	var/curr_autoclose = close_door_at
 
-	if(isnull(curr_autoclose))
+	if(!curr_autoclose)
 		curr_autoclose = world.time + autoclose_time
 		close_door_at = curr_autoclose
 
