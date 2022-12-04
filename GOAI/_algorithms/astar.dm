@@ -26,7 +26,7 @@ And for the distance one i wrote:
 /turf/proc/Distance
 So an example use might be:
 
-src.path_list = AStar(src.loc, target.loc, /turf/proc/AdjacentTurfs, /turf/proc/Distance)
+src.path_list = AStar(src.loc, target.loc, /proc/fAdjacentTurfs, /proc/fDistance)
 
 Note: The path is returned starting at the END node, so i wrote reverselist to reverse it for ease of use.
 
@@ -87,13 +87,13 @@ proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, 
 	if(!start)
 		return 0
 
-	open.Enqueue(new /PathNode(start, null, 0, call(start, dist)(end), 0))
+	open.Enqueue(new /PathNode(start, null, 0, call(dist)(start, end), 0))
 
 	while(!open.IsEmpty() && !path)
 		var/PathNode/current = open.Dequeue()
 		closed.Add(current.position)
 
-		if(current.position == end || call(current.position, dist)(end) <= min_target_dist)
+		if(current.position == end || call(dist)(current.position, end) <= min_target_dist)
 			path = new /list(current.nodes_traversed + 1)
 			path[path.len] = current.position
 			var/index = path.len - 1
@@ -104,29 +104,34 @@ proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, 
 			break
 
 		if(min_node_dist && max_node_depth)
-			if(call(current.position, min_node_dist)(end) + current.nodes_traversed >= max_node_depth)
+			if(call(min_node_dist)(current.position, end) + current.nodes_traversed >= max_node_depth)
 				continue
 
 		if(max_node_depth)
 			if(current.nodes_traversed >= max_node_depth)
 				continue
 
-		for(var/datum in call(current.position, adjacent)(arglist(adj_args)))
+		var/list/true_adj_args = list()
+		true_adj_args.Add(current.position)
+		if(adj_args)
+			true_adj_args += adj_args
+
+		for(var/datum in call(adjacent)(arglist(true_adj_args)))
 			if(datum == exclude)
 				continue
 
-			var/best_estimated_cost = current.estimated_cost + call(current.position, dist)(datum)
+			var/best_estimated_cost = current.estimated_cost + call(dist)(current.position, datum)
 
 			//handle removal of sub-par positions
 			if(datum in path_node_by_position)
 				var/PathNode/target = path_node_by_position[datum]
 				if(target.best_estimated_cost)
-					if(best_estimated_cost + call(datum, dist)(end) < target.best_estimated_cost)
+					if(best_estimated_cost + call(dist)(datum, end) < target.best_estimated_cost)
 						open.Remove(target)
 					else
 						continue
 
-			var/PathNode/next_node = new (datum, current, best_estimated_cost, call(datum, dist)(end), current.nodes_traversed + 1)
+			var/PathNode/next_node = new (datum, current, best_estimated_cost, call(dist)(datum, end), current.nodes_traversed + 1)
 			path_node_by_position[datum] = next_node
 			open.Enqueue(next_node)
 

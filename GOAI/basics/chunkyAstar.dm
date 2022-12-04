@@ -40,12 +40,59 @@
 	return adjacents
 
 
+/proc/fChunkAdjacent(var/datum/chunk/source, var/ignore_openness = FALSE)
+	if(!source)
+		return
+
+	var/datum/chunkserver/chunkServer = GetOrSetChunkserver(source.width)
+
+	if(!chunkServer)
+		world.log << "Failed to retrieve a ChunkServer for ChunkAdjacent()"
+		return
+
+	var/list/adjacents = list()
+
+	if(ignore_openness || source.DirOpen(NORTH))
+		var/newpos_y = source.centerY + (source.width - 1)
+		var/datum/chunk/north_chunk = chunkServer.ChunkForTile(source.centerX, newpos_y, source.centerZ)
+		adjacents.Add(north_chunk)
+
+	if(ignore_openness || source.DirOpen(SOUTH))
+		var/newpos_y = source.centerY - (source.width - 1)
+		var/datum/chunk/south_chunk = chunkServer.ChunkForTile(source.centerX, newpos_y, source.centerZ)
+		adjacents.Add(south_chunk)
+
+	if(ignore_openness || source.DirOpen(EAST))
+		var/newpos_x = source.centerX + (source.width - 1)
+		var/datum/chunk/east_chunk = chunkServer.ChunkForTile(newpos_x, source.centerY, source.centerZ)
+		adjacents.Add(east_chunk)
+
+	if(ignore_openness || source.DirOpen(WEST))
+		var/newpos_x = source.centerX - (source.width - 1)
+		var/datum/chunk/east_chunk = chunkServer.ChunkForTile(newpos_x, source.centerY, source.centerZ)
+		adjacents.Add(east_chunk)
+
+	return adjacents
+
+
 /datum/chunk/proc/ChunkDistance(var/datum/chunk/C)
 	if(!C)
 		return
 
 	// We're returning cardinal adjacents, so we need Manhattan distance to reflect it.
 	var/dist = ManhattanDistanceNumeric(src.centerX, src.centerY, C.centerX, C.centerY)
+	return dist
+
+
+/proc/fChunkDistance(var/datum/chunk/source, var/datum/chunk/C)
+	if(!source)
+		return
+
+	if(!C)
+		return
+
+	// We're returning cardinal adjacents, so we need Manhattan distance to reflect it.
+	var/dist = ManhattanDistanceNumeric(source.centerX, source.centerY, C.centerX, C.centerY)
 	return dist
 
 
@@ -78,8 +125,8 @@
 		world.log << "Failed to retrieve a ChunkServer for ChunkyAStar()"
 		return
 
-	var/proc/true_adjproc = (isnull(adjacent) ? /datum/chunk/proc/ChunkAdjacent : adjacent)
-	var/proc/true_distproc = (isnull(dist) ? /datum/chunk/proc/ChunkDistance : dist)
+	var/proc/true_adjproc = (isnull(adjacent) ? /proc/fChunkAdjacent : adjacent)
+	var/proc/true_distproc = (isnull(dist) ? /proc/fChunkDistance : dist)
 
 	var/datum/chunk/startchunk = chunkServer.ChunkForAtom(startturf)
 	var/datum/chunk/endchunk = chunkServer.ChunkForAtom(endturf)

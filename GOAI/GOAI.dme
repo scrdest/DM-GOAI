@@ -29,6 +29,7 @@
 #include "_datastructures\action_tracker.dm"
 #include "_datastructures\dict.dm"
 #include "_datastructures\lists.dm"
+#include "_datastructures\path_tracker.dm"
 #include "_datastructures\pqueue.dm"
 #include "_datastructures\tuple.dm"
 #include "_datastructures\turfchunk.dm"

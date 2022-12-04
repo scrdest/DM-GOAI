@@ -3,8 +3,8 @@
 /mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/proc/adjproc = NONE, var/proc/distanceproc = NONE, var/list/adjargs = NONE)
 	var/true_avoid = (avoid || src.brain?.GetMemoryValue("BadStartTile", null))
 
-	var/proc/true_adjproc = (isnull(adjproc) ? /turf/proc/CardinalTurfs : adjproc)
-	var/proc/true_distproc = (isnull(distanceproc) ? /turf/proc/Distance : distanceproc)
+	var/proc/true_adjproc = (isnull(adjproc) ? /proc/fCardinalTurfs : adjproc)
+	var/proc/true_distproc = (isnull(distanceproc) ? /proc/fDistance : distanceproc)
 
 	var/list/path = AStar(
 		start = get_turf(loc),

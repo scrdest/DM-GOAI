@@ -142,6 +142,25 @@
 	return adjacents
 
 
+// NOTE: the f-prefix stands for 'functional' (i.e. not bound method)
+/proc/fAdjacentTurfs(var/turf/start, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
+	if(!start)
+		return
+
+	var/list/adjacents = list()
+	var/turf/start_turf = get_turf(start)
+
+	for(var/turf/t in (trange(1, start) - start))
+		if(check_blockage)
+			if(!(t.IsBlocked(check_objects)))
+				if(!(check_links && LinkBlocked(start_turf, t)))
+					adjacents += t
+		else
+			adjacents += t
+
+	return adjacents
+
+
 /turf/proc/CardinalTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	var/list/adjacents = list()
 
@@ -153,9 +172,33 @@
 	return adjacents
 
 
+/proc/fCardinalTurfs(var/turf/start, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
+	if(!start)
+		return
+
+	var/list/adjacents = list()
+
+	for(var/ad in fAdjacentTurfs(start, check_blockage, check_links, check_objects))
+		var/turf/T = ad
+		if(T.x == start.x || T.y == start.y)
+			adjacents += T
+
+	return adjacents
+
+
 /turf/proc/CardinalTurfsNoblocks()
 	var/result = CardinalTurfs(TRUE, FALSE, FALSE)
 	//world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
+	return result
+
+
+/proc/fCardinalTurfsNoblocks(var/turf/start)
+	if(!start)
+		return
+
+	var/result = fCardinalTurfs(start, TRUE, FALSE, FALSE)
+	//world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
+
 	return result
 
 
@@ -167,6 +210,20 @@
 		return cost
 	else
 		return get_dist(src, T)
+
+
+/proc/fDistance(var/turf/start, var/T)
+	if(!start)
+		return
+
+	var/turf/t = T
+	if(t && get_dist(start, t) == 1)
+		var/cost = (start.x - t.x) * (start.x - t.x) + (start.y - t.y) * (start.y - t.y)
+		cost *= (start.pathweight + t.pathweight)/2
+		return cost
+
+	else
+		return get_dist(start, T)
 
 
 /turf/proc/ObstaclePenaltyDistance(var/T)

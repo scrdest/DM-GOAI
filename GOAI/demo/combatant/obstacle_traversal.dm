@@ -16,13 +16,15 @@
 	var/obj/cover/door/D = obstruction
 	var/obj/cover/autodoor/AD = obstruction
 
+	var/action_key = null
+
 	if(obstruction == src)
 		// Embarassing case...
 		handled = TRUE
 
 	else if(D && istype(D) && !(D.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-		var/action_key = "Open [obstruction] for [waypoint]"
+		action_key = "Open [obstruction] for [waypoint]"
 
 		var/list/open_door_preconds = common_preconds.Copy()
 		open_door_preconds[obs_need_key] = FALSE
@@ -47,7 +49,7 @@
 
 	else if(AD && istype(AD) && !(AD.open))
 		var/obs_need_key = NEED_OBSTACLE_OPEN(obstruction)
-		var/action_key = "Open [obstruction] for [waypoint]"
+		action_key = "Open [obstruction] for [waypoint]"
 
 		/* TRIGGER WARNING: DM being cancer.
 		//
@@ -103,7 +105,7 @@
 			action_name = "[action_name] [waypoint] - [obstruction] @ [ref(obstruction)]"
 
 		//world << "Adding new move action '[action_name]'"
-		goto_preconds["[action_name] used up!"] = FALSE
+		goto_preconds["UsedUpAction [action_name]"] = FALSE
 
 		var/list/goto_effects = (isnull(base_target_effects) ? list() : base_target_effects.Copy())
 
@@ -112,7 +114,7 @@
 		goto_effects[NEED_COMPOSURE] = NEED_SATISFIED
 		goto_effects[STATE_INCOVER] = TRUE
 		goto_effects[STATE_DISORIENTED] = TRUE
-		goto_effects["[action_name] used up!"] = TRUE
+		goto_effects["UsedUpAction [action_name]"] = TRUE
 
 		AddAction(
 			name = action_name,
@@ -123,7 +125,7 @@
 				NEED_COMPOSURE = NEED_SATISFIED,
 				STATE_INCOVER = TRUE,
 				STATE_DISORIENTED = TRUE,
-				"[action_name] used up!" = TRUE
+				"UsedUpAction [action_name]" = TRUE
 			),
 			handler = move_handler,
 			cost = 4,

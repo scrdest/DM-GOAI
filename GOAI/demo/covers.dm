@@ -161,7 +161,7 @@
 
 
 /obj/cover/door/verb/Open()
-	set src in view(1)
+	set src in range(1)
 	var/result = pOpen()
 	return result
 

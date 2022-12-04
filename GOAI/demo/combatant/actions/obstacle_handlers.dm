@@ -18,17 +18,20 @@
 		tracker.SetFailed()
 		return
 
-	if(!istype(obstruction))
+	/*if(!istype(obstruction))
 		world.log << "[src] HandleOpenDoor - wrong type!"
 		tracker.SetFailed()
-		return
+		return*/
 
-	var/dist_to_obs = get_dist(get_turf(src), get_turf(obstruction))
+	var/dist_to_obs = ChebyshevDistance(get_turf(src), get_turf(obstruction))
 	var/opened = FALSE
 
-	if(dist_to_obs < 2 && !(obstruction.open))
+	while(dist_to_obs < 2 && !(obstruction.open))
 		// Within 1-tile range diagonally? Open it.
-		opened = obstruction.pOpen()
+		world.log << "[src] is opening a door [obstruction]"
+		opened = obstruction.Open()
+		if(opened)
+			break
 
 	if(obstruction.open || opened)
 		if(dist_to_obs < 1)
@@ -74,17 +77,20 @@
 		tracker.SetFailed()
 		return
 
-	if(!istype(obstruction))
+	/*if(!istype(obstruction))
 		world.log << "[src] HandleOpenAutodoor - wrong type!"
 		tracker.SetFailed()
-		return
+		return*/
 
-	var/dist_to_obs = get_dist(get_turf(src), get_turf(obstruction))
+	var/dist_to_obs = ChebyshevDistance(get_turf(src), get_turf(obstruction))
 	var/opened = FALSE
+
+	world.log << "[src] distance to autodoor [obstruction] is [dist_to_obs]"
 
 	if(dist_to_obs < 2 && !(obstruction.open))
 		// Within 1-tile range diagonally? Open it.
-		opened = obstruction.pOpen()
+		world.log << "[src] is opening an autodoor [obstruction]"
+		opened = obstruction.Open()
 
 	if(obstruction.open || opened)
 		if(dist_to_obs < 1)
@@ -96,7 +102,8 @@
 			// Body-block the door so it doesn't close.
 			var/entering_door = tracker.BBGet("entering_door", FALSE)
 			if(!entering_door)
-				StartNavigateTo(obstruction, 0)
+				if(!(active_path && active_path.target == obstruction && active_path.min_dist <= 0))
+					StartNavigateTo(obstruction, 0)
 				tracker.BBSet("entering_door", TRUE)
 
 	else
