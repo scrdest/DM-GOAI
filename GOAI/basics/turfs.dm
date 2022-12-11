@@ -228,10 +228,30 @@
 
 /turf/proc/ObstaclePenaltyDistance(var/T)
 	var/turf/t = get_turf(T)
-	var/base_dist = Distance(t)
+	var/base_dist = fDistance(src, t)
 	var/block_penalty = 0
 
-	if(t && LinkBlocked(t))
+	if(t && LinkBlocked(src, t))
+		block_penalty = 10
+
+	var/total_dist = base_dist + block_penalty
+	return total_dist
+
+
+/proc/fObstaclePenaltyDistance(var/S, var/T)
+	if(!S || !T)
+		return
+
+	var/turf/s = get_turf(S)
+	var/turf/t = get_turf(T)
+
+	if(!s || !t)
+		return
+
+	var/base_dist = fDistance(s, t)
+	var/block_penalty = 0
+
+	if(t && LinkBlocked(s, t))
 		block_penalty = 10
 
 	var/total_dist = base_dist + block_penalty

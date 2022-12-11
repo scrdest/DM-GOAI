@@ -36,6 +36,8 @@
 # define GUN_DISPERSION 5
 
 # define SENSE_SIGHT "Sight"
+# define SENSE_SIGHT_CURR "SightCurr"
+# define SENSE_SIGHT_PREV "SightPrev"
 
 // 1 (SOUTH) + 2 (NORTH) + 4 (EAST) + 8 (WEST) == 15
 # define ALL_CARDINAL_DIRS 15

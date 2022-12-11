@@ -1,6 +1,6 @@
 /* Movement system (in the ECS sense) and movement helpers. */
 
-/mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/proc/adjproc = NONE, var/proc/distanceproc = NONE, var/list/adjargs = NONE)
+/mob/goai/combatant/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = null, var/proc/adjproc = null, var/proc/distanceproc = null, var/list/adjargs = null)
 	var/true_avoid = (avoid || src.brain?.GetMemoryValue("BadStartTile", null))
 
 	var/proc/true_adjproc = (isnull(adjproc) ? /proc/fCardinalTurfs : adjproc)
@@ -60,7 +60,11 @@
 
 
 /turf/proc/CombatantAdjacents(var/mob/goai/combatant/owner)
-	var/list/base_adjs = src.CardinalTurfsNoblocks()
+	var/turf/s = get_turf(src)
+	if(!s)
+		return
+
+	var/list/base_adjs = s.CardinalTurfsNoblocks()
 	var/list/out_adjs = list()
 
 	var/cut_link = owner?.brain?.GetMemoryValue("BadStartTile", null)
@@ -75,25 +79,70 @@
 	return out_adjs
 
 
+/proc/fCombatantAdjacents(var/S, var/mob/goai/combatant/owner)
+	if(!S)
+		return
+
+	var/turf/s = get_turf(S)
+	if(!s)
+		return
+
+	var/list/base_adjs = s.CardinalTurfsNoblocks()
+	var/list/out_adjs = list()
+
+	var/cut_link = owner?.brain?.GetMemoryValue("BadStartTile", null)
+
+	for(var/adj in base_adjs)
+		if(cut_link && src == cut_link)
+			world.log << "[S] is a cut link!"
+			continue
+
+		out_adjs.Add(adj)
+
+	return out_adjs
+
+
+/proc/mCombatantAdjacents(var/mob/goai/combatant/owner)
+	if(!owner)
+		return
+
+	var/turf/s = get_turf(owner)
+	if(!s)
+		return
+
+	var/list/out_adjs = call(s, /turf/proc/CombatantAdjacents)(owner)
+
+	return out_adjs
+
+
 /mob/goai/combatant/proc/GetCurrentChunk()
 	var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
 	var/datum/chunk/startchunk = chunkserver.ChunkForAtom(src)
 	return startchunk
 
 
-/mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0)
+/mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/proc/costproc = null)
 	var/datum/ActivePathTracker/pathtracker = null
+	var/cost_function = (isnull(costproc) ? /proc/fDistance : costproc)
+	var/list/adjacency_args = list(owner = src)
 
-	var/list/path = FindPathTo(trg,  min_dist, avoid)
+	var/list/path = FindPathTo(
+		trg,
+		min_dist,
+		avoid,
+		//adjproc = /proc/mCombatantAdjacents,
+		//adjargs = adjacency_args,
+		distanceproc = cost_function
+	)
+
 	if(!path)
-		var/list/adjacency_args = list(owner = src)
 		path = FindPathTo(
 			trg,
 			world.view,
 			avoid,
-			adjproc=/turf/proc/CombatantAdjacents,
-			adjargs = adjacency_args,
-			distanceproc=/turf/proc/ObstaclePenaltyDistance,
+			//adjproc = /proc/mCombatantAdjacents,
+			//adjargs = adjacency_args,
+			distanceproc = cost_function,
 		)
 
 	if(path)
@@ -102,7 +151,7 @@
 	return pathtracker
 
 
-/mob/goai/combatant/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = NONE, var/inh_frustration = 0, var/refresh_loc_memories = TRUE)
+/mob/goai/combatant/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/refresh_loc_memories = TRUE, var/proc/costproc = null)
 	is_repathing = 1
 
 	if(brain && refresh_loc_memories)
@@ -113,7 +162,7 @@
 
 		brain.SetMemory("Location-1", src.loc)
 
-	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, inh_frustration)
+	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, avoid, inh_frustration, costproc)
 
 	if(pathtracker)
 		active_path = pathtracker
@@ -196,7 +245,7 @@
 	is_moving = 1
 
 	var/turf/curr_loc = get_turf(src)
-	var/list/neighbors = curr_loc.CombatantAdjacents(src)
+	var/list/neighbors = fCombatantAdjacents(curr_loc, src)
 
 	if(neighbors)
 		var/movedir = pick(neighbors)

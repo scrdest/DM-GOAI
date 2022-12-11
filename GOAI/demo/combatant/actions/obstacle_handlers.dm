@@ -2,7 +2,7 @@
 	if(!tracker)
 		return
 
-	if(tracker.IsOlderThan(COMBATAI_AI_TICK_DELAY * 10))
+	if(tracker.IsOlderThan(src.ai_tick_delay * 10))
 		tracker.SetFailed()
 		return
 
@@ -23,7 +23,8 @@
 		tracker.SetFailed()
 		return*/
 
-	var/dist_to_obs = ChebyshevDistance(get_turf(src), get_turf(obstruction))
+	var/turf/obs_turf = get_turf(obstruction)
+	var/dist_to_obs = ChebyshevDistance(get_turf(src), obs_turf)
 	var/opened = FALSE
 
 	while(dist_to_obs < 2 && !(obstruction.open))
@@ -42,6 +43,13 @@
 		else
 			// Body-block the door so it doesn't close.
 			var/entering_door = tracker.BBGet("entering_door", FALSE)
+
+			//if(active_path && active_path.target)
+				//var/turf/active_path_target = get_turf(active_path.target)
+
+				//if(active_path_target && active_path_target == obs_turf && active_path.min_dist <= 0)
+				//	entering_door = TRUE
+
 			if(!entering_door)
 				StartNavigateTo(obstruction, 0)
 				tracker.BBSet("entering_door", TRUE)
@@ -61,7 +69,7 @@
 	if(!tracker)
 		return
 
-	if(tracker.IsOlderThan(COMBATAI_AI_TICK_DELAY * 10))
+	if(tracker.IsOlderThan(src.ai_tick_delay * 10))
 		tracker.SetFailed()
 		return
 
@@ -82,7 +90,8 @@
 		tracker.SetFailed()
 		return*/
 
-	var/dist_to_obs = ChebyshevDistance(get_turf(src), get_turf(obstruction))
+	var/turf/obs_turf = get_turf(obstruction)
+	var/dist_to_obs = ChebyshevDistance(get_turf(src), obs_turf)
 	var/opened = FALSE
 
 	world.log << "[src] distance to autodoor [obstruction] is [dist_to_obs]"
@@ -101,10 +110,17 @@
 		else
 			// Body-block the door so it doesn't close.
 			var/entering_door = tracker.BBGet("entering_door", FALSE)
+
+			//if(active_path && active_path.target)
+			//	var/turf/active_path_target = get_turf(active_path.target)
+
+				//if(active_path_target && active_path_target == obs_turf)
+				//	entering_door = TRUE
+
 			if(!entering_door)
-				if(!(active_path && active_path.target == obstruction && active_path.min_dist <= 0))
-					StartNavigateTo(obstruction, 0)
+				StartNavigateTo(obstruction, 0)
 				tracker.BBSet("entering_door", TRUE)
+
 
 	else
 		// Closed and too far to open? Move to adjacent tile.

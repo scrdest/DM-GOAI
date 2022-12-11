@@ -17,6 +17,9 @@
 	icon = 'icons/uristmob/simpleanimals.dmi'
 	icon_state = "ANTAG"
 
+	// Private-ish, generally only debug procs should touch these
+	var/ai_tick_delay = COMBATAI_AI_TICK_DELAY
+
 	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
 	var/initial_action = null
 
@@ -55,7 +58,8 @@
 				if(action.instant)
 					break
 
-		sleep(COMBATAI_AI_TICK_DELAY)
+		var/safe_ai_delay = max(1, src.ai_tick_delay)
+		sleep(safe_ai_delay)
 
 
 /mob/goai/combatant/proc/HandleInstantAction(var/datum/goai_action/action, var/datum/ActionTracker/tracker)
@@ -120,8 +124,15 @@
 	// AI
 	spawn(0)
 		while(life)
+			// Fix the tickrate to prevent runaway loops in case something messes with it.
+			// Doing it here is nice, because it saves us from sanitizing it all over the place.
+			src.ai_tick_delay = max((src?.ai_tick_delay || 0), 1)
+
+			// Run the Life update function.
 			LifeTick()
-			sleep(COMBATAI_AI_TICK_DELAY)
+
+			// Wait until the next update tick.
+			sleep(src.ai_tick_delay)
 
 	// Combat system; decoupled from generic planning/actions to make it run
 	// *in parallel* to other behaviours - e.g. run-and-gun or fire from cover
@@ -154,7 +165,7 @@
 		if(brain.last_plan_successful)
 			//brain.SetMemory(MEM_TRUST_BESTPOS, TRUE)
 		else
-			world.log << "[src]: Getting disoriented!"
+			//world.log << "[src]: Getting disoriented!"
 			SetState(STATE_DISORIENTED, TRUE)
 			//brain.SetMemory(MEM_TRUST_BESTPOS, FALSE, 1000)
 

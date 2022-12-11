@@ -304,7 +304,7 @@
 	var/is_triggered = tracker.IsTriggered()
 
 	if(is_triggered)
-		if(tracker.TriggeredMoreThan(COMBATAI_AI_TICK_DELAY))
+		if(tracker.TriggeredMoreThan(src.ai_tick_delay))
 			tracker.SetDone()
 
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))

@@ -82,12 +82,13 @@
 		var/targ_dist = 0 // ignore waypoint, just leg it!
 		var/total_dist = (cand_dist + targ_dist)
 
-		/*if(threat_dist < min_safe_dist)
-			continue*/
+		if(threat_dist < min_safe_dist)
+			//processed.Add(cand)
+			continue
 
 		penalty += -threat_dist  // the further from a threat, the better
 
-		var/datum/Quadruple/cover_quad = new(threat_dist, -penalty, -total_dist, cand)
+		var/datum/Quadruple/cover_quad = new(threat_dist**2, -penalty, -total_dist, cand)
 		cover_queue.Enqueue(cover_quad)
 		processed.Add(cand)
 
@@ -125,7 +126,7 @@
 			//brain?.SetMemory("UnreachableTile", best_local_pos)
 
 	if(best_local_pos)
-		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*3)
+		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*30)
 
 	return best_local_pos
 
@@ -217,6 +218,44 @@
 // This is the *actual* logic for Running The Hell Away.
 //
 */
+
+/mob/goai/combatant/proc/fPanicRunDistance(var/S, var/T)
+	if(!S || !T)
+		return
+
+	var/turf/s = get_turf(S)
+	var/turf/t = get_turf(T)
+
+	if(!s || !t)
+		return
+
+	var/base_dist = fObstaclePenaltyDistance(S, T)
+	var/threat_penalty = 0
+
+	var/dict/primary_threat_ghost = GetActiveThreatDict()
+	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
+	var/atom/primary_threat = null
+	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.z)
+
+	var/turf/threat_turf = null
+	if(primary_threat)
+		threat_turf = get_turf(primary_threat)
+
+		// IDEA: Gradient of cost. We want to move from more threatened turf to a <= threatened one.
+		// e.g. in Start is 2 tiles from threat and T is 3, we good. T=2 & S=3, avoid T if possible.
+		var/s_dist = ManhattanDistance(s, threat_turf)
+		var/t_dist = ManhattanDistance(t, threat_turf)
+
+		var/delta_threat = max(0, (s_dist - t_dist))
+		// Multipliers etc. Might change the formula later.
+		threat_penalty += delta_threat * 5
+
+	var/total_dist = base_dist + threat_penalty
+	return total_dist
+
+
+
 /mob/goai/combatant/proc/HandlePanickedRun(var/datum/ActionTracker/tracker)
 	var/tracker_frustration = tracker?.BBSetDefault("frustration", 0)
 
@@ -308,8 +347,9 @@
 		world.log << (isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos [best_local_pos]")
 
 	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
+		// CORE MOVEMENT TRIGGER - FOUND POSITION, START PATHING TO IT
 		world.log << "[src]: Navigating to [best_local_pos]"
-		StartNavigateTo(best_local_pos, 0, primary_threat?.loc)
+		StartNavigateTo(best_local_pos, 0, primary_threat?.loc, 0, /mob/goai/combatant/proc/fPanicRunDistance)
 
 	if(best_local_pos)
 		var/dist_to_pos = ManhattanDistance(src.loc, best_local_pos)
@@ -320,7 +360,7 @@
 	var/datum/brain/concrete/needybrain = brain
 
 	if(is_triggered)
-		if(tracker.TriggeredMoreThan(COMBATAI_AI_TICK_DELAY))
+		if(tracker.TriggeredMoreThan(src.ai_tick_delay))
 			tracker.SetDone()
 
 			/*if(needybrain)

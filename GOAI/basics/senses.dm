@@ -17,4 +17,31 @@
 /sense/proc/ProcessTick(var/owner)
     // overall logic goes here;
     // gather some data & set memories.
-    return
+	return
+
+
+/sense/proc/GetOwnerAiTickrate(var/owner)
+	/* convenience method; single-dispatch-ifies different owners to figure
+	out what tick rate to use; uses a constant as a fallback option. */
+	var/tickrate = AI_TICK_DELAY
+
+	var/mob/goai/combatant/combatmob = owner
+	if(combatmob)
+		tickrate = combatmob.ai_tick_delay
+
+	return tickrate
+
+
+/*
+/sense/proc/GetOwnerSenseTickrate(var/owner)
+	/* convenience method; single-dispatch-ifies different owners to figure
+	out what tick rate to use; uses a constant as a fallback option. */
+	var/tickrate = AI_TICK_DELAY
+
+	var/mob/goai/combatant/combatmob = owner
+	if(combatmob)
+		tickrate = combatmob.sense_tick_delay
+
+	return tickrate
+*/
+

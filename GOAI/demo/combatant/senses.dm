@@ -8,8 +8,16 @@
 		// No point processing this if there's no memories to set
 		return
 
+	var/list/old_visual_range = owner_brain?.perceptions?[SENSE_SIGHT_CURR]
 	var/list/visual_range = view(owner)
-	owner_brain?.perceptions[SENSE_SIGHT] = visual_range
+
+	if(old_visual_range)
+		owner_brain?.perceptions[SENSE_SIGHT_PREV] = old_visual_range
+
+	if(visual_range)
+		owner_brain?.perceptions[SENSE_SIGHT_CURR] = visual_range
+
+	owner_brain?.perceptions[SENSE_SIGHT] = (visual_range || list()) | (old_visual_range || list())
 
 
 /sense/combatant_eyes/proc/SpotThreats(var/mob/goai/combatant/owner)
@@ -54,7 +62,7 @@
 			KEY_GHOST_POS_TUPLE = target.CurrentPositionAsTuple(),
 		)
 		var/dict/threat_memory_ghost = new(threat_memory_data)
-		owner_brain.SetMemory(MEM_THREAT, threat_memory_ghost, COMBATAI_AI_TICK_DELAY*20)
+		owner_brain.SetMemory(MEM_THREAT, threat_memory_ghost, owner.ai_tick_delay*20)
 
 		// forecast-raycast goes here once I find it
 
@@ -81,7 +89,7 @@
 			KEY_GHOST_POS_TUPLE = secondary_threat.CurrentPositionAsTuple(),
 		)
 		var/dict/secondary_threat_memory_ghost = new(secondary_threat_memory_data)
-		owner_brain.SetMemory(MEM_THREAT_SECONDARY, secondary_threat_memory_ghost, COMBATAI_AI_TICK_DELAY*20)
+		owner_brain.SetMemory(MEM_THREAT_SECONDARY, secondary_threat_memory_ghost, owner.ai_tick_delay*20)
 
 	return TRUE
 
@@ -115,7 +123,7 @@
 			KEY_GHOST_POS_TUPLE = waypoint.CurrentPositionAsTuple(),
 		)
 		var/dict/waypoint_memory_ghost = new(waypoint_memory_data)
-		owner_brain.SetMemory(MEM_WAYPOINT_LKP, waypoint_memory_ghost, COMBATAI_AI_TICK_DELAY*20)
+		owner_brain.SetMemory(MEM_WAYPOINT_LKP, waypoint_memory_ghost, owner.ai_tick_delay*20)
 
 	return TRUE
 
@@ -132,7 +140,7 @@
 	SpotThreats(owner)
 	SpotWaypoint(owner)
 
-	spawn(COMBATAI_AI_TICK_DELAY * 3)
+	spawn(src.GetOwnerAiTickrate(owner) * 3)
 		// Sense-side delay to avoid spamming view() scans too much
 		processing = FALSE
 	return
@@ -209,7 +217,7 @@
 	// This is the Sense's proc, not the mob's; name's the same:
 	src.SpotObstacles(owner)
 
-	spawn(COMBATAI_AI_TICK_DELAY * 20)
+	spawn(src.GetOwnerAiTickrate(owner) * 20)
 		// Sense-side delay to avoid spamming view() scans too much
 		processing = FALSE
 	return
@@ -340,7 +348,7 @@
 
 	var/turf/safespace = get_turf(src)
 	if(safespace)
-		owner.brain.SetMemory(MEM_SAFESPACE, safespace, COMBATAI_AI_TICK_DELAY * 100)
+		owner.brain.SetMemory(MEM_SAFESPACE, safespace, src.GetOwnerAiTickrate(owner) * 100)
 
 	return
 
@@ -355,7 +363,7 @@
 
 	UpdateSafespace(owner)
 
-	spawn(COMBATAI_AI_TICK_DELAY * 40)
+	spawn(src.GetOwnerAiTickrate(owner) * 40)
 		// Sense-side delay to avoid spamming view() scans too much
 		processing = FALSE
 	return

@@ -9,7 +9,7 @@
 # endif
 
 
-/mob/goai/combatant/proc/SpotObstacles(var/mob/goai/combatant/owner, var/atom/target = null, default_to_waypoint=TRUE)
+/mob/goai/combatant/proc/SpotObstacles(var/mob/goai/combatant/owner, var/atom/target = null, var/default_to_waypoint = TRUE, var/proc/adjproc = null, var/proc/costproc = null)
 	if(!owner)
 		// No mob - no point.
 		return
@@ -29,6 +29,14 @@
 	if(isnull(goal))
 		// Nothing to spot.
 		return
+
+	var/true_adjproc = adjproc
+	if(isnull(true_adjproc))
+		true_adjproc = /proc/fCardinalTurfs
+
+	var/true_costproc = costproc
+	if(isnull(true_costproc))
+		true_costproc = /proc/fDistance
 
 	var/list/path = null
 	var/turf/target_turf = get_turf(goal)

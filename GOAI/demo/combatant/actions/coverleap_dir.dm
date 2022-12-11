@@ -227,7 +227,7 @@
 		tracker.SetDone()
 
 		if(brain)
-			brain.SetMemory("DirectionalCoverleapBestpos", best_local_pos)
+			brain.SetMemory(MEM_DIRLEAP_BESTPOS, best_local_pos)
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 3))
 		tracker.SetFailed()
@@ -242,7 +242,7 @@
 	var/turf/best_local_pos = null
 	best_local_pos = best_local_pos || tracker?.BBGet("bestpos", null)
 	if(brain && isnull(best_local_pos))
-		best_local_pos = brain.GetMemoryValue("DirectionalCoverleapBestpos", best_local_pos)
+		best_local_pos = brain.GetMemoryValue(MEM_DIRLEAP_BESTPOS, best_local_pos)
 
 	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, null) || 2)
 	var/frustration_repath_maxthresh = (brain?.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || 3)
@@ -312,7 +312,7 @@
 			CancelNavigate()
 			best_local_pos = null
 			tracker.BBSet("bestpos", null)
-			brain?.DropMemory("DirectionalCoverleapBestpos")
+			brain?.DropMemory(MEM_DIRLEAP_BESTPOS)
 			break
 
 	// Pathfinding/search
@@ -324,7 +324,7 @@
 
 	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
 		//world.log << "Navigating to [best_local_pos]"
-		StartNavigateTo(best_local_pos)
+		StartNavigateTo(best_local_pos, 0, null)
 
 	if(best_local_pos)
 		var/dist_to_pos = ManhattanDistance(src.loc, best_local_pos)
@@ -355,7 +355,6 @@
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
-		//randMove()
 		tracker.SetFailed()
 
 	SetState(STATE_DISORIENTED, TRUE)

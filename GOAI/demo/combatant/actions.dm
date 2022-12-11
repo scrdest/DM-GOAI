@@ -40,7 +40,7 @@
 	if (tracker.IsStopped())
 		return
 
-	if(tracker.IsOlderThan(COMBATAI_AI_TICK_DELAY * 2))
+	if(tracker.IsOlderThan(src.ai_tick_delay * 2))
 		tracker.SetFailed()
 		return
 
@@ -54,7 +54,7 @@
 	if (tracker.IsStopped())
 		return
 
-	if(tracker.IsOlderThan(COMBATAI_AI_TICK_DELAY * 2))
+	if(tracker.IsOlderThan(src.ai_tick_delay * 2))
 		tracker.SetFailed()
 		return
 

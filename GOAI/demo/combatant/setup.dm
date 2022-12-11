@@ -112,7 +112,7 @@
 	return
 
 
-/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = NONE, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
+/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 

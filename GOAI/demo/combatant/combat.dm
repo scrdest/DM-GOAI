@@ -28,7 +28,7 @@
 
 	spawn(aim_time)
 		if(target in view(src))
-			Shoot(NONE, target)
+			Shoot(null, target)
 
 	return
 
@@ -42,7 +42,7 @@
 	return aim_time
 
 
-/mob/goai/combatant/proc/GetTarget(var/list/searchspace = NONE, var/maxtries = 5)
+/mob/goai/combatant/proc/GetTarget(var/list/searchspace = null, var/maxtries = 5)
 	var/list/true_searchspace = (isnull(searchspace) ? brain?.perceptions?.Get(SENSE_SIGHT) : searchspace)
 	if(!(true_searchspace))
 		return
@@ -69,7 +69,7 @@
 	return target
 
 
-/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = NONE, var/atom/cached_target = NONE, var/datum/aim/cached_aim = NONE)
+/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
 	. = FALSE
 
 	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.contents) : cached_gun)
@@ -292,7 +292,7 @@
 		)
 		var/dict/shot_memory_ghost = new(shot_memory_data)
 
-		brain.SetMemory(MEM_SHOTAT, shot_memory_ghost, COMBATAI_AI_TICK_DELAY*10)
+		brain.SetMemory(MEM_SHOTAT, shot_memory_ghost, src.ai_tick_delay*10)
 
 		var/datum/brain/concrete/needybrain = brain
 		if(needybrain)

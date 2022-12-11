@@ -22,10 +22,13 @@
 # define STATE_DISORIENTED "disoriented"
 
 // Subsystem loop schedules
-# define COMBATAI_SENSE_TICK_DELAY 3
-# define COMBATAI_AI_TICK_DELAY 4
+# define COMBATAI_SENSE_TICK_DELAY 5
+# define COMBATAI_AI_TICK_DELAY 3
 # define COMBATAI_MOVE_TICK_DELAY 5
 # define COMBATAI_FIGHT_TICK_DELAY 25
+
+// Lower bound on the tick rate to prevent sanic loops eating your CPU.
+# define MINIMUM_ALLOWED_DELAY 1
 
 // Memory system constants
 # define MEM_TIME_LONGTERM 10000
@@ -42,6 +45,8 @@
 # define MEM_OBSTRUCTION "Obstruction"
 # define MEM_BESTPOS_PANIC "BestPosPanic"
 # define MEM_TRUST_BESTPOS "TrustFirstBestpos"
+
+# define MEM_DIRLEAP_BESTPOS "DirectionalCoverleapBestpos"
 
 // Penalty value that should entirely eliminate an option unless there's absolutely no alternatives:
 # define MAGICNUM_DISCOURAGE_SOFT 10000
