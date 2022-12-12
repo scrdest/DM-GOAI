@@ -6,7 +6,7 @@
 
 */
 
-
+/*
 /proc/angle2dir(var/angle)
 	var/true_angle = round(CLOCKWISE_ANGLE(angle))
 	var/direction = null
@@ -23,7 +23,7 @@
 
 	//world.log << "TRUE ANGLE: [true_angle] => DIR: [direction]"
 	return direction
-
+*/
 
 
 /mob/goai/combatant/proc/HandleIdling(var/datum/ActionTracker/tracker)

@@ -1,22 +1,22 @@
 
-/datum/goai_commander/faction/InitSenses()
+/datum/goai/goai_commander/faction/InitSenses()
 	senses = ..()
 	return senses
 
 
-/datum/goai_commander/faction/InitNeeds()
+/datum/goai/goai_commander/faction/InitNeeds()
 	needs = ..()
 	needs["Idled"] = NEED_MINIMUM
 	return needs
 
 
-/datum/goai_commander/faction/InitStates()
+/datum/goai/goai_commander/faction/InitStates()
 	states = ..()
 
 	return states
 
 
-/datum/goai_commander/faction/InitActionsList()
+/datum/goai/goai_commander/faction/InitActionsList()
 	/* TODO: add Time as a resource! */
 	// Name, Req-ts, Effects, Priority, [Charges]
 	// Priority - higher is better; -INF would only be used if there's no other option.
@@ -25,7 +25,7 @@
 		"Idle",
 		list("Idled" = FALSE),
 		list("Idled" = NEED_MAXIMUM),
-		/datum/goai_commander/proc/HandleIdling,
+		/datum/goai/proc/HandleIdling,
 		-99999
 	)
 
@@ -33,7 +33,7 @@
 
 
 
-/datum/goai_commander/faction/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
+/datum/goai/goai_commander/faction/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 

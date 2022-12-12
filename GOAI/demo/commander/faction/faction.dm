@@ -1,2 +1,2 @@
-/datum/goai_commander/faction
+/datum/goai/goai_commander/faction
 

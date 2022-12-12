@@ -1,4 +1,4 @@
-/datum/goai_commander/InitSenses()
+/datum/goai/goai_commander/InitSenses()
 	/* Parent stuff */
 	. = ..()
 
@@ -9,7 +9,7 @@
 	return
 
 
-/datum/goai_commander/proc/SensesSystem()
+/datum/goai/goai_commander/proc/SensesSystem()
 	/* We're rolling ECS-style */
 	for(var/sense/sensor in senses)
 		sensor.ProcessTick(src)

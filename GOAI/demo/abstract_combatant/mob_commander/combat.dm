@@ -1,4 +1,6 @@
-/mob/goai/combatant/proc/FightTick()
+
+
+/datum/goai/mob_commander/proc/FightTick()
 	var/can_fire = ((STATE_CANFIRE in states) ? states[STATE_CANFIRE] : FALSE)
 
 	if(!can_fire)
@@ -19,30 +21,30 @@
 			return
 
 	spawn(aim_time)
-		if(target in view(src))
+		if(target in view(src.owned_mob))
 			Shoot(null, target)
 
 	return
 
 
-/mob/goai/combatant/proc/GetAimTime(var/atom/target)
+/datum/goai/mob_commander/proc/GetAimTime(var/atom/target)
 	if(isnull(target))
 		return
 
-	var/targ_distance = EuclidDistance(src, target)
+	var/targ_distance = EuclidDistance(src.owned_mob, target)
 	var/aim_time = rand(clamp(targ_distance*3, 1, 200)) + rand()*15
 	return aim_time
 
 
-/mob/goai/combatant/proc/GetTarget(var/list/searchspace = null, var/maxtries = 5)
+/datum/goai/mob_commander/proc/GetTarget(var/list/searchspace = null, var/maxtries = 5)
 	var/list/true_searchspace = (isnull(searchspace) ? brain?.perceptions?.Get(SENSE_SIGHT) : searchspace)
 	if(!(true_searchspace))
 		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
-	for(var/mob/goai/combatant/enemy in true_searchspace)
-		var/enemy_dist = ManhattanDistance(src.loc, enemy)
+	for(var/datum/goai/mob_commander/enemy in true_searchspace)
+		var/enemy_dist = ManhattanDistance(src.owned_mob.loc, enemy)
 
 		if (enemy_dist <= 0)
 			continue
@@ -61,35 +63,35 @@
 	return target
 
 
-/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
+/datum/goai/mob_commander/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
 	. = FALSE
 
-	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.contents) : cached_gun)
+	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.owned_mob.contents) : cached_gun)
 
 	if(isnull(my_gun))
-		world.log << "Gun not found for [src] to shoot D;"
+		world.log << "Gun not found for [src.owned_mob] to shoot D;"
 		return FALSE
 
 	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
 
 	if(!isnull(target))
-		my_gun.shoot(target, src)
+		my_gun.shoot(target, src.owned_mob)
 		. = TRUE
 
 	return .
 
 
-/mob/goai/combatant/proc/GetActiveThreatDict() // -> /dict
+/datum/goai/mob_commander/proc/GetActiveThreatDict() // -> /dict
 	var/dict/threat_ghost = brain?.GetMemoryValue(MEM_THREAT, null, FALSE)
 	return threat_ghost
 
 
-/mob/goai/combatant/proc/GetActiveSecondaryThreatDict() // -> /dict
+/datum/goai/mob_commander/proc/GetActiveSecondaryThreatDict() // -> /dict
 	var/dict/threat_ghost = brain?.GetMemoryValue(MEM_THREAT, null, FALSE)
 	return threat_ghost
 
 
-/mob/goai/combatant/proc/GetThreatPosTuple(var/dict/curr_threat = null) // -> num
+/datum/goai/mob_commander/proc/GetThreatPosTuple(var/dict/curr_threat = null) // -> num
 	var/dict/threat_ghost = isnull(curr_threat) ? GetActiveThreatDict() : curr_threat
 
 	var/threat_pos_x = 0
@@ -106,13 +108,13 @@
 	return
 
 
-/mob/goai/combatant/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = 0) // -> num
+/datum/goai/mob_commander/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = 0) // -> num
 	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
 
 	if(isnull(ghost_pos_tuple))
 		return default
 
-	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
 	var/threat_dist = default
 
 	var/threat_pos_x = ghost_pos_tuple?.left
@@ -124,7 +126,7 @@
 	return threat_dist
 
 
-/mob/goai/combatant/proc/GetThreatChunk(var/dict/curr_threat) // -> turfchunk
+/datum/goai/mob_commander/proc/GetThreatChunk(var/dict/curr_threat) // -> turfchunk
 	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
 
 	if(isnull(ghost_pos_tuple))
@@ -137,18 +139,18 @@
 
 	if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 		var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
-		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, src.z)
+		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, src.owned_mob.z)
 
 	return threat_chunk
 
 
-/mob/goai/combatant/proc/GetThreatAngle(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = null)
+/datum/goai/mob_commander/proc/GetThreatAngle(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = null)
 	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
 
 	if(isnull(ghost_pos_tuple))
 		return default
 
-	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
 	var/threat_angle = default
 
 	var/threat_pos_x = ghost_pos_tuple?.left
@@ -167,9 +169,9 @@
 // and the singular, 'scalar' Threat methods.
 // These will probably get removed, unless I figure out why it's such a pain right now.
 
-/mob/goai/combatant/proc/GetActiveThreatDicts() // -> list(/dict)
+/datum/goai/mob_commander/proc/GetActiveThreatDicts() // -> list(/dict)
 	var/datum/memory/threat_mem_block = brain?.GetMemory(MEM_THREAT, null, FALSE)
-	//world.log << "[src] threat memory: [threat_mem]"
+	//world.log << "[src.owned_mob] threat memory: [threat_mem]"
 	var/list/threat_block = threat_mem_block?.val // list(memory)
 	var/list/threats = list() // list(/dict)
 
@@ -185,8 +187,8 @@
 	return threats
 
 
-/mob/goai/combatant/proc/GetThreatDistances(var/atom/relative_to = null, var/list/curr_threats = null, var/default = 0, var/check_max = null) // -> num
-	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+/datum/goai/mob_commander/proc/GetThreatDistances(var/atom/relative_to = null, var/list/curr_threats = null, var/default = 0, var/check_max = null) // -> num
+	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
 	var/list/threat_distances = list()
 	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreatDicts() : curr_threats
 
@@ -204,11 +206,11 @@
 		var/threat_pos_x = 0
 		var/threat_pos_y = 0
 
-		//world.log << "[src] threat ghost: [threat_ghost]"
+		//world.log << "[src.owned_mob] threat ghost: [threat_ghost]"
 
 		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
 		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
-		//world.log << "[src] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
+		//world.log << "[src.owned_mob] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
 
 		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 			threat_dist = ManhattanDistanceNumeric(rel_source.x, rel_source.y, threat_pos_x, threat_pos_y)
@@ -216,12 +218,12 @@
 			// long-term, it might be nicer to index by obj/str here
 			threat_distances.Add(threat_dist)
 
-	//world.log << "[src]: GetThreatDistances => [threat_distances] LEN [threat_distances.len]"
+	//world.log << "[src.owned_mob]: GetThreatDistances => [threat_distances] LEN [threat_distances.len]"
 	return threat_distances
 
 
-/mob/goai/combatant/proc/GetThreatAngles(var/atom/relative_to = null, var/list/curr_threats = null, var/check_max = null)
-	var/atom/rel_source = isnull(relative_to) ? src : relative_to
+/datum/goai/mob_commander/proc/GetThreatAngles(var/atom/relative_to = null, var/list/curr_threats = null, var/check_max = null)
+	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
 	var/list/threat_angles = list()
 	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreatDicts() : curr_threats
 
@@ -239,11 +241,11 @@
 		var/threat_pos_x = 0
 		var/threat_pos_y = 0
 
-		//world.log << "[src] threat ghost: [threat_ghost]"
+		//world.log << "[src.owned_mob] threat ghost: [threat_ghost]"
 
 		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
 		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
-		//world.log << "[src] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
+		//world.log << "[src.owned_mob] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
 
 		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 			var/dx = (threat_pos_x - rel_source.x)
@@ -256,7 +258,8 @@
 	return threat_angles
 */
 
-/mob/goai/combatant/Hit(var/angle, var/atom/shotby = null)
+
+/datum/goai/mob_commander/proc/Hit(var/angle, var/atom/shotby = null)
 	. = ..(angle)
 
 	var/impact_angle = IMPACT_ANGLE(angle)
@@ -276,10 +279,10 @@
 
 	if(brain)
 		var/list/shot_memory_data = list(
-			KEY_GHOST_X = src.x,
-			KEY_GHOST_Y = src.y,
-			KEY_GHOST_Z = src.z,
-			KEY_GHOST_POS_TUPLE = src.CurrentPositionAsTuple(),
+			KEY_GHOST_X = src.owned_mob.x,
+			KEY_GHOST_Y = src.owned_mob.y,
+			KEY_GHOST_Z = src.owned_mob.z,
+			KEY_GHOST_POS_TUPLE = src.owned_mob.CurrentPositionAsTuple(),
 			KEY_GHOST_ANGLE = impact_angle,
 		)
 		var/dict/shot_memory_ghost = new(shot_memory_data)

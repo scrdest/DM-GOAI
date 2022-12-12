@@ -2,7 +2,7 @@
 /mob/verb/RebootGoaiCommanders()
 	set category = "Debug GOAI Commanders"
 
-	for(var/datum/goai_commander/commander in global_goai_registry)
+	for(var/datum/goai/goai_commander/commander in global_goai_registry)
 		commander.LobotomizeGoai()
 
 		sleep(0)
@@ -14,7 +14,7 @@
 	return
 
 
-/datum/goai_commander/proc/LobotomizeGoai()
+/datum/goai/goai_commander/proc/LobotomizeGoai()
 	set category = "Debug GOAI Commanders"
 
 	life = 0
@@ -38,7 +38,7 @@
 /mob/verb/PauseGoaiCommanders()
 	set category = "Debug GOAI Commanders"
 
-	for(var/datum/goai_commander/commander in global_goai_registry)
+	for(var/datum/goai/goai_commander/commander in global_goai_registry)
 		commander.life = 0
 
 	return
@@ -47,7 +47,7 @@
 /mob/verb/UnpauseGoaiCommanders()
 	set category = "Debug GOAI Commanders"
 
-	for(var/datum/goai_commander/commander in global_goai_registry)
+	for(var/datum/goai/goai_commander/commander in global_goai_registry)
 		commander.life = 1
 		commander.Life() // reboot AI systems
 
@@ -60,7 +60,7 @@
 	var/i = 0
 	usr << "===== GOAI COMMANDERS ===="
 
-	for(var/datum/goai_commander/commander in global_goai_registry)
+	for(var/datum/goai/goai_commander/commander in global_goai_registry)
 		usr << "- [i++]: [commander.name] <[commander]>"
 
 	return

@@ -11,33 +11,14 @@
 var/global/list/global_goai_registry
 
 
-/datum/goai_commander
-	var/life = GOAI_AI_ENABLED
+/datum/goai/goai_commander
 	var/name
 
-	var/list/needs
-	var/list/states
-	var/list/actionslist
-	var/list/actionlookup
-	var/list/inventory
-	var/list/senses
-
-	var/list/last_need_update_times
-	var/last_action_update_time
-
-	var/planning_iter_cutoff = 30
-	var/pathing_dist_cutoff = 60
-
-	var/datum/brain/brain
-
 	// Private-ish, generally only debug procs should touch these
-	var/ai_tick_delay = COMMANDERAI_AI_TICK_DELAY
-
-	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
-	var/initial_action = null
+	ai_tick_delay = COMMANDERAI_AI_TICK_DELAY
 
 
-/datum/goai_commander/proc/RegisterAI()
+/datum/goai/goai_commander/proc/RegisterAI()
 	// Registry pattern, to facilitate querying all GOAI AIs in verbs
 	if(!(global_goai_registry))
 		global_goai_registry = list()
@@ -50,7 +31,7 @@ var/global/list/global_goai_registry
 	return global_goai_registry
 
 
-/datum/goai_commander/New()
+/datum/goai/goai_commander/New()
 	..()
 	src.RegisterAI()
 
@@ -66,7 +47,7 @@ var/global/list/global_goai_registry
 	src.Life()
 
 
-/datum/goai_commander/proc/Life()
+/datum/goai/goai_commander/Life()
 	// Perception updates
 	spawn(0)
 		while(life)
@@ -88,7 +69,7 @@ var/global/list/global_goai_registry
 
 
 
-/datum/goai_commander/proc/LifeTick()
+/datum/goai/goai_commander/LifeTick()
 
 	if(brain)
 		brain.LifeTick()
@@ -105,43 +86,3 @@ var/global/list/global_goai_registry
 				HandleAction(tracked_action, brain.running_action_tracker)
 
 	return
-
-
-/datum/goai_commander/proc/UpdateBrain()
-	if(!brain)
-		return
-
-	brain.needs = needs.Copy()
-	brain.states = states.Copy()
-
-	return TRUE
-
-
-/datum/goai_commander/proc/SetState(var/key, var/val)
-	if(!key)
-		return
-
-	world.log << "[src]: setting state [key] => [val] on the mob!"
-	states[key] = val
-
-	if(brain)
-		brain.SetState(key, val)
-
-	return TRUE
-
-
-/datum/goai_commander/proc/GetState(var/key, var/default = null)
-	if(!key)
-		world.log << "[src]: [key] is null!"
-		return
-
-	if(brain && (key in brain.states))
-		//world.log << "[src]: getting state [key] from the brain!"
-		return brain.GetState(key, default)
-
-	if(key in states)
-		//world.log << "[src]: getting state [key] from the mob!"
-		return states[key]
-
-	return default
-

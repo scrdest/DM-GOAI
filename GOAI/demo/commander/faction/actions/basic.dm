@@ -1,4 +1,4 @@
-/datum/goai_commander/proc/HandleIdling(var/datum/ActionTracker/tracker)
+/datum/goai/goai_commander/HandleIdling(var/datum/ActionTracker/tracker)
 	world.log << "[src.name] idling..."
 	src.Idle()
 
