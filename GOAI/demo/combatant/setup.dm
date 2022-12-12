@@ -33,6 +33,25 @@
 	return states
 
 
+/mob/goai/combatant/InitNeeds()
+	needs = ..()
+	/* COVER need encourages the AI to seek cover positions, duh
+	// since we don't actually *set* that need to be satisfied (as of rn)
+	// they will continuously try to get to cover.
+	*/
+	needs[NEED_COVER] = NEED_MINIMUM
+	/* COMPOSURE serves a similar role as Morale in TW and other strategy games;
+	// if it gets depleted, the NPC makes a run for their lives or whatever else
+	// they think will save their bacon.
+	//
+	// Not called Morale because that's a less fine-grained concept - we'll model
+	// it as a product of different states and needs, including COMPOSURE itself.
+	*/
+	needs[NEED_COMPOSURE] = NEED_SAFELEVEL
+	//needs[NEED_ENEMIES] = 2
+	return needs
+
+
 /mob/goai/combatant/InitActionsList()
 	/* TODO: add Time as a resource! */
 	// Name, Req-ts, Effects, Priority, [Charges]

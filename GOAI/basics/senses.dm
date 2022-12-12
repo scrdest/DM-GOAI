@@ -26,8 +26,16 @@
 	var/tickrate = AI_TICK_DELAY
 
 	var/mob/goai/combatant/combatmob = owner
+
 	if(combatmob)
 		tickrate = combatmob.ai_tick_delay
+		return tickrate
+
+	var/datum/goai_commander/commander = owner
+
+	if(commander)
+		tickrate = commander.ai_tick_delay
+		return tickrate
 
 	return tickrate
 

@@ -157,7 +157,7 @@
 		is_different = (panicking != FALSE)
 		panicking = FALSE
 
-	if(FALSE && is_different) // revert the FALSE once panic is tested
+	if(FALSE && is_different) // revert the FALSE once panic is tested; alerts that is_different is unused with the FALSE!
 		SetState(STATE_PANIC, panicking)
 
 

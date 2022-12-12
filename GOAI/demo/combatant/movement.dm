@@ -124,7 +124,7 @@
 /mob/goai/combatant/proc/BuildPathTrackerTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/proc/costproc = null)
 	var/datum/ActivePathTracker/pathtracker = null
 	var/cost_function = (isnull(costproc) ? /proc/fDistance : costproc)
-	var/list/adjacency_args = list(owner = src)
+	//var/list/adjacency_args = list(owner = src))
 
 	var/list/path = FindPathTo(
 		trg,

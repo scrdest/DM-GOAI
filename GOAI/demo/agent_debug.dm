@@ -1,5 +1,6 @@
 
 /mob/goai/verb/RebootGoai()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	LobotomizeGoai()
@@ -14,6 +15,7 @@
 
 
 /mob/goai/verb/LobotomizeGoai()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	life = 0
@@ -35,19 +37,24 @@
 
 
 /mob/goai/verb/PauseGoai()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
+
 	life = 0
 	return
 
 
 /mob/goai/verb/UnpauseGoai()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
+
 	life = 1
 	Life() // reboot AI systems
 	return
 
 
 /mob/goai/verb/InspectAgentVars()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	usr << "#============================================#"
@@ -64,6 +71,7 @@
 
 
 /mob/goai/verb/InspectAgentBrainVars()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	if(!(src.brain))
@@ -85,6 +93,7 @@
 
 
 /mob/goai/verb/InspectAgentNeeds()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	usr << "#============================================#"
@@ -102,6 +111,7 @@
 
 
 /mob/goai/verb/InspectAgentState()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	usr << "#============================================#"
@@ -118,6 +128,7 @@
 
 
 /mob/goai/verb/InspectAgentActions()
+	set category = "Debug GOAI Agents"
 	set src in view(1)
 
 	usr << "#============================================#"

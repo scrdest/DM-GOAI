@@ -94,17 +94,17 @@
 	..()
 
 	var/spawn_time = world.time
-	last_mob_update_time = spawn_time
-	actionlookup = InitActionLookup()  // order matters!
-	actionslist = InitActionsList()
+	src.last_mob_update_time = spawn_time
+	src.actionlookup = src.InitActionLookup()  // order matters!
+	src.actionslist = src.InitActionsList()
 
-	Equip()
-	brain = CreateBrain(actionslist)
-	InitNeeds()
-	InitStates()
-	UpdateBrain()
-	InitSenses()
-	Life()
+	src.Equip()
+	src.brain = src.CreateBrain(actionslist)
+	src.InitNeeds()
+	src.InitStates()
+	src.UpdateBrain()
+	src.InitSenses()
+	src.Life()
 
 
 /mob/goai/proc/InitSenses()

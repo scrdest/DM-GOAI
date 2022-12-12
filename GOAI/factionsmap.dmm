@@ -1,0 +1,22 @@
+"a" = (/turf/wall,/area)
+"b" = (/turf/ground,/area)
+"c" = (/obj/spawner/oneshot/faction,/turf/ground,/area)
+
+(1,1,1) = {"
+aaaaaaaaaaaaaaaa
+abbabbbbbbbbbbba
+abbaaabbbbabbbaa
+abbabbbbbbbbbbba
+abbabbbcbbbbbcba
+abbabbbbbbbbbbba
+abbaaabbbbbbbbaa
+abbabbbbbbcbbbba
+abaabbbbbbbbbbba
+abbabbbbbbbbbbba
+abbaaabbbbabbbba
+abbabbbbbbbbbbba
+abbaaabbbbbbbbba
+abbbbbbbbbbbbbba
+abbaaabbbbbbbbba
+aaaaaaaaaaaaaaaa
+"}
