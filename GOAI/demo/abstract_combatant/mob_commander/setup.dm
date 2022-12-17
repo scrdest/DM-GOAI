@@ -1,5 +1,5 @@
 
-/mob/goai/combatant/InitStates()
+/datum/goai/mob_commander/InitStates()
 	states = ..()
 
 	/* Controls autonomy; if FALSE, agent has specific overriding orders,
@@ -14,7 +14,7 @@
 	states[STATE_DOWNTIME] = TRUE
 
 	/* Simple item tracker. */
-	states[STATE_HASGUN] = (locate(/obj/gun) in src.contents) ? 1 : 0
+	states[STATE_HASGUN] = (src.owned_mob && locate(/obj/gun) in src.owned_mob.contents) ? 1 : 0
 
 	/* Controls if the agent is *allowed & able* to engage using *anything*
 	// Can be used to force 'hold fire' or simulate the hands being occupied
@@ -33,7 +33,7 @@
 	return states
 
 
-/mob/goai/combatant/InitNeeds()
+/datum/goai/mob_commander/InitNeeds()
 	needs = ..()
 	/* COVER need encourages the AI to seek cover positions, duh
 	// since we don't actually *set* that need to be satisfied (as of rn)
@@ -52,7 +52,7 @@
 	return needs
 
 
-/mob/goai/combatant/InitActionsList()
+/datum/goai/mob_commander/InitActionsList()
 	/* TODO: add Time as a resource! */
 	// Name, Req-ts, Effects, Priority, [Charges]
 	// Priority - higher is better; -INF would only be used if there's no other option.
@@ -61,7 +61,7 @@
 		"Idle",
 		list("Idled" = FALSE),
 		list("Idled" = TRUE),
-		/mob/goai/combatant/proc/HandleIdling,
+		/datum/goai/mob_commander/proc/HandleIdling,
 		-99999
 	)*/
 
@@ -75,7 +75,7 @@
 		list(
 			"HasTakeCoverPath" = TRUE,
 		),
-		/mob/goai/combatant/proc/HandleChooseDirectionalCoverLandmark,
+		/datum/goai/mob_commander/proc/HandleChooseDirectionalCoverLandmark,
 		10,
 		PLUS_INF,
 		TRUE
@@ -93,7 +93,7 @@
 			STATE_INCOVER = TRUE,
 			"HasTakeCoverPath" = FALSE,
 		),
-		/mob/goai/combatant/proc/HandleDirectionalCover,
+		/datum/goai/mob_commander/proc/HandleDirectionalCover,
 		11
 	)
 
@@ -116,7 +116,7 @@
 			NEED_OBEDIENCE = NEED_SATISFIED,
 			NEED_COMPOSURE = NEED_SATISFIED,
 		),
-		/mob/goai/combatant/proc/HandleWaypoint,
+		/datum/goai/mob_commander/proc/HandleWaypoint,
 		100,
 		PLUS_INF,
 		TRUE
@@ -125,17 +125,20 @@
 	return actionslist
 
 
-/mob/goai/combatant/Equip()
+/datum/goai/mob_commander/Equip()
 	. = ..()
-	GimmeGun()
+
+	if(src.owned_mob)
+		new /obj/gun/(src.owned_mob)
+
 	return
 
 
-/mob/goai/combatant/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
+/datum/goai/mob_commander/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 
-	var/datum/brain/concrete/combat/new_brain = new /datum/brain/concrete/combat(new_actionslist, init_memories, src.initial_action, with_hivemind, new_personality, "brain of [src]")
+	var/datum/brain/concrete/combatCommander/new_brain = new /datum/brain/concrete/combatCommander(new_actionslist, init_memories, src.initial_action, with_hivemind, new_personality, "brain of [src]")
 
 	new_brain.needs = (isnull(src.needs) ? new_brain.needs : src.needs)
 	new_brain.states = (isnull(src.states) ? new_brain.states : src.states)

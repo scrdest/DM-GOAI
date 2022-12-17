@@ -90,8 +90,17 @@
 	return new_brain
 
 
-/mob/goai/New()
+/mob/goai/New(var/active = null)
 	..()
+
+	/*
+	// Controls whether to call Life(), effectively activating the AI logic.
+	//
+	// You might want to have it disabled if you want to manage the AI 'lifecycle'
+	// manually. For example, have the AI only activate when a player first moves
+	// nearby.
+	*/
+	var/true_active = (isnull(active) ? TRUE : active)
 
 	var/spawn_time = world.time
 	src.last_mob_update_time = spawn_time
@@ -104,7 +113,9 @@
 	src.InitStates()
 	src.UpdateBrain()
 	src.InitSenses()
-	src.Life()
+
+	if(true_active)
+		src.Life()
 
 
 /mob/goai/proc/InitSenses()

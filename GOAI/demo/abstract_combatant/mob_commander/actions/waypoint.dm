@@ -9,8 +9,8 @@
 # endif
 
 
-/mob/goai/combatant/proc/SpotObstacles(var/mob/goai/combatant/owner, var/atom/target = null, var/default_to_waypoint = TRUE, var/proc/adjproc = null, var/proc/costproc = null)
-	if(!owner)
+/datum/goai/mob_commander/proc/SpotObstacles(var/datum/goai/mob_commander/owner, var/atom/target = null, var/default_to_waypoint = TRUE, var/proc/adjproc = null, var/proc/costproc = null)
+	if(!(owner && owner.owned_mob))
 		// No mob - no point.
 		return
 
@@ -26,7 +26,7 @@
 		var/atom/waypoint = owner.brain.GetMemoryValue(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
 		goal = waypoint
 
-	if(isnull(goal))
+	if(isnull(goal) || !goal)
 		// Nothing to spot.
 		return
 
@@ -41,10 +41,11 @@
 	var/list/path = null
 	var/turf/target_turf = get_turf(goal)
 
+	world.log << "SpotObstacles goal is [goal]"
 	if(isnull(target_turf))
 		target_turf = get_turf(goal.loc)
 
-	var/turf/startpos = get_turf(owner)
+	var/turf/startpos = get_turf(owner.owned_mob)
 	var/init_dist = 30
 	// NOTE: somehow, this once runtimed with the distance seemingly being -1, wtf?
 	//       the max() was added as a measure to ensure sane input
@@ -52,7 +53,7 @@
 
 	if(init_dist < 40)
 		OBSTACLEHUNT_DEBUG_LOG("[owner] entering ASTARS STAGE")
-		path = AStar(get_turf(owner), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = AStar(get_turf(owner.owned_mob), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[owner] found ASTAR 1 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -62,7 +63,7 @@
 
 		// No unobstructed path to target!
 		// Let's try to get a direct path and check for obstacles.
-		path = AStar(get_turf(owner), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = AStar(get_turf(owner.owned_mob), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[src] found ASTAR 2 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -127,10 +128,15 @@
 	return
 
 
-/mob/goai/combatant/proc/HandleWaypoint(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/proc/HandleWaypoint(var/datum/ActionTracker/tracker)
 	// Locate waypoint
 	// Capture any obstacles
 	// Add Action Goto<Goal> with clearing obstacles as a precond
+
+	if(!(src.owned_mob))
+		tracker?.SetFailed()
+		world.log << "[src] does not have an owned mob!"
+		return
 
 	if(!src || !(src?.brain))
 		tracker?.SetFailed()
@@ -142,7 +148,8 @@
 		return
 
 	// Astar checking for obstacles
-	src.SpotObstacles(src, waypoint, FALSE)
+	world.log << "waypoint.dm/HandleWaypoint()'s waypoint is [waypoint]"
+	src.SpotObstacles(owner=src, target=waypoint, default_to_waypoint=FALSE)
 
 	var/list/goto_preconds = list(
 		STATE_HASWAYPOINT = TRUE,
@@ -163,7 +170,7 @@
 		shared_preconds = common_preconds,
 		target_preconds = goto_preconds,
 		move_action_name = "MoveTowards",
-		move_handler = /mob/goai/combatant/proc/HandleDirectionalCoverLeapfrog,
+		move_handler = /datum/goai/mob_commander/proc/HandleDirectionalCoverLeapfrog,
 		unique = TRUE,
 		allow_failed = TRUE
 	)

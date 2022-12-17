@@ -1,6 +1,7 @@
 /proc/spawn_faction_commander(var/faction_name)
 	var/datum/goai/goai_commander/faction/new_commander = new()
 	var/true_faction_name = (faction_name || BuildFactionName())
+
 	world.log << "Spawning [true_faction_name]"
 
 	if(true_faction_name)
@@ -36,10 +37,14 @@
 
 /obj/spawner/oneshot/faction
 	var/faction_name
+	var/active = TRUE
 	script = /proc/spawn_faction_commander
 
 
 /obj/spawner/oneshot/faction/CallScript()
+	if(!active)
+		return
+
 	var/script_args = list(faction_name = BuildFactionName())
 	sleep(-1)
 	call(script)(arglist(script_args))

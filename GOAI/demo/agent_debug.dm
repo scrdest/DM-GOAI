@@ -14,11 +14,9 @@
 	return
 
 
-/mob/goai/verb/LobotomizeGoai()
-	set category = "Debug GOAI Agents"
-	set src in view(1)
-
-	life = 0
+/mob/goai/proc/pLobotomizeGoai(var/stop_life = TRUE)
+	if(stop_life)
+		life = 0
 
 	if(brain)
 		brain.life = 0
@@ -34,6 +32,14 @@
 		del(brain)
 
 	return
+
+
+/mob/goai/verb/LobotomizeGoai()
+	set category = "Debug GOAI Agents"
+	set src in view(1)
+
+	src.pLobotomizeGoai(stop_life = TRUE)
+
 
 
 /mob/goai/verb/PauseGoai()

@@ -1,5 +1,5 @@
 
-
+# define DEFAULT_BEAM_VANISH_TIME 20
 
 /obj/vectorbeam
 	name = "Beam"
@@ -65,18 +65,24 @@
 		del(VB)
 
 
+/obj/vectorbeam/vanishing
+
+
 /obj/vectorbeam/vanishing/PostNewHook()
 	. = ..()
 
-	spawn(20)
+	spawn(DEFAULT_BEAM_VANISH_TIME)
 		del(src)
 
 
-/atom/proc/pDrawVectorbeam(var/atom/start)
-	var/dist = EuclidDistance(start, src)
+/atom/proc/pDrawVectorbeam(var/atom/start, var/atom/end = null)
+	var/atom/true_end = end
+	true_end = (isnull(end) ? src : end)
 
-	var/dx = (src.x - start.x)
-	var/dy = (src.y - start.y)
+	var/dist = EuclidDistance(start, true_end)
+
+	var/dx = (true_end.x - start.x)
+	var/dy = (true_end.y - start.y)
 	var/angle = arctan(dx, dy)
 
 	var/Vector2d/vec_length = dist

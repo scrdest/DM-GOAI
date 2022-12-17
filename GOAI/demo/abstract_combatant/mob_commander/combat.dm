@@ -1,6 +1,10 @@
 
 
 /datum/goai/mob_commander/proc/FightTick()
+	if(!(src.owned_mob))
+		world.log << "[src] does not have an owned mob!"
+		return
+
 	var/can_fire = ((STATE_CANFIRE in states) ? states[STATE_CANFIRE] : FALSE)
 
 	if(!can_fire)
@@ -38,13 +42,20 @@
 
 /datum/goai/mob_commander/proc/GetTarget(var/list/searchspace = null, var/maxtries = 5)
 	var/list/true_searchspace = (isnull(searchspace) ? brain?.perceptions?.Get(SENSE_SIGHT) : searchspace)
+
 	if(!(true_searchspace))
+		return
+
+	var/atom/my_loc = src?.owned_mob?.loc
+	if(!my_loc)
+		world.log << "[src] attempted to get loc, but couldn't find one!"
 		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
-	for(var/datum/goai/mob_commander/enemy in true_searchspace)
-		var/enemy_dist = ManhattanDistance(src.owned_mob.loc, enemy)
+	for(var/mob/goai/enemy in true_searchspace)
+		// CHECK RELATIONS!!!
+		var/enemy_dist = ManhattanDistance(my_loc, enemy)
 
 		if (enemy_dist <= 0)
 			continue
@@ -65,6 +76,10 @@
 
 /datum/goai/mob_commander/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
 	. = FALSE
+
+	if(!(src.owned_mob))
+		world.log << "No mob not found for the [src.name] AI to shoot D;"
+		return FALSE
 
 	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.owned_mob.contents) : cached_gun)
 

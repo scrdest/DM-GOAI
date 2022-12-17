@@ -363,9 +363,8 @@
 		if(tracker.TriggeredMoreThan(src.ai_tick_delay))
 			tracker.SetDone()
 
-			/*if(needybrain)
-				needybrain.ChangeMotive(NEED_COMPOSURE, NEED_SAFELEVEL)*/ // revert once panic is tested
-
+			if(needybrain)
+				needybrain.ChangeMotive(NEED_COMPOSURE, NEED_SAFELEVEL)
 
 	else if(active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))
 		brain?.SetMemory("UnreachableTile", active_path.target, MEM_TIME_LONGTERM)

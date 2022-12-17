@@ -1,4 +1,8 @@
-/mob/goai/combatant/proc/HandleOpenDoor(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/proc/HandleOpenDoor(var/datum/ActionTracker/tracker)
+	if(!(src.owned_mob))
+		world.log << "[src] does not have an owned mob!"
+		return
+
 	if(!tracker)
 		return
 
@@ -44,10 +48,10 @@
 			// Body-block the door so it doesn't close.
 			var/entering_door = tracker.BBGet("entering_door", FALSE)
 
-			//if(active_path && active_path.target)
-				//var/turf/active_path_target = get_turf(active_path.target)
+			//if(src.active_path && src.active_path.target)
+				//var/turf/active_path_target = get_turf(src.active_path.target)
 
-				//if(active_path_target && active_path_target == obs_turf && active_path.min_dist <= 0)
+				//if(active_path_target && active_path_target == obs_turf && src.active_path.min_dist <= 0)
 				//	entering_door = TRUE
 
 			if(!entering_door)
@@ -58,14 +62,18 @@
 		// Closed and too far to open? Move to adjacent tile.
 		var/list/path_to_door = tracker.BBGet("PathToDoor", null)
 
-		if(isnull(path_to_door) || !active_path)
+		if(isnull(path_to_door) || !src.active_path)
 			path_to_door = StartNavigateTo(obstruction, 1)
 			tracker.BBSet("PathToDoor", path_to_door)
 
 	return
 
 
-/mob/goai/combatant/proc/HandleOpenAutodoor(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/proc/HandleOpenAutodoor(var/datum/ActionTracker/tracker)
+	if(!(src.owned_mob))
+		world.log << "[src] does not have an owned mob!"
+		return
+
 	if(!tracker)
 		return
 
@@ -111,8 +119,8 @@
 			// Body-block the door so it doesn't close.
 			var/entering_door = tracker.BBGet("entering_door", FALSE)
 
-			//if(active_path && active_path.target)
-			//	var/turf/active_path_target = get_turf(active_path.target)
+			//if(src.active_path && src.active_path.target)
+			//	var/turf/active_path_target = get_turf(src.active_path.target)
 
 				//if(active_path_target && active_path_target == obs_turf)
 				//	entering_door = TRUE
@@ -126,7 +134,7 @@
 		// Closed and too far to open? Move to adjacent tile.
 		var/list/path_to_door = tracker.BBGet("PathToDoor", null)
 
-		if(isnull(path_to_door) || !active_path)
+		if(isnull(path_to_door) || !src.active_path)
 			path_to_door = StartNavigateTo(obstruction, 1)
 			tracker.BBSet("PathToDoor", path_to_door)
 

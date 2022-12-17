@@ -6,11 +6,12 @@
 
 */
 
-# define STEP_SIZE 1
-# define STEP_COUNT 1
+
+var/global/list/global_goai_registry
 
 
 /datum/goai
+	var/name = "GOAI"
 	var/life = GOAI_AI_ENABLED
 
 	var/list/needs
@@ -20,6 +21,7 @@
 	var/list/inventory
 	var/list/senses
 
+	var/last_update_time
 	var/list/last_need_update_times
 	var/last_action_update_time
 
@@ -35,13 +37,54 @@
 	var/initial_action = null
 
 
+/datum/goai/New(var/active = null)
+	..()
+
+	/*
+	// Controls whether to call Life(), effectively activating the AI logic.
+	//
+	// You might want to have it disabled if you want to manage the AI 'lifecycle'
+	// manually. For example, have the AI only activate when a player first moves
+	// nearby.
+	*/
+	var/true_active = (isnull(active) ? TRUE : active)
+
+	var/spawn_time = world.time
+	src.last_update_time = spawn_time
+	src.actionlookup = src.InitActionLookup()  // order matters!
+	src.actionslist = src.InitActionsList()
+
+	src.Equip()
+	src.brain = src.CreateBrain(actionslist)
+	src.InitNeeds()
+	src.InitStates()
+	src.UpdateBrain()
+	src.InitSenses()
+
+	if(true_active)
+		src.Life()
+
 
 /datum/goai/proc/LifeTick()
 	return TRUE
 
 
+/datum/goai/proc/RegisterAI()
+	// Registry pattern, to facilitate querying all GOAI AIs in verbs
+	if(!(global_goai_registry))
+		global_goai_registry = list()
+
+	global_goai_registry += src
+
+	if(!(src.name))
+		src.name = global_goai_registry.len
+
+	return global_goai_registry
+
+
 
 /datum/goai/proc/Life()
+	src.RegisterAI()
 	// LifeTick WOULD be called here (in a loop) like so...:
 	/*
 		spawn(0)

@@ -8,33 +8,19 @@
 
 */
 
-/datum/GOAP/demoGoap/combatGoap
+/datum/GOAP/demoGoap/combatCommanderGoap
 
 
-/datum/GOAP/demoGoap/combatGoap/update_op(var/old_val, var/new_val)
+/datum/GOAP/demoGoap/combatCommanderGoap/update_op(var/old_val, var/new_val)
 	var/result = new_val
 	return result
 
 
-/datum/brain/concrete/combat
+/datum/brain/concrete/combatCommander
 
 
-/*
-/datum/brain/concrete/combat/InitNeeds()
-	needs = ..()
-	needs[NEED_COVER] = NEED_MINIMUM
-	//needs[NEED_ENEMIES] = 2
-	return needs
-
-
-/datum/brain/concrete/combat/InitStates()
-	states = ..()
-	states[STATE_DOWNTIME] = TRUE
-	return states
-*/
-
-/datum/brain/concrete/combat/New(var/list/actions, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null)
+/datum/brain/concrete/combatCommander/New(var/list/actions, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null)
 	..(actions, init_memories, init_action, with_hivemind, init_personality, newname)
 
-	var/datum/GOAP/demoGoap/new_planner = new /datum/GOAP/demoGoap/combatGoap/(actionslist)
+	var/datum/GOAP/demoGoap/new_planner = new /datum/GOAP/demoGoap/combatCommanderGoap/(actionslist)
 	planner = new_planner

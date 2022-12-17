@@ -1,6 +1,27 @@
 /* Movement system (in the ECS sense) and movement helpers. */
 
+
+/datum/goai/mob_commander/proc/CurrentPositionAsTuple()
+	if(isnull(src.owned_mob))
+		world.log << "No owned mob found for [src.name] AI"
+		return
+
+	return src.owned_mob.CurrentPositionAsTuple()
+
+
 /datum/goai/mob_commander/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = null, var/proc/adjproc = null, var/proc/distanceproc = null, var/list/adjargs = null)
+	if(isnull(src.owned_mob))
+		world.log << "No owned mob found for [src.name] AI"
+
+	var/atom/start_loc = null
+
+	if(src.owned_mob)
+		start_loc = src.owned_mob.loc
+
+	if(!start_loc)
+		world.log << "No start loc found for [src.name] AI"
+		return
+
 	var/true_avoid = (avoid || src.brain?.GetMemoryValue("BadStartTile", null))
 
 	var/proc/true_adjproc = (isnull(adjproc) ? /proc/fCardinalTurfs : adjproc)
@@ -38,7 +59,7 @@
 		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
 
 		if(!best_cand_quad)
-			world.log << "No Quad found, breaking the ValidateWaypoint loop!"
+			world.log << "MComm: No Quad found, breaking the ValidateWaypoint loop!"
 			break
 
 		best_local_pos = best_cand_quad.fourth
@@ -96,7 +117,7 @@
 
 
 /datum/goai/mob_commander/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/refresh_loc_memories = TRUE, var/proc/costproc = null)
-	src.owned_mob.is_repathing = 1
+	src.is_repathing = 1
 
 	if(brain && refresh_loc_memories)
 		var/atom/previous_oldloc = brain.GetMemoryValue("Location-1")
@@ -109,48 +130,51 @@
 	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, avoid, inh_frustration, costproc)
 
 	if(pathtracker)
-		src.owned_mob.active_path = pathtracker
+		src.active_path = pathtracker
+
 	else
 		var/atom/curr_loc = get_turf(src)
 		world.log << "[src]: Could not build a pathtracker to [trg] @ [curr_loc]"
 		//brain?.SetMemory("BadStartTile", curr_loc, 1000)
 
 	var/turf/trg_turf = trg
-	if(trg_turf)
-		trg_turf.DrawVectorbeam()
 
-	src.owned_mob.is_repathing = 0
-	return src.owned_mob.active_path
+	if(trg_turf && src.owned_mob)
+		trg_turf.pDrawVectorbeam(src.owned_mob, trg_turf)
+
+	src.is_repathing = 0
+
+	return src.active_path
 
 
 /datum/goai/mob_commander/proc/CancelNavigate()
-	src.owned_mob.active_path = null
-	src.owned_mob.is_repathing = 0
+	src.active_path = null
+	src.is_repathing = 0
 	return TRUE
 
 
 /datum/goai/mob_commander/proc/MovementSystem()
-	if(!(src.owned_mob.active_path) || src.owned_mob.active_path.IsDone() || src.owned_mob.is_moving)
+	if(!(src?.active_path) || src.active_path.IsDone() || src.is_moving)
 		return
 
 	var/success = FALSE
-	var/atom/next_step = ((src.owned_mob.active_path.path && src.owned_mob.active_path.path.len) ? src.owned_mob.active_path.path[1] : null)
+	var/atom/next_step = ((src.active_path.path && src.active_path.path.len) ? src.active_path.path[1] : null)
 
-	var/atom/followup_step = ((src.owned_mob.active_path.path && src.owned_mob.active_path.path.len >= 2) ? src.owned_mob.active_path.path[2] : null)
+	var/atom/followup_step = ((src.active_path.path && src.active_path.path.len >= 2) ? src.active_path.path[2] : null)
 
 	if(next_step)
 
-		if(src.owned_mob.active_path.frustration > 2)
+		if(src.active_path.frustration > 2)
 			//brain?.SetMemory("UnreachableTile", active_path.target)
 			randMove()
 			return
 
-		if(src.owned_mob.active_path.frustration > 4 && (src.owned_mob.is_repathing <= 0) && followup_step && followup_step != src.owned_mob.active_path.target)
+		if(src.active_path.frustration > 4 && (src.is_repathing <= 0) && followup_step && followup_step != src.active_path.target)
 			// repath
 			var/frustr_x = followup_step.x
 			var/frustr_y = followup_step.y
 			world.log << "[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
-			StartNavigateTo(src.owned_mob.active_path.target, src.owned_mob.active_path.min_dist, next_step, src.owned_mob.active_path.frustration)
+			StartNavigateTo(src.active_path.target, src.active_path.min_dist, next_step, src.active_path.frustration)
 			return
 
 		var/step_result = step_towards(src.owned_mob, next_step, 0)
@@ -163,25 +187,25 @@
 		)
 
 		if(success)
-			src.owned_mob.active_path.frustration = 0
+			src.active_path.frustration = 0
 
 		else
-			src.owned_mob.active_path.frustration++
+			src.active_path.frustration++
 	else
 		world.log << "[src]: Setting path to Done"
-		src.owned_mob.active_path.SetDone()
+		src.active_path.SetDone()
 
 	if(success)
-		lpop(src.owned_mob.active_path.path)
+		lpop(src.active_path.path)
 
 	return
 
 
 /datum/goai/mob_commander/proc/randMove()
-	if(src.owned_mob.is_moving)
+	if(src.is_moving)
 		return FALSE
 
-	src.owned_mob.is_moving = 1
+	src.is_moving = 1
 
 	var/turf/curr_loc = get_turf(src.owned_mob)
 	var/list/neighbors = fCombatantAdjacents(curr_loc, src.owned_mob)
@@ -190,5 +214,5 @@
 		var/movedir = pick(neighbors)
 		step_to(src.owned_mob, movedir)
 
-	src.owned_mob.is_moving = 0
+	src.is_moving = 0
 	return TRUE
