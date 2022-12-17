@@ -37,7 +37,6 @@
 
 /obj/spawner/oneshot/faction
 	var/faction_name
-	var/active = TRUE
 	script = /proc/spawn_faction_commander
 
 

@@ -1,7 +1,7 @@
 
 
 /datum/goai/mob_commander/proc/FightTick()
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -25,7 +25,7 @@
 			return
 
 	spawn(aim_time)
-		if(target in view(src.owned_mob))
+		if(target in view(src.pawn))
 			Shoot(null, target)
 
 	return
@@ -35,7 +35,7 @@
 	if(isnull(target))
 		return
 
-	var/targ_distance = EuclidDistance(src.owned_mob, target)
+	var/targ_distance = EuclidDistance(src.pawn, target)
 	var/aim_time = rand(clamp(targ_distance*3, 1, 200)) + rand()*15
 	return aim_time
 
@@ -46,7 +46,7 @@
 	if(!(true_searchspace))
 		return
 
-	var/atom/my_loc = src?.owned_mob?.loc
+	var/atom/my_loc = src?.pawn?.loc
 	if(!my_loc)
 		world.log << "[src] attempted to get loc, but couldn't find one!"
 		return
@@ -77,20 +77,20 @@
 /datum/goai/mob_commander/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
 	. = FALSE
 
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "No mob not found for the [src.name] AI to shoot D;"
 		return FALSE
 
-	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.owned_mob.contents) : cached_gun)
+	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.pawn.contents) : cached_gun)
 
 	if(isnull(my_gun))
-		world.log << "Gun not found for [src.owned_mob] to shoot D;"
+		world.log << "Gun not found for [src.pawn] to shoot D;"
 		return FALSE
 
 	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
 
 	if(!isnull(target))
-		my_gun.shoot(target, src.owned_mob)
+		my_gun.shoot(target, src.pawn)
 		. = TRUE
 
 	return .
@@ -129,7 +129,7 @@
 	if(isnull(ghost_pos_tuple))
 		return default
 
-	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
+	var/atom/rel_source = isnull(relative_to) ? src.pawn : relative_to
 	var/threat_dist = default
 
 	var/threat_pos_x = ghost_pos_tuple?.left
@@ -154,7 +154,7 @@
 
 	if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 		var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
-		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, src.owned_mob.z)
+		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, src.pawn.z)
 
 	return threat_chunk
 
@@ -165,7 +165,7 @@
 	if(isnull(ghost_pos_tuple))
 		return default
 
-	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
+	var/atom/rel_source = isnull(relative_to) ? src.pawn : relative_to
 	var/threat_angle = default
 
 	var/threat_pos_x = ghost_pos_tuple?.left
@@ -186,7 +186,7 @@
 
 /datum/goai/mob_commander/proc/GetActiveThreatDicts() // -> list(/dict)
 	var/datum/memory/threat_mem_block = brain?.GetMemory(MEM_THREAT, null, FALSE)
-	//world.log << "[src.owned_mob] threat memory: [threat_mem]"
+	//world.log << "[src.pawn] threat memory: [threat_mem]"
 	var/list/threat_block = threat_mem_block?.val // list(memory)
 	var/list/threats = list() // list(/dict)
 
@@ -203,7 +203,7 @@
 
 
 /datum/goai/mob_commander/proc/GetThreatDistances(var/atom/relative_to = null, var/list/curr_threats = null, var/default = 0, var/check_max = null) // -> num
-	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
+	var/atom/rel_source = isnull(relative_to) ? src.pawn : relative_to
 	var/list/threat_distances = list()
 	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreatDicts() : curr_threats
 
@@ -221,11 +221,11 @@
 		var/threat_pos_x = 0
 		var/threat_pos_y = 0
 
-		//world.log << "[src.owned_mob] threat ghost: [threat_ghost]"
+		//world.log << "[src.pawn] threat ghost: [threat_ghost]"
 
 		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
 		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
-		//world.log << "[src.owned_mob] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
+		//world.log << "[src.pawn] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
 
 		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 			threat_dist = ManhattanDistanceNumeric(rel_source.x, rel_source.y, threat_pos_x, threat_pos_y)
@@ -233,12 +233,12 @@
 			// long-term, it might be nicer to index by obj/str here
 			threat_distances.Add(threat_dist)
 
-	//world.log << "[src.owned_mob]: GetThreatDistances => [threat_distances] LEN [threat_distances.len]"
+	//world.log << "[src.pawn]: GetThreatDistances => [threat_distances] LEN [threat_distances.len]"
 	return threat_distances
 
 
 /datum/goai/mob_commander/proc/GetThreatAngles(var/atom/relative_to = null, var/list/curr_threats = null, var/check_max = null)
-	var/atom/rel_source = isnull(relative_to) ? src.owned_mob : relative_to
+	var/atom/rel_source = isnull(relative_to) ? src.pawn : relative_to
 	var/list/threat_angles = list()
 	var/list/threat_ghosts = isnull(curr_threats) ? GetActiveThreatDicts() : curr_threats
 
@@ -256,11 +256,11 @@
 		var/threat_pos_x = 0
 		var/threat_pos_y = 0
 
-		//world.log << "[src.owned_mob] threat ghost: [threat_ghost]"
+		//world.log << "[src.pawn] threat ghost: [threat_ghost]"
 
 		threat_pos_x = threat_ghost.Get(KEY_GHOST_X, null)
 		threat_pos_y = threat_ghost.Get(KEY_GHOST_Y, null)
-		//world.log << "[src.owned_mob] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
+		//world.log << "[src.pawn] believes there's a threat at ([threat_pos_x], [threat_pos_y])"
 
 		if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 			var/dx = (threat_pos_x - rel_source.x)
@@ -294,10 +294,10 @@
 
 	if(brain)
 		var/list/shot_memory_data = list(
-			KEY_GHOST_X = src.owned_mob.x,
-			KEY_GHOST_Y = src.owned_mob.y,
-			KEY_GHOST_Z = src.owned_mob.z,
-			KEY_GHOST_POS_TUPLE = src.owned_mob.CurrentPositionAsTuple(),
+			KEY_GHOST_X = src.pawn.x,
+			KEY_GHOST_Y = src.pawn.y,
+			KEY_GHOST_Z = src.pawn.z,
+			KEY_GHOST_POS_TUPLE = src.pawn.CurrentPositionAsTuple(),
 			KEY_GHOST_ANGLE = impact_angle,
 		)
 		var/dict/shot_memory_ghost = new(shot_memory_data)

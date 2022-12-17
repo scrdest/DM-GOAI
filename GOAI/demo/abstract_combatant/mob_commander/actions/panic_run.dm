@@ -4,7 +4,7 @@
 // integrations w/ other subsystems (e.g. memory)
 */
 /datum/goai/mob_commander/proc/ChoosePanicRunLandmark(var/atom/primary_threat = null, var/list/threats = null, min_safe_dist = null)
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -36,7 +36,7 @@
 	var/turf/unreachable = brain?.GetMemoryValue("UnreachableTile", null)
 	var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
 
-	var/my_loc = src.owned_mob?.loc
+	var/my_loc = src.pawn?.loc
 	//world.log << "PANIK my_loc is [my_loc]"
 
 	for(var/turf/cand in curr_view)
@@ -47,7 +47,7 @@
 			world.log << "PANIK skipping [cand] - unreachable!"
 			continue
 
-		if(!(cand?.Enter(src.owned_mob, my_loc)))
+		if(!(cand?.Enter(src.pawn, my_loc)))
 			world.log << "PANIK skipping [cand] - cannot enter!"
 			continue
 
@@ -156,7 +156,7 @@
 	// Abstracted ownership, but defaults to src for convenience.
 	var/datum/goai/mob_commander/true_owner = (owner || src)
 
-	if(!(true_owner.owned_mob))
+	if(!(true_owner.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -183,7 +183,7 @@
 /datum/goai/mob_commander/proc/HandleChoosePanicRunLandmark(var/datum/ActionTracker/tracker)
 	world.log << "Running HandleChoosePanicRunLandmark"
 
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -201,7 +201,7 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.owned_mob.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
 
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
@@ -211,7 +211,7 @@
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.owned_mob.z)
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.pawn.z)
 
 	if(secondary_threat_ghost)
 		threats[secondary_threat_ghost] = secondary_threat
@@ -260,7 +260,7 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.owned_mob.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
 
 	var/turf/threat_turf = null
 	if(primary_threat)
@@ -281,7 +281,7 @@
 
 
 /datum/goai/mob_commander/proc/HandlePanickedRun(var/datum/ActionTracker/tracker)
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -303,7 +303,7 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.owned_mob.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
 
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
@@ -315,7 +315,7 @@
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.owned_mob.z)
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.pawn.z)
 
 	if(secondary_threat_ghost)
 		threats[secondary_threat_ghost] = secondary_threat
@@ -380,7 +380,7 @@
 		StartNavigateTo(best_local_pos, 0, primary_threat?.loc, 0, /datum/goai/mob_commander/proc/fPanicRunDistance)
 
 	if(best_local_pos)
-		var/dist_to_pos = ManhattanDistance(src.owned_mob.loc, best_local_pos)
+		var/dist_to_pos = ManhattanDistance(src.pawn.loc, best_local_pos)
 		if(dist_to_pos < 1)
 			tracker.SetTriggered()
 

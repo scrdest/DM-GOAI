@@ -9,14 +9,14 @@
 		// No point processing this if there's no memories to set
 		return
 
-	var/atom/owned_mob = owner.owned_mob
+	var/atom/pawn = owner.pawn
 
-	if(isnull(owned_mob))
+	if(isnull(pawn))
 		// We grab the view range from the owned mob, so we need it here
 		return
 
 	var/list/old_visual_range = owner_brain?.perceptions?[SENSE_SIGHT_CURR]
-	var/list/visual_range = view(owned_mob)
+	var/list/visual_range = view(pawn)
 
 	if(old_visual_range)
 		owner_brain?.perceptions[SENSE_SIGHT_PREV] = old_visual_range
@@ -41,7 +41,7 @@
 	if(!(true_searchspace))
 		return
 
-	var/my_loc = owner?.owned_mob?.loc
+	var/my_loc = owner?.pawn?.loc
 	if(isnull(my_loc))
 		return
 
@@ -173,7 +173,7 @@
 		// No mob - no point.
 		return
 
-	if(!(owner.owned_mob))
+	if(!(owner.pawn))
 		// No mob - no point.
 		return
 
@@ -271,7 +271,7 @@
 		// No mob - no point.
 		return
 
-	var/owner_z = owner?.owned_mob?.z
+	var/owner_z = owner?.pawn?.z
 
 	var/datum/brain/owner_brain = owner?.brain
 	if(isnull(owner_brain))
@@ -361,7 +361,7 @@
 		// useless in a vacuum
 		return
 
-	if(!owner.owned_mob)
+	if(!owner.pawn)
 		// useless in a vacuum
 		return
 

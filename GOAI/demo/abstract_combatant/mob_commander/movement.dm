@@ -2,21 +2,21 @@
 
 
 /datum/goai/mob_commander/proc/CurrentPositionAsTuple()
-	if(isnull(src.owned_mob))
+	if(isnull(src.pawn))
 		world.log << "No owned mob found for [src.name] AI"
 		return
 
-	return src.owned_mob.CurrentPositionAsTuple()
+	return src.pawn.CurrentPositionAsTuple()
 
 
 /datum/goai/mob_commander/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = null, var/proc/adjproc = null, var/proc/distanceproc = null, var/list/adjargs = null)
-	if(isnull(src.owned_mob))
+	if(isnull(src.pawn))
 		world.log << "No owned mob found for [src.name] AI"
 
 	var/atom/start_loc = null
 
-	if(src.owned_mob)
-		start_loc = src.owned_mob.loc
+	if(src.pawn)
+		start_loc = src.pawn.loc
 
 	if(!start_loc)
 		world.log << "No start loc found for [src.name] AI"
@@ -28,7 +28,7 @@
 	var/proc/true_distproc = (isnull(distanceproc) ? /proc/fDistance : distanceproc)
 
 	var/list/path = AStar(
-		start = get_turf(src.owned_mob.loc),
+		start = get_turf(src.pawn.loc),
 		end = get_turf(trg),
 		adjacent = true_adjproc,
 		dist = true_distproc,
@@ -125,7 +125,7 @@
 		if(previous_oldloc && prob(10))
 			brain.SetMemory("Location-2", previous_oldloc)
 
-		brain.SetMemory("Location-1", src.owned_mob.loc)
+		brain.SetMemory("Location-1", src.pawn.loc)
 
 	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, avoid, inh_frustration, costproc)
 
@@ -139,8 +139,8 @@
 
 	var/turf/trg_turf = trg
 
-	if(trg_turf && src.owned_mob)
-		trg_turf.pDrawVectorbeam(src.owned_mob, trg_turf)
+	if(trg_turf && src.pawn)
+		trg_turf.pDrawVectorbeam(src.pawn, trg_turf)
 
 	src.is_repathing = 0
 
@@ -177,12 +177,12 @@
 			StartNavigateTo(src.active_path.target, src.active_path.min_dist, next_step, src.active_path.frustration)
 			return
 
-		var/step_result = step_towards(src.owned_mob, next_step, 0)
+		var/step_result = step_towards(src.pawn, next_step, 0)
 		//success = (is_moving || step_result)
 
 		success = (
 			step_result || (
-				(src.owned_mob.x == next_step.x) && (src.owned_mob.y == next_step.y)
+				(src.pawn.x == next_step.x) && (src.pawn.y == next_step.y)
 			)
 		)
 
@@ -207,12 +207,12 @@
 
 	src.is_moving = 1
 
-	var/turf/curr_loc = get_turf(src.owned_mob)
-	var/list/neighbors = fCombatantAdjacents(curr_loc, src.owned_mob)
+	var/turf/curr_loc = get_turf(src.pawn)
+	var/list/neighbors = fCombatantAdjacents(curr_loc, src.pawn)
 
 	if(neighbors)
 		var/movedir = pick(neighbors)
-		step_to(src.owned_mob, movedir)
+		step_to(src.pawn, movedir)
 
 	src.is_moving = 0
 	return TRUE

@@ -1,10 +1,10 @@
 /datum/goai/mob_commander/proc/ChooseCoverleapLandmark(var/atom/startpos, var/atom/primary_threat = null, var/turf/prev_loc_memdata = null, var/list/threats = null, var/min_safe_dist = null, var/trust_first = null)
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
 	// Pathfinding/search
-	var/atom/_startpos = (startpos || src.owned_mob.loc)
+	var/atom/_startpos = (startpos || src.pawn.loc)
 	var/list/_threats = (threats || list())
 	var/_min_safe_dist = (isnull(min_safe_dist) ? 0 : min_safe_dist)
 
@@ -50,7 +50,7 @@
 			effective_waypoint_x = waypoint_position.left + rand(-WAYPOINT_FUZZ_X, WAYPOINT_FUZZ_X)
 			effective_waypoint_y = waypoint_position.right + rand(-WAYPOINT_FUZZ_Y, WAYPOINT_FUZZ_Y)
 
-		waypointchunk = chunkserver.ChunkForTile(effective_waypoint_x, effective_waypoint_y, src.owned_mob.z)
+		waypointchunk = chunkserver.ChunkForTile(effective_waypoint_x, effective_waypoint_y, src.pawn.z)
 
 	var/turf/unreachable = brain?.GetMemoryValue("UnreachableTile", null)
 
@@ -92,7 +92,7 @@
 				world.log << "Cover [cand] is unreachable!"
 				continue
 
-			if(!(cand?.Enter(src.owned_mob, get_turf(candidate_cover))))
+			if(!(cand?.Enter(src.pawn, get_turf(candidate_cover))))
 				continue
 
 			if(cand in processed)
@@ -119,7 +119,7 @@
 				var/threat_angle = GetThreatAngle(cand, threat_ghost)
 				var/threat_dir = angle2dir(threat_angle)
 
-				var/tile_is_cover = (cand.IsCover(TRUE, threat_dir, FALSE) && cand.Enter(src.owned_mob, src.owned_mob.loc))
+				var/tile_is_cover = (cand.IsCover(TRUE, threat_dir, FALSE) && cand.Enter(src.pawn, src.pawn.loc))
 
 				var/atom/maybe_cover = get_step(cand, threat_dir)
 
@@ -134,7 +134,7 @@
 			if(invalid_tile)
 				continue
 
-			var/cand_dist = ManhattanDistance(cand, src.owned_mob)
+			var/cand_dist = ManhattanDistance(cand, src.pawn)
 			if(cand_dist < 3)
 				// we want substantial moves only
 				penalty += MAGICNUM_DISCOURAGE_SOFT
@@ -194,7 +194,7 @@
 /datum/goai/mob_commander/proc/HandleDirectionalChooseCoverleapLandmark(var/datum/ActionTracker/tracker)
 	world.log << "Running HandleDirectionalChooseCoverleapLandmark"
 
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -202,7 +202,7 @@
 	if(best_local_pos)
 		return
 
-	var/turf/startpos = tracker.BBSetDefault("startpos", src.owned_mob.loc)
+	var/turf/startpos = tracker.BBSetDefault("startpos", src.pawn.loc)
 	var/list/threats = new()
 	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
 	var/turf/prev_loc_memdata = brain?.GetMemoryValue(MEM_PREVLOC, null, FALSE)
@@ -212,7 +212,7 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.owned_mob.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
 
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
@@ -222,7 +222,7 @@
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.owned_mob.z)
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.pawn.z)
 
 	if(secondary_threat_ghost)
 		threats[secondary_threat_ghost] = secondary_threat
@@ -244,12 +244,12 @@
 
 
 /datum/goai/mob_commander/proc/HandleDirectionalCoverLeapfrog(var/datum/ActionTracker/tracker)
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
 	var/tracker_frustration = tracker.BBSetDefault("frustration", 0)
-	var/turf/startpos = tracker.BBSetDefault("startpos", src.owned_mob.loc)
+	var/turf/startpos = tracker.BBSetDefault("startpos", src.pawn.loc)
 
 	var/turf/best_local_pos = null
 	best_local_pos = best_local_pos || tracker?.BBGet("bestpos", null)
@@ -266,7 +266,7 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.owned_mob.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
 
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
@@ -278,7 +278,7 @@
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.owned_mob.z)
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.pawn.z)
 
 	if(secondary_threat_ghost)
 		threats[secondary_threat_ghost] = secondary_threat
@@ -339,7 +339,7 @@
 		StartNavigateTo(best_local_pos, 0, null)
 
 	if(best_local_pos)
-		var/dist_to_pos = ManhattanDistance(src.owned_mob.loc, best_local_pos)
+		var/dist_to_pos = ManhattanDistance(src.pawn.loc, best_local_pos)
 		if(dist_to_pos < 1)
 			tracker.SetTriggered()
 	else

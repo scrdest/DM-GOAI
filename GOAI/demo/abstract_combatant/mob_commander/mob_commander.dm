@@ -1,7 +1,7 @@
 /datum/goai/mob_commander
 	name = "mob commander"
 
-	var/atom/owned_mob
+	var/atom/pawn
 	var/datum/ActivePathTracker/active_path
 
 	var/is_repathing = 0
@@ -40,7 +40,7 @@
 	// *in parallel* to other behaviours - e.g. run-and-gun or fire from cover
 	spawn(0)
 		while(src.life)
-			if(src.owned_mob)
+			if(src.pawn)
 				src.FightTick()
 
 			sleep(COMBATAI_FIGHT_TICK_DELAY)
@@ -48,7 +48,7 @@
 
 
 /datum/goai/mob_commander/LifeTick()
-	//world.log << "Mob Commander [src.name] [src] <[src.owned_mob]> LifeTick()"
+	//world.log << "Mob Commander [src.name] [src] <[src.pawn]> LifeTick()"
 
 	// quick hack:
 	var/datum/brain/concrete/combatbrain = brain

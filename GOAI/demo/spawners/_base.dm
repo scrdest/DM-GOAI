@@ -7,6 +7,7 @@
 	icon_state = "anom"
 	alpha = 50
 
+	var/active = TRUE
 	var/script = null // proc(loc) => Any
 
 
@@ -22,6 +23,9 @@
 	// Override if you need to provide extra args to the script.
 	// Otherwise, the logic belongs to the script itself.
 	*/
+	if(!active)
+		return
+
 	call(script)(src.loc)
 
 

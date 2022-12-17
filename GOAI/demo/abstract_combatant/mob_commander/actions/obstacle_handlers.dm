@@ -1,5 +1,5 @@
 /datum/goai/mob_commander/proc/HandleOpenDoor(var/datum/ActionTracker/tracker)
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 
@@ -70,7 +70,7 @@
 
 
 /datum/goai/mob_commander/proc/HandleOpenAutodoor(var/datum/ActionTracker/tracker)
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
 

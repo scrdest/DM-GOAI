@@ -14,7 +14,7 @@
 	states[STATE_DOWNTIME] = TRUE
 
 	/* Simple item tracker. */
-	states[STATE_HASGUN] = (src.owned_mob && locate(/obj/gun) in src.owned_mob.contents) ? 1 : 0
+	states[STATE_HASGUN] = (src.pawn && locate(/obj/gun) in src.pawn.contents) ? 1 : 0
 
 	/* Controls if the agent is *allowed & able* to engage using *anything*
 	// Can be used to force 'hold fire' or simulate the hands being occupied
@@ -128,8 +128,8 @@
 /datum/goai/mob_commander/Equip()
 	. = ..()
 
-	if(src.owned_mob)
-		new /obj/gun/(src.owned_mob)
+	if(src.pawn)
+		new /obj/gun/(src.pawn)
 
 	return
 

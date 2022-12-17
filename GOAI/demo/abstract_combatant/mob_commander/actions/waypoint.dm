@@ -10,7 +10,7 @@
 
 
 /datum/goai/mob_commander/proc/SpotObstacles(var/datum/goai/mob_commander/owner, var/atom/target = null, var/default_to_waypoint = TRUE, var/proc/adjproc = null, var/proc/costproc = null)
-	if(!(owner && owner.owned_mob))
+	if(!(owner && owner.pawn))
 		// No mob - no point.
 		return
 
@@ -45,7 +45,7 @@
 	if(isnull(target_turf))
 		target_turf = get_turf(goal.loc)
 
-	var/turf/startpos = get_turf(owner.owned_mob)
+	var/turf/startpos = get_turf(owner.pawn)
 	var/init_dist = 30
 	// NOTE: somehow, this once runtimed with the distance seemingly being -1, wtf?
 	//       the max() was added as a measure to ensure sane input
@@ -53,7 +53,7 @@
 
 	if(init_dist < 40)
 		OBSTACLEHUNT_DEBUG_LOG("[owner] entering ASTARS STAGE")
-		path = AStar(get_turf(owner.owned_mob), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = AStar(get_turf(owner.pawn), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[owner] found ASTAR 1 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -63,7 +63,7 @@
 
 		// No unobstructed path to target!
 		// Let's try to get a direct path and check for obstacles.
-		path = AStar(get_turf(owner.owned_mob), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = AStar(get_turf(owner.pawn), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[src] found ASTAR 2 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -133,7 +133,7 @@
 	// Capture any obstacles
 	// Add Action Goto<Goal> with clearing obstacles as a precond
 
-	if(!(src.owned_mob))
+	if(!(src.pawn))
 		tracker?.SetFailed()
 		world.log << "[src] does not have an owned mob!"
 		return

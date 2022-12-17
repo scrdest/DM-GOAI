@@ -1,7 +1,6 @@
 /* In this module:
 ===================
 
- - Mob definition
  - HandleAction core logic
  - AI Mainloop (Life()/LifeTick())
  - Init for subsystems per AI (by extension - it's in Life())
@@ -11,17 +10,6 @@
 # define STEP_SIZE 1
 # define STEP_COUNT 1
 
-
-
-/mob/goai/combatant
-	icon = 'icons/uristmob/simpleanimals.dmi'
-	icon_state = "ANTAG"
-
-	// Private-ish, generally only debug procs should touch these
-	var/ai_tick_delay = COMBATAI_AI_TICK_DELAY
-
-	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
-	var/initial_action = null
 
 
 /mob/goai/combatant/proc/HandleAction(var/datum/goai_action/action, var/datum/ActionTracker/tracker)
