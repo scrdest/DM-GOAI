@@ -50,14 +50,15 @@
 	var/true_name = name
 
 	var/obj/gun/M = new(loc)
+	if(true_name)
+		M.name = true_name
 
 	var/datum/goai/mob_commander/new_commander = new()
 
 	new_commander.pawn = M
+	new_commander.name = "AI of [M.name]"
+
 	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
-
-	true_name = "AI of [M.name]"
-
 	world.log << "Spawned [new_commander.name]/[M]"
 
 	return
@@ -83,3 +84,46 @@
 	)
 
 	call(script)(arglist(script_args))
+
+
+
+/proc/spawn_commanded_sim(var/atom/loc, var/name = null)
+	var/true_name = name
+
+	var/obj/gun/M = new(loc)
+	if(true_name)
+		M.name = true_name
+
+	var/datum/goai/sim_commander/new_commander = new()
+
+	new_commander.pawn = M
+	new_commander.name = "AI of [M.name]"
+
+	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
+	world.log << "Spawned [new_commander.name]/[M]"
+
+	return
+
+
+/obj/spawner/oneshot/sim_mob
+	var/commander_name = null
+	var/mob_icon = null
+	var/mob_icon_state = null
+
+	icon = 'icons/uristmob/scommobs.dmi'
+	icon_state = "civ10"
+
+	script = /proc/spawn_commanded_sim
+
+
+/obj/spawner/oneshot/commanded_mob/CallScript()
+	if(!active)
+		return
+
+	var/script_args = list(
+		loc = src.loc,
+		name = src.commander_name,
+	)
+
+	call(script)(arglist(script_args))
+
