@@ -7,9 +7,6 @@
 */
 
 
-var/global/list/global_goai_registry
-
-
 /datum/goai
 	var/name = "GOAI"
 	var/life = GOAI_AI_ENABLED
@@ -32,6 +29,7 @@ var/global/list/global_goai_registry
 
 	// Private-ish, generally only debug procs should touch these
 	var/ai_tick_delay = COMBATAI_AI_TICK_DELAY
+	var/registry_index
 
 	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
 	var/initial_action = null
@@ -75,9 +73,10 @@ var/global/list/global_goai_registry
 		global_goai_registry = list()
 
 	global_goai_registry += src
+	src.registry_index = global_goai_registry.len
 
 	if(!(src.name))
-		src.name = global_goai_registry.len
+		src.name = src.registry_index
 
 	return global_goai_registry
 

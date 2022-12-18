@@ -88,10 +88,9 @@
 /mob/verb/ListGoaiCommanders()
 	set category = "Debug GOAI Commanders"
 
-	var/i = 0
 	usr << "===== GOAI COMMANDERS ===="
 
 	for(var/datum/goai/commander in global_goai_registry)
-		usr << "- [i++]: [commander.name] <[commander]>"
+		usr << "- [commander.registry_index]: [commander.name] <[commander]>"
 
 	return

@@ -8,6 +8,7 @@
 	var/datum/goai/mob_commander/new_commander = new()
 
 	new_commander.pawn = M
+	M.attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
 	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
 
 	true_name = true_name || "AI of [M.name]"

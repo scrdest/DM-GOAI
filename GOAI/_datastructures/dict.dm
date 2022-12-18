@@ -1,5 +1,5 @@
 /dict
-	var/list/data = list()
+	var/list/data
 
 
 /dict/New(var/list/init_vals = null)

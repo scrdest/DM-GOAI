@@ -124,6 +124,12 @@
 		//world.log << "Emission angle [angle]"
 		At.Hit(angle, From)
 
+		if(At.attachments)
+			var/datum/event_queue/hit/hitqueue = At.attachments.Get(ATTACHMENT_EVTQUEUE_HIT)
+
+			if(hitqueue)
+				var/datum/event/hit/hit_evt = new("Hit @ [world.time]", angle, From)
+				hitqueue.Add(hit_evt)
 
 	return newbeam
 

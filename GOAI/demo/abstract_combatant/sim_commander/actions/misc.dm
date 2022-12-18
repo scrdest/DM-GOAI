@@ -157,7 +157,7 @@
 	src.AddMotive(MOTIVE_FUN, 5)
 
 	var/mob/goai/sim/sim_pawn = pawn
-	if(sim_pawn)
+	if(!(isnull(sim_pawn)))
 		sim_pawn.randMove()
 
 	if(tracker.IsOlderThan(40))
