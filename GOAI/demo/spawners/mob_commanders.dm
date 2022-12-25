@@ -15,7 +15,7 @@
 
 	M.loc = loc
 
-	var/datum/goai/mob_commander/new_commander = new()
+	var/datum/goai/mob_commander/combat_commander/new_commander = new()
 
 	new_commander.pawn = M
 	var/dict/pawn_attachments = M.attachments
@@ -70,7 +70,7 @@
 	if(true_name)
 		M.name = true_name
 
-	var/datum/goai/mob_commander/new_commander = new()
+	var/datum/goai/mob_commander/combat_commander/new_commander = new()
 
 	new_commander.pawn = M
 	new_commander.name = "AI of [M.name]"
@@ -111,7 +111,7 @@
 	if(true_name)
 		M.name = true_name
 
-	var/datum/goai/sim_commander/new_commander = new()
+	var/datum/goai/mob_commander/sim_commander/new_commander = new()
 
 	new_commander.pawn = M
 	new_commander.name = "AI of [M.name]"

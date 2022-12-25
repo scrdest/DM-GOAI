@@ -6,7 +6,7 @@
 */
 
 
-/datum/goai/sim_commander/proc/HandleSleeping(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/sim_commander/proc/HandleSleeping(var/datum/ActionTracker/tracker)
 	if(!(src.pawn))
 		world.log << "[src] has no pawns!"
 		tracker.SetFailed()
@@ -54,7 +54,7 @@
 		tracker.SetFailed()
 
 
-/datum/goai/sim_commander/proc/HandleIdle(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/sim_commander/proc/HandleIdle(var/datum/ActionTracker/tracker)
 	if(!(src.pawn))
 		world.log << "[src] has no pawns!"
 		return
@@ -70,7 +70,7 @@
 
 
 
-/datum/goai/sim_commander/proc/HandleEating(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/sim_commander/proc/HandleEating(var/datum/ActionTracker/tracker)
 	if(!(src.pawn))
 		world.log << "[src] has no pawns!"
 		tracker.SetFailed()
@@ -110,7 +110,7 @@
 		tracker.SetFailed()
 
 
-/datum/goai/sim_commander/proc/HandleWorking(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/sim_commander/proc/HandleWorking(var/datum/ActionTracker/tracker)
 	if(!(src.pawn))
 		world.log << "[src] has no pawns!"
 		tracker.SetFailed()
@@ -147,7 +147,7 @@
 		tracker.SetFailed()
 
 
-/datum/goai/sim_commander/proc/HandlePartying(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/sim_commander/proc/HandlePartying(var/datum/ActionTracker/tracker)
 	if(!(src.pawn))
 		world.log << "[src] has no pawns!"
 		tracker.SetFailed()
@@ -164,7 +164,7 @@
 		tracker.SetDone()
 
 
-/datum/goai/sim_commander/proc/HandleShopping(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/sim_commander/proc/HandleShopping(var/datum/ActionTracker/tracker)
 	if(!(src.pawn))
 		world.log << "[src] has no pawns!"
 		tracker.SetFailed()

@@ -1,5 +1,5 @@
 /proc/spawn_faction_commander(var/faction_name)
-	var/datum/goai/goai_commander/faction/new_commander = new()
+	var/datum/goai/goai_commander/faction_ai/new_commander = new()
 	var/true_faction_name = (faction_name || BuildFactionName())
 
 	world.log << "Spawning [true_faction_name]"

@@ -1,5 +1,5 @@
 
-/datum/goai/mob_commander/InitStates()
+/datum/goai/mob_commander/combat_commander/InitStates()
 	states = ..()
 
 	/* Controls autonomy; if FALSE, agent has specific overriding orders,
@@ -33,7 +33,7 @@
 	return states
 
 
-/datum/goai/mob_commander/InitNeeds()
+/datum/goai/mob_commander/combat_commander/InitNeeds()
 	needs = ..()
 	/* COVER need encourages the AI to seek cover positions, duh
 	// since we don't actually *set* that need to be satisfied (as of rn)
@@ -52,7 +52,7 @@
 	return needs
 
 
-/datum/goai/mob_commander/InitActionsList()
+/datum/goai/mob_commander/combat_commander/InitActionsList()
 	/* TODO: add Time as a resource! */
 	// Name, Req-ts, Effects, Priority, [Charges]
 	// Priority - higher is better; -INF would only be used if there's no other option.
@@ -61,7 +61,7 @@
 		"Idle",
 		list("Idled" = FALSE),
 		list("Idled" = TRUE),
-		/datum/goai/mob_commander/proc/HandleIdling,
+		/datum/goai/mob_commander/combat_commander/proc/HandleIdling,
 		-99999
 	)*/
 
@@ -125,7 +125,7 @@
 	return actionslist
 
 
-/datum/goai/mob_commander/Equip()
+/datum/goai/mob_commander/combat_commander/proc/Equip()
 	. = ..()
 
 	if(src.pawn)
@@ -134,7 +134,13 @@
 	return
 
 
-/datum/goai/mob_commander/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
+/datum/goai/mob_commander/combat_commander/PreSetupHook()
+	. = ..()
+	src.Equip()
+	return
+
+
+/datum/goai/mob_commander/combat_commander/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 

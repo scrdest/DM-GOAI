@@ -15,6 +15,8 @@
 
 
 /datum/goai/goai_commander/Life()
+	. = ..()
+
 	// Perception updates
 	spawn(0)
 		while(life)

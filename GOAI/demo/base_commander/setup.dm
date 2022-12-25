@@ -29,5 +29,9 @@
 	return states
 
 
-/datum/goai/proc/Equip()
+/datum/goai/proc/PreSetupHook()
+	return TRUE
+
+
+/datum/goai/proc/PostSetupHook()
 	return TRUE

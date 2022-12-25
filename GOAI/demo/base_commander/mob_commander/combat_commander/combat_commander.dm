@@ -1,14 +1,8 @@
-/datum/goai/sim_commander
-	name = "sim commander"
-
-	var/atom/pawn
-	var/datum/ActivePathTracker/active_path
-
-	var/is_repathing = 0
-	var/is_moving = 0
+/datum/goai/mob_commander/combat_commander
+	name = "combat commander"
 
 
-/datum/goai/sim_commander/Life()
+/datum/goai/mob_commander/combat_commander/Life()
 	. = ..()
 
 	// Perception updates
@@ -36,21 +30,30 @@
 			// Wait until the next update tick.
 			sleep(src.ai_tick_delay)
 
+	// Combat system; decoupled from generic planning/actions to make it run
+	// *in parallel* to other behaviours - e.g. run-and-gun or fire from cover
+	spawn(0)
+		while(src.life)
+			if(src.pawn)
+				src.FightTick()
+
+			sleep(COMBATAI_FIGHT_TICK_DELAY)
 
 
-/datum/goai/sim_commander/LifeTick()
+
+/datum/goai/mob_commander/combat_commander/LifeTick()
 	//world.log << "Mob Commander [src.name] [src] <[src.pawn]> LifeTick()"
 
 	// quick hack:
-	var/datum/brain/concrete/simCommander = brain
+	var/datum/brain/concrete/combatbrain = brain
 	var/panicking = GetState(STATE_PANIC, FALSE)
 	var/is_different = FALSE
 
-	if(simCommander && (simCommander.GetNeed(NEED_COMPOSURE, NEED_SATISFIED) < NEED_THRESHOLD))
+	if(combatbrain && (combatbrain.GetNeed(NEED_COMPOSURE, NEED_SATISFIED) < NEED_THRESHOLD))
 		is_different = (panicking != TRUE)
 		panicking = TRUE
 
-	else if(simCommander && (simCommander.GetNeed(NEED_COMPOSURE, NEED_SATISFIED) >= NEED_THRESHOLD))
+	else if(combatbrain && (combatbrain.GetNeed(NEED_COMPOSURE, NEED_SATISFIED) >= NEED_THRESHOLD))
 		is_different = (panicking != FALSE)
 		panicking = FALSE
 
@@ -66,7 +69,6 @@
 			SetState(STATE_DISORIENTED, TRUE)
 			//brain.SetMemory(MEM_TRUST_BESTPOS, FALSE, 1000)
 
-		world.log << "Calling LifeTick()"
 		brain.LifeTick()
 
 		for(var/datum/ActionTracker/instant_action_tracker in brain.pending_instant_actions)
@@ -76,6 +78,7 @@
 
 		if(brain.running_action_tracker)
 			var/tracked_action = brain.running_action_tracker.tracked_action
+			//world.log << "MobComm [src] - RUNNING ACTIoN [tracked_action]"
 
 			if(tracked_action)
 				HandleAction(tracked_action, brain.running_action_tracker)

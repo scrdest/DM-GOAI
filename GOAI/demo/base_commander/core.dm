@@ -52,12 +52,15 @@
 	src.actionlookup = src.InitActionLookup()  // order matters!
 	src.actionslist = src.InitActionsList()
 
-	src.Equip()
+	src.PreSetupHook()
+
 	src.brain = src.CreateBrain(actionslist)
 	src.InitNeeds()
 	src.InitStates()
 	src.UpdateBrain()
 	src.InitSenses()
+
+	src.PostSetupHook()
 
 	if(true_active)
 		src.Life()

@@ -1,5 +1,5 @@
 
-/mob/verb/CommanderGiveFollowOrder(datum/goai/mob_commander/M in global_goai_registry, mob/Trg in world)
+/mob/verb/CommanderGiveFollowOrder(datum/goai/mob_commander/combat_commander/M in global_goai_registry, mob/Trg in world)
 	set category = "Commander Orders"
 
 	if(!M)
@@ -23,7 +23,7 @@
 	return waypoint
 
 
-/mob/verb/CommanderGiveMoveOrder(datum/goai/mob_commander/M in global_goai_registry, posX as num, posY as num)
+/mob/verb/CommanderGiveMoveOrder(datum/goai/mob_commander/combat_commander/M in global_goai_registry, posX as num, posY as num)
 	set category = "Commander Orders"
 
 	var/trueX = posX % world.maxx
@@ -52,7 +52,7 @@
 	return waypoint
 
 
-/mob/verb/CommanderCancelOrders(datum/goai/mob_commander/M in global_goai_registry)
+/mob/verb/CommanderCancelOrders(datum/goai/mob_commander/combat_commander/M in global_goai_registry)
 	set category = "Commander Orders"
 
 	M.SetState(STATE_DOWNTIME, TRUE)
@@ -66,7 +66,7 @@
 	return TRUE
 
 
-/mob/verb/CommanderDisarm(datum/goai/mob_commander/M in global_goai_registry)
+/mob/verb/CommanderDisarm(datum/goai/mob_commander/combat_commander/M in global_goai_registry)
 	set category = "Commander Orders"
 
 	var/curr_firing_state = ((STATE_CANFIRE in M.states) ? M.states[STATE_CANFIRE] : FALSE)
@@ -77,7 +77,7 @@
 	return
 
 
-/mob/verb/CommanderPanic(datum/goai/mob_commander/M in global_goai_registry)
+/mob/verb/CommanderPanic(datum/goai/mob_commander/combat_commander/M in global_goai_registry)
 	set category = "Commander Orders"
 
 	var/curr_panic_state = M.GetState(STATE_PANIC)

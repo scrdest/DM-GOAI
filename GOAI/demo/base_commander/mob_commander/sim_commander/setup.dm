@@ -1,12 +1,12 @@
 
 
-/datum/goai/sim_commander/InitStates()
+/datum/goai/mob_commander/sim_commander/InitStates()
 	states = ..()
 
 	return states
 
 
-/datum/goai/sim_commander/InitNeeds()
+/datum/goai/mob_commander/sim_commander/InitNeeds()
 	needs = ..()
 
 	needs[MOTIVE_SLEEP] = NEED_THRESHOLD
@@ -15,7 +15,7 @@
 	return needs
 
 
-/datum/goai/sim_commander/InitActionsList()
+/datum/goai/mob_commander/sim_commander/InitActionsList()
 	/* TODO: add Time as a resource! */
 
 	AddAction(
@@ -27,7 +27,7 @@
 			MOTIVE_FOOD = 40,
 			RESOURCE_FOOD = -1
 		),
-		/datum/goai/sim_commander/proc/HandleEating,
+		/datum/goai/mob_commander/sim_commander/proc/HandleEating,
 		10,
 		PLUS_INF,
 		FALSE
@@ -42,7 +42,7 @@
 			RESOURCE_MONEY = -10,
 			RESOURCE_FOOD = 1
 		),
-		/datum/goai/sim_commander/proc/HandleShopping,
+		/datum/goai/mob_commander/sim_commander/proc/HandleShopping,
 		10,
 		PLUS_INF,
 		FALSE
@@ -58,7 +58,7 @@
 			MOTIVE_SLEEP = 15,
 			MOTIVE_FUN = 40,
 		),
-		/datum/goai/sim_commander/proc/HandlePartying,
+		/datum/goai/mob_commander/sim_commander/proc/HandlePartying,
 		10,
 		PLUS_INF,
 		FALSE
@@ -72,7 +72,7 @@
 		list(
 			MOTIVE_SLEEP = 50,
 		),
-		/datum/goai/sim_commander/proc/HandleSleeping,
+		/datum/goai/mob_commander/sim_commander/proc/HandleSleeping,
 		10,
 		PLUS_INF,
 		FALSE
@@ -88,7 +88,7 @@
 			"HasDirtyDishes" = -1,
 			"HasCleanDishes" = 1
 		),
-		/datum/goai/sim_commander/proc/HandleSleeping,
+		/datum/goai/mob_commander/sim_commander/proc/HandleSleeping,
 		10,
 		PLUS_INF,
 		FALSE
@@ -103,7 +103,7 @@
 		list(
 			RESOURCE_MONEY = 10,
 		),
-		/datum/goai/sim_commander/proc/HandleWorking,
+		/datum/goai/mob_commander/sim_commander/proc/HandleWorking,
 		10,
 		PLUS_INF,
 		FALSE
@@ -117,7 +117,7 @@
 		list(
 			MOTIVE_SLEEP = 5,
 		),
-		/datum/goai/sim_commander/proc/HandleIdle,
+		/datum/goai/mob_commander/sim_commander/proc/HandleIdle,
 		10,
 		PLUS_INF,
 		FALSE
@@ -126,13 +126,7 @@
 	return src.actionslist
 
 
-/datum/goai/sim_commander/Equip()
-	. = ..()
-
-	return
-
-
-/datum/goai/sim_commander/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
+/datum/goai/mob_commander/sim_commander/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/dict/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)
 	var/dict/new_personality = (isnull(custom_personality) ? GeneratePersonality() : custom_personality)
 

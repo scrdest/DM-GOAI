@@ -1,5 +1,5 @@
 
-/mob/verb/InspectGoaiMobCommanderVars(datum/goai/mob_commander/commander in global_goai_registry)
+/mob/verb/InspectGoaiMobCommanderVars(datum/goai/mob_commander/combat_commander/commander in global_goai_registry)
 	set category = "Debug GOAI Commanders"
 
 	if(isnull(commander))
@@ -19,7 +19,7 @@
 	return
 
 
-/mob/verb/InspectGoaiMobCommanderTrackerVars(datum/goai/mob_commander/commander in global_goai_registry)
+/mob/verb/InspectGoaiMobCommanderTrackerVars(datum/goai/mob_commander/combat_commander/commander in global_goai_registry)
 	set category = "Debug GOAI Commanders"
 
 	if(isnull(commander))

@@ -14,7 +14,7 @@
 	return
 
 
-/mob/verb/RebootGoaiCommander(datum/goai/mob_commander/commander in global_goai_registry)
+/mob/verb/RebootGoaiCommander(datum/goai/mob_commander/combat_commander/commander in global_goai_registry)
 	set category = "Debug GOAI Commanders"
 
 	commander.LobotomizeGoai()
@@ -58,7 +58,7 @@
 	return
 
 
-/mob/verb/PauseGoaiCommander(datum/goai/mob_commander/commander in global_goai_registry)
+/mob/verb/PauseGoaiCommander(datum/goai/mob_commander/combat_commander/commander in global_goai_registry)
 	set category = "Debug GOAI Commanders"
 	commander.life = 0
 	return
@@ -76,7 +76,7 @@
 
 
 
-/mob/verb/UnpauseGoaiCommander(datum/goai/mob_commander/commander in global_goai_registry)
+/mob/verb/UnpauseGoaiCommander(datum/goai/mob_commander/combat_commander/commander in global_goai_registry)
 	set category = "Debug GOAI Commanders"
 
 	commander.life = 1
