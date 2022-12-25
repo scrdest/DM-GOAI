@@ -2,13 +2,29 @@
 	var/true_name = name
 
 	var/mob/goai/combatant/M = new(active = FALSE)
+	if(true_name)
+		M.name = true_name
+
 	M.pLobotomizeGoai(stop_life = FALSE) // probably should refactor to not make a brain in the first place!
+
+	if(mob_icon)
+		M.icon = mob_icon
+
+	if(mob_icon_state)
+		M.icon_state = mob_icon_state
+
 	M.loc = loc
 
 	var/datum/goai/mob_commander/new_commander = new()
 
 	new_commander.pawn = M
-	M.attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
+	var/dict/pawn_attachments = M.attachments
+
+	if(isnull(pawn_attachments))
+		pawn_attachments = new()
+		M.attachments = pawn_attachments
+
+	pawn_attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
 	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
 
 	true_name = true_name || "AI of [M.name]"
@@ -117,7 +133,7 @@
 	script = /proc/spawn_commanded_sim
 
 
-/obj/spawner/oneshot/commanded_mob/CallScript()
+/obj/spawner/oneshot/sim_mob/CallScript()
 	if(!active)
 		return
 

@@ -38,7 +38,7 @@
 		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
 
 		if(!best_cand_quad)
-			world.log << "No Quad found, breaking the ValidateWaypoint loop!"
+			world.log << "[src.name] No Quad found, breaking the ValidateWaypoint loop!"
 			break
 
 		best_local_pos = best_cand_quad.fourth

@@ -307,7 +307,7 @@
 
 		var/atom/curr_threat = threats[threat_ghost]
 		var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat_ghost, PLUS_INF) : PLUS_INF)
-		var/curr_threat_distance = GetThreatDistance(src, threat_ghost, PLUS_INF)
+		var/curr_threat_distance = GetThreatDistance(src.pawn, threat_ghost, PLUS_INF)
 		var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat_ghost, PLUS_INF)
 
 		var/atom/bestpos_threat_neighbor = (curr_threat ? get_step_towards(best_local_pos, curr_threat) : null)
@@ -330,6 +330,8 @@
 	// Pathfinding/search
 	if(isnull(best_local_pos))
 		best_local_pos = ChooseCoverleapLandmark(startpos, primary_threat, prev_loc_memdata, threats, min_safe_dist)
+		best_local_pos?.pDrawVectorbeam(src.pawn, best_local_pos, "n_beam")
+
 		tracker?.BBSet("bestpos", best_local_pos)
 		world.log << (isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos [best_local_pos]")
 

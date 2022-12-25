@@ -2,6 +2,7 @@
 "b" = (/turf/ground,/area)
 "c" = (/obj/spawner/oneshot/faction{active = 0; name = "faction spawner (inactive)"},/turf/ground,/area)
 "d" = (/obj/spawner/oneshot/commanded_mob,/turf/ground,/area)
+"e" = (/obj/spawner/oneshot/commanded_mob{commander_name = "Skrellorist"; icon_state = "skrellorist"; mob_icon = 'icons/uristmob/simpleanimals.dmi'; mob_icon_state = "skrellorist"},/turf/ground,/area)
 
 (1,1,1) = {"
 aaaaaaaaaaaaaaaa
@@ -12,9 +13,9 @@ abbabbbbbbbbbbba
 abbabbbbbbbbbbba
 abbaaabbbbbbbbaa
 abbabbbbbbcbbbba
-abaabbbbbbbbbbba
+abaabbbbbbbbebba
 abbabbbbbbbbbbba
-abbaaabbbbabbbba
+abbaaabbbbbbbbba
 abbabbbbbbbbbbba
 abbaaabbbbbbbbba
 abbbbbbbdbbbbbba

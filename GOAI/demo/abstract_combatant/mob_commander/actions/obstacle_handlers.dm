@@ -99,10 +99,10 @@
 		return*/
 
 	var/turf/obs_turf = get_turf(obstruction)
-	var/dist_to_obs = ChebyshevDistance(get_turf(src), obs_turf)
+	var/dist_to_obs = ChebyshevDistance(get_turf(src.pawn), obs_turf)
 	var/opened = FALSE
 
-	world.log << "[src] distance to autodoor [obstruction] is [dist_to_obs]"
+	world.log << "[src.pawn] distance to autodoor [obstruction] is [dist_to_obs]"
 
 	if(dist_to_obs < 2 && !(obstruction.open))
 		// Within 1-tile range diagonally? Open it.

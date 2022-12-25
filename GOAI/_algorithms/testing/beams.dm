@@ -45,8 +45,11 @@
 	return
 
 
-/obj/vectorbeam/New(var/atom/new_source = null, var/new_scale = null, var/new_dist = null, var/new_angle = null)
+/obj/vectorbeam/New(var/atom/new_source = null, var/new_scale = null, var/new_dist = null, var/new_angle = null, var/beam_icon_state = null)
 	..()
+
+	if(beam_icon_state)
+		src.icon_state = beam_icon_state
 
 	source = (isnull(new_source) ? loc : new_source)
 	src.UpdateVector(new_source, new_scale, new_dist, new_angle)
@@ -75,7 +78,7 @@
 		del(src)
 
 
-/atom/proc/pDrawVectorbeam(var/atom/start, var/atom/end = null)
+/atom/proc/pDrawVectorbeam(var/atom/start, var/atom/end = null, var/beam_icon_state = null)
 	var/atom/true_end = end
 	true_end = (isnull(end) ? src : end)
 
@@ -87,7 +90,7 @@
 
 	var/Vector2d/vec_length = dist
 
-	var/obj/vectorbeam/vanishing/new_beam = new(get_turf(start), vec_length, vec_length, angle)
+	var/obj/vectorbeam/vanishing/new_beam = new(get_turf(start), vec_length, vec_length, angle, beam_icon_state)
 	return new_beam
 
 
