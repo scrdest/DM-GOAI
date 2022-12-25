@@ -18,7 +18,7 @@
 
 	var/action_key = null
 
-	if(obstruction == src)
+	if(obstruction == src.pawn)
 		// Embarassing case...
 		handled = TRUE
 
@@ -34,13 +34,18 @@
 		open_door_effects["UsedUpAction [action_key]"] = TRUE
 		open_door_effects[obs_need_key] = TRUE
 
+		var/list/action_args = list()
+		action_args["obstruction"] = D
+
 		AddAction(
 			action_key,
 			open_door_preconds,
 			open_door_effects,
 			/datum/goai/mob_commander/proc/HandleOpenDoor,
 			0,
-			1
+			1,
+			FALSE,
+			action_args
 		)
 
 		goto_preconds[obs_need_key] = TRUE
@@ -66,13 +71,18 @@
 		open_autodoor_effects["UsedUpAction [action_key]"] = TRUE
 		open_autodoor_effects[obs_need_key] = TRUE
 
+		var/list/action_args = list()
+		action_args["obstruction"] = AD
+
 		AddAction(
 			action_key,
 			open_autodoor_preconds,
 			open_autodoor_effects,
 			/datum/goai/mob_commander/proc/HandleOpenAutodoor,
 			0,
-			1
+			1,
+			FALSE,
+			action_args
 		)
 
 		goto_preconds[obs_need_key] = TRUE

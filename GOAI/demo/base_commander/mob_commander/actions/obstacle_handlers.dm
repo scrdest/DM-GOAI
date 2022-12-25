@@ -1,4 +1,4 @@
-/datum/goai/mob_commander/proc/HandleOpenDoor(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/proc/HandleOpenDoor(var/datum/ActionTracker/tracker, var/obj/cover/door/obstruction)
 	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
@@ -10,31 +10,26 @@
 		tracker.SetFailed()
 		return
 
-	if(!brain)
-		world.log << "[src] HandleOpenDoor - no brain!"
-		tracker.SetFailed()
-		return
+	var/obj/cover/door/obsdoor = obstruction
 
-	var/obj/cover/door/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION, null)
-
-	if(isnull(obstruction))
+	if(isnull(obsdoor))
 		world.log << "[src] HandleOpenDoor - no Obstruction!"
 		tracker.SetFailed()
 		return
 
-	/*if(!istype(obstruction))
+	/*if(!istype(obsdoor))
 		world.log << "[src] HandleOpenDoor - wrong type!"
 		tracker.SetFailed()
 		return*/
 
-	var/turf/obs_turf = get_turf(obstruction)
-	var/dist_to_obs = ChebyshevDistance(get_turf(src), obs_turf)
+	var/turf/obs_turf = get_turf(obsdoor)
+	var/dist_to_obs = ChebyshevDistance(get_turf(src.pawn), obs_turf)
 	var/opened = FALSE
 
 	while(dist_to_obs < 2 && !(obstruction.open))
 		// Within 1-tile range diagonally? Open it.
-		world.log << "[src] is opening a door [obstruction]"
-		opened = obstruction.Open()
+		world.log << "[src] is opening a door [obsdoor]"
+		opened = obsdoor.Open()
 		if(opened)
 			break
 
@@ -55,7 +50,7 @@
 				//	entering_door = TRUE
 
 			if(!entering_door)
-				StartNavigateTo(obstruction, 0)
+				StartNavigateTo(obs_turf, 0)
 				tracker.BBSet("entering_door", TRUE)
 
 	else
@@ -63,13 +58,13 @@
 		var/list/path_to_door = tracker.BBGet("PathToDoor", null)
 
 		if(isnull(path_to_door) || !src.active_path)
-			path_to_door = StartNavigateTo(obstruction, 1)
+			path_to_door = StartNavigateTo(obs_turf, 1)
 			tracker.BBSet("PathToDoor", path_to_door)
 
 	return
 
 
-/datum/goai/mob_commander/proc/HandleOpenAutodoor(var/datum/ActionTracker/tracker)
+/datum/goai/mob_commander/proc/HandleOpenAutodoor(var/datum/ActionTracker/tracker, var/obstruction)
 	if(!(src.pawn))
 		world.log << "[src] does not have an owned mob!"
 		return
@@ -81,35 +76,32 @@
 		tracker.SetFailed()
 		return
 
-	if(!brain)
-		world.log << "[src] HandleOpenAutodoor - no brain!"
+	var/obj/cover/autodoor/obsdoor = obstruction
+
+	if(isnull(obsdoor))
+		world.log << "[src] HandleOpenAutodoor - no Obstruction <[obstruction]>!"
+		for(var/argkey in args)
+			world.log << "[src] HandleOpenAutodoor arg: [argkey]"
 		tracker.SetFailed()
 		return
 
-	var/obj/cover/autodoor/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION, null)
-
-	if(isnull(obstruction))
-		world.log << "[src] HandleOpenAutodoor - no Obstruction!"
-		tracker.SetFailed()
-		return
-
-	/*if(!istype(obstruction))
+	/*if(!istype(obsdoor))
 		world.log << "[src] HandleOpenAutodoor - wrong type!"
 		tracker.SetFailed()
 		return*/
 
-	var/turf/obs_turf = get_turf(obstruction)
+	var/turf/obs_turf = get_turf(obsdoor)
 	var/dist_to_obs = ChebyshevDistance(get_turf(src.pawn), obs_turf)
 	var/opened = FALSE
 
 	world.log << "[src.pawn] distance to autodoor [obstruction] is [dist_to_obs]"
 
-	if(dist_to_obs < 2 && !(obstruction.open))
+	if(dist_to_obs < 2 && !(obsdoor.open))
 		// Within 1-tile range diagonally? Open it.
 		world.log << "[src] is opening an autodoor [obstruction]"
-		opened = obstruction.Open()
+		opened = obsdoor.Open()
 
-	if(obstruction.open || opened)
+	if(obsdoor.open || opened)
 		if(dist_to_obs < 1)
 			// Literally in the doorway - we're done.
 			if(tracker.IsRunning())
@@ -126,7 +118,7 @@
 				//	entering_door = TRUE
 
 			if(!entering_door)
-				StartNavigateTo(obstruction, 0)
+				StartNavigateTo(obs_turf, 0)
 				tracker.BBSet("entering_door", TRUE)
 
 
@@ -135,7 +127,7 @@
 		var/list/path_to_door = tracker.BBGet("PathToDoor", null)
 
 		if(isnull(path_to_door) || !src.active_path)
-			path_to_door = StartNavigateTo(obstruction, 1)
+			path_to_door = StartNavigateTo(obsdoor, 1)
 			tracker.BBSet("PathToDoor", path_to_door)
 
 	return

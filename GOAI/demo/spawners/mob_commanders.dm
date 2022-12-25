@@ -1,4 +1,4 @@
-/proc/spawn_commanded_combatant(var/atom/loc, var/name = null, var/mob_icon = null, var/mob_icon_state = null)
+/proc/spawn_commanded_combatant(var/atom/loc, var/name = null, var/mob_icon = null, var/mob_icon_state = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
 	var/mob/goai/combatant/M = new(active = FALSE)
@@ -15,29 +15,34 @@
 
 	M.loc = loc
 
-	var/datum/goai/mob_commander/combat_commander/new_commander = new()
+	if(spawn_commander)
+		var/datum/goai/mob_commander/combat_commander/new_commander = new()
 
-	new_commander.pawn = M
-	var/dict/pawn_attachments = M.attachments
+		new_commander.pawn = M
+		var/dict/pawn_attachments = M.attachments
 
-	if(isnull(pawn_attachments))
-		pawn_attachments = new()
-		M.attachments = pawn_attachments
+		if(isnull(pawn_attachments))
+			pawn_attachments = new()
+			M.attachments = pawn_attachments
 
-	pawn_attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
-	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
+		pawn_attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
+		world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
 
-	true_name = true_name || "AI of [M.name]"
-	if(true_name)
-		new_commander.name = true_name
+		true_name = true_name || "AI of [M.name]"
+		if(true_name)
+			new_commander.name = true_name
 
-	world.log << "Spawned [new_commander.name]/[M]"
+		world.log << "Spawned [new_commander.name]/[M]"
+
+	return
+
 
 
 /obj/spawner/oneshot/commanded_mob
 	var/commander_name = null
 	var/mob_icon = null
 	var/mob_icon_state = null
+	var/spawn_commander = TRUE
 
 	icon = 'icons/uristmob/simpleanimals.dmi'
 	icon_state = "ANTAG"
@@ -56,7 +61,8 @@
 		loc = src.loc,
 		name = src.commander_name,
 		mob_icon = true_mob_icon,
-		mob_icon_state = true_mob_icon_state
+		mob_icon_state = true_mob_icon_state,
+		spawn_commander = spawn_commander
 	)
 
 	call(script)(arglist(script_args))

@@ -58,11 +58,11 @@
 	return new_actionslist
 
 
-/mob/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE)
+/mob/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, var/list/action_args = null)
 	if(charges < 1)
 		return
 
-	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant)
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant, action_args)
 
 	actionslist = (isnull(actionslist) ? list() : actionslist)
 	actionslist[name] = newaction
@@ -72,7 +72,7 @@
 		actionlookup[name] = handler
 
 	if(brain)
-		brain.AddAction(name, preconds, effects, cost, charges, instant)
+		brain.AddAction(name, preconds, effects, cost, charges, instant, action_args)
 
 	return newaction
 

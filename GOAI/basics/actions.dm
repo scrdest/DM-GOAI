@@ -2,6 +2,7 @@
 /datum/goai_action
 	var/list/preconditions
 	var/list/effects
+	var/list/arguments
 
 	/* Priority */
 	var/cost = 10 // standard
@@ -31,13 +32,16 @@
 	var/instant = FALSE
 
 
-/datum/goai_action/New(var/list/new_preconds, var/list/new_effects, var/new_cost = null, var/new_name = null, var/new_charges = null, var/is_instant = null)
-	name = (isnull(new_name) ? name : new_name)
-	cost = (isnull(new_cost) ? cost : new_cost)
-	preconditions = (new_preconds || list())
-	effects = (new_effects || list())
-	charges = (isnull(new_charges) ? charges : new_charges)
-	instant = (isnull(is_instant) ? instant : is_instant)
+/datum/goai_action/New(var/list/new_preconds, var/list/new_effects, var/new_cost = null, var/new_name = null, var/new_charges = null, var/is_instant = null, var/list/action_args = null)
+	src.name = (isnull(new_name) ? name : new_name)
+	src.cost = (isnull(new_cost) ? cost : new_cost)
+	src.preconditions = (new_preconds || list())
+	src.effects = (new_effects || list())
+	src.charges = (isnull(new_charges) ? charges : new_charges)
+	src.instant = (isnull(is_instant) ? instant : is_instant)
+	src.arguments = (action_args || list())
+
+	//world.log << "Created new action [src.name] with cost [src.cost], charges [src.charges], instant=[src.instant], args=[src.arguments?.len]"
 
 
 /datum/goai_action/proc/ReduceCharges(var/amt=1)

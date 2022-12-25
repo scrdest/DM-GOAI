@@ -173,7 +173,7 @@
 	return available_actions
 
 
-/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, clone = FALSE)
+/datum/brain/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, clone = FALSE, var/list/action_args = null)
 	/*
 	//
 	// - clone (bool): If TRUE (default), the list is a clone of the actionslist (slower, but safer).
@@ -181,7 +181,7 @@
 	*/
 	ADD_ACTION_DEBUG_LOG("Adding action [name] with [cost] cost, [charges] charges")
 	var/list/available_actions = (clone ? actionslist.Copy() : actionslist) || list()
-	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges)
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant, action_args)
 	available_actions[name] = newaction
 
 	return newaction
@@ -336,7 +336,6 @@
 
 	/*for(var/graphkey in planner.graph)
 		world.log << "[src] CreatePlan Planner graph: [graphkey] => [planner.graph[graphkey]]"*/
-
 
 	var/datum/Tuple/result = planner.Plan(arglist(params))
 

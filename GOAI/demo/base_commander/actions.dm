@@ -25,11 +25,11 @@
 	return direction
 
 
-/datum/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE)
+/datum/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, var/list/action_args = null)
 	if(charges < 1)
 		return
 
-	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant)
+	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant, action_args)
 
 	actionslist = (isnull(actionslist) ? list() : actionslist)
 	actionslist[name] = newaction
@@ -39,7 +39,7 @@
 		actionlookup[name] = handler
 
 	if(brain)
-		brain.AddAction(name, preconds, effects, cost, charges, instant)
+		brain.AddAction(name, preconds, effects, cost, charges, instant, FALSE, action_args)
 
 	return newaction
 
@@ -64,16 +64,15 @@
 
 			var/actionproc = action_lookup[action.name]
 
-			/*for(var/alkey in action_lookup)
-				world.log << "[src] action lookup: [alkey] => [action_lookup[alkey]]"*/
-
-			//world.log << "[src]: Actionproc for [action] is [actionproc || "null"]"
+			var/list/action_args = list()
+			action_args["tracker"] = tracker
+			action_args += action.arguments
 
 			if(isnull(actionproc))
 				tracker.SetFailed()
 
 			else
-				call(src, actionproc)(tracker)
+				call(src, actionproc)(arglist(action_args))
 
 				if(action.instant)
 					break
@@ -94,11 +93,15 @@
 
 	var/actionproc = action_lookup[action.name]
 
+	var/list/action_args = list()
+	action_args["tracker"] = tracker
+	action_args += action.arguments
+
 	if(isnull(actionproc))
 		tracker.SetFailed()
 
 	else
-		call(src, actionproc)(tracker)
+		call(src, actionproc)(arglist(action_args))
 
 	return
 

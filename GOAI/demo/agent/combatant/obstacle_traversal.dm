@@ -40,7 +40,9 @@
 			open_door_effects,
 			/mob/goai/combatant/proc/HandleOpenDoor,
 			0,
-			1
+			1,
+			FALSE,
+			list("obstacle" = D)
 		)
 
 		goto_preconds[obs_need_key] = TRUE
@@ -72,7 +74,9 @@
 			open_autodoor_effects,
 			/mob/goai/combatant/proc/HandleOpenAutodoor,
 			0,
-			1
+			1,
+			FALSE,
+			list("obstacle" = D)
 		)
 
 		goto_preconds[obs_need_key] = TRUE
