@@ -5,16 +5,16 @@
 	if(isnull(commander))
 		return
 
-	to_chat(usr, " ")
-	to_chat(usr, "#============================================#")
-	to_chat(usr, "|          GOAI Mob Commander: [commander]          ")
-	to_chat(usr, "#============================================#")
-	to_chat(usr, "|")
+	usr << " "
+	usr << "#============================================#"
+	usr << "|          GOAI Mob Commander: [commander]          "
+	usr << "#============================================#"
+	usr << "|"
 
 	for(var/V in commander.vars)
-		to_chat(usr, "| - [V] = [commander.vars[V]]")
+		usr << "| - [V] = [commander.vars[V]]"
 
-	to_chat(usr, "#============================================#")
+	usr << "#============================================#"
 
 	return
 
@@ -25,20 +25,20 @@
 	if(isnull(commander))
 		return
 
-	to_chat(usr, " ")
-	to_chat(usr, "#============================================#")
-	to_chat(usr, "|          GOAI Mob Commander: [commander]          ")
-	to_chat(usr, "#============================================#")
-	to_chat(usr, "|")
+	usr << " "
+	usr << "#============================================#"
+	usr << "|          GOAI Mob Commander: [commander]          "
+	usr << "#============================================#"
+	usr << "|"
 
 	var/list/tracker_vars = commander.active_path?.vars
 	if(isnull(tracker_vars))
 		return
 
 	for(var/V in tracker_vars)
-		to_chat(usr, "| - [V] = [tracker_vars[V]]")
+		usr << "| - [V] = [tracker_vars[V]]"
 
-	to_chat(usr, "#============================================#")
+	usr << "#============================================#"
 
 	return
 
@@ -49,13 +49,10 @@
 	var/removed = 0
 
 	for(var/datum/goai/mob_commander/commander in global_goai_registry)
-		var/atom/pawn = commander?.GetPawn()
-		var/mob/living/L = pawn
-
-		if(!(pawn) || (L && istype(L) && L.stat == DEAD))
-			to_chat(usr, "Deregistering [commander?.name]...")
+		if(!(commander?.pawn))
+			usr << "Deregistering [commander?.name]..."
 			deregister_ai(commander?.registry_index)
 			removed++
 
-	to_chat(usr, "Finished GOAI mob commander cleanup! Removed entry count: [removed]")
+	usr << "Finished GOAI mob commander cleanup! Removed entry count: [removed]"
 	return
