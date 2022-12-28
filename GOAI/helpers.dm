@@ -2,9 +2,10 @@
 /proc/floor(x)
 	return round(x)
 
+/*
 /proc/ceil(x)
 	return -round(-x)
-
+*/
 
 /proc/greater_than(var/left, var/right)
 	var/result = left > right

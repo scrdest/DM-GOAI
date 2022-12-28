@@ -1,4 +1,4 @@
-
+/*
 /proc/spawn_commanded_combatant(var/atom/loc, var/name = null, var/mob_icon = null, var/mob_icon_state = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
@@ -65,13 +65,9 @@
 	)
 
 	call(script)(arglist(script_args))
-
-
-/*
-// Humanoid (i.e. regular spessman)
 */
 
-/*
+
 /proc/spawn_commanded_humanoid(var/atom/loc, var/name = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
@@ -82,8 +78,7 @@
 	if(true_name)
 		M.real_name = true_name
 	else
-		//M.real_name = random_name(mob_gender, SPECIES_HUMAN)
-		M.real_name = "[rand(0, 10000)]"
+		M.real_name = random_name(mob_gender, SPECIES_HUMAN)
 
 	M.h_style = random_hair_style(mob_gender, SPECIES_HUMAN)
 	M.f_style = random_facial_hair_style(mob_gender, SPECIES_HUMAN)
@@ -134,59 +129,11 @@
 	call(script)(arglist(script_args))
 
 
-/*
-// SimpleAnimal
-*/
-/proc/spawn_commanded_simpleanimal(var/atom/loc, var/name = null, var/spawn_commander = TRUE)
-	if(!loc)
-		return
-
-	var/true_name = name
-
-	var/mob/living/simple_animal/hostile/urist/commando/M = new()
-	if(true_name)
-		M.name = true_name
-
-	M.loc = loc
-
-	if(spawn_commander)
-		AttachCombatCommanderTo(M)
-
-	return
-
-
-/obj/spawner/oneshot/commanded_simpleanimal
-	var/commander_name = null
-	var/spawn_commander = TRUE
-
-	icon = 'icons/uristmob/simpleanimals.dmi'
-	icon_state = "ANTAG"
-
-	script = /proc/spawn_commanded_simpleanimal
-
-
-/obj/spawner/oneshot/commanded_simpleanimal/CallScript()
-	if(!active)
-		return
-
-	var/script_args = list(
-		loc = src.loc,
-		name = src.commander_name,
-		spawn_commander = spawn_commander
-	)
-
-	call(script)(arglist(script_args))
-*/
-
-/*
-// Object, because why not?
-*/
 
 /proc/spawn_commanded_object(var/atom/loc, var/name = null)
 	var/true_name = name
 
-	var/obj/item/weapon/M = new(loc)
-
+	var/obj/gun/M = new(loc)
 	if(true_name)
 		M.name = true_name
 
@@ -202,8 +149,8 @@
 /obj/spawner/oneshot/commanded_object
 	var/commander_name = null
 
-	icon = 'icons/obj/gun.dmi'
-	icon_state = "laser"
+	icon = 'icons/obj/guns/small_egun.dmi'
+	icon_state = "smallgunkill75"
 
 	script = /proc/spawn_commanded_object
 

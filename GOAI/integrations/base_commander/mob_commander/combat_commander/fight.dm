@@ -1,6 +1,5 @@
 /datum/goai/mob_commander/combat_commander/proc/FightTick()
-	var/atom/pawn = src.GetPawn()
-	if(!pawn)
+	if(!(src.pawn))
 		to_world_log("[src] does not have an owned mob!")
 		return
 
@@ -27,14 +26,13 @@
 		var/list/curr_view = brain?.perceptions?.Get(SENSE_SIGHT)
 
 		if(target in curr_view)
-			var/distance = ChebyshevDistance(pawn, target)
+			var/distance = ChebyshevDistance(src.pawn, target)
 
 			if(distance > 1)
-				//to_world_log("[src] - (pawn [pawn]) running Shoot!")
-				src.Shoot(null, target)
+				Shoot(null, target)
 
 			else
-				src.Melee(target)
+				Melee(target)
 
 	return
 

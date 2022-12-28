@@ -9,7 +9,7 @@
 		// No point processing this if there's no memories to set
 		return
 
-	var/atom/pawn = owner.GetPawn()
+	var/atom/pawn = owner.pawn
 
 	if(isnull(pawn))
 		// We grab the view range from the owned mob, so we need it here
@@ -41,8 +41,7 @@
 	if(!(true_searchspace))
 		return
 
-	var/atom/pawn = owner?.GetPawn()
-	var/my_loc = pawn?.loc
+	var/my_loc = owner?.pawn?.loc
 	if(isnull(my_loc))
 		return
 
@@ -50,10 +49,7 @@
 
 	// TODO: Refactor to accept objects/structures as threats (turrets, grenades...).
 	for(var/mob/enemy in true_searchspace)
-		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal) || istype(enemy, /mob/living/bot)))
-			continue
-
-		if(!(owner.IsEnemy(enemy)))
+		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal)))
 			continue
 
 		var/enemy_dist = ManhattanDistance(my_loc, enemy)
@@ -180,9 +176,7 @@
 		// No mob - no point.
 		return
 
-	var/atom/pawn = owner?.GetPawn()
-
-	if(!(pawn))
+	if(!(owner.pawn))
 		// No mob - no point.
 		return
 
@@ -280,11 +274,7 @@
 		// No mob - no point.
 		return
 
-	var/atom/pawn = owner?.GetPawn()
-	if(!pawn)
-		return
-
-	var/owner_z = pawn.z
+	var/owner_z = owner?.pawn?.z
 
 	var/datum/brain/owner_brain = owner?.brain
 	if(isnull(owner_brain))
@@ -374,8 +364,8 @@
 		// useless in a vacuum
 		return
 
-	var/atom/pawn = owner.GetPawn()
-	if(!pawn)
+	if(!owner.pawn)
+		// useless in a vacuum
 		return
 
 	if(!(owner.brain))

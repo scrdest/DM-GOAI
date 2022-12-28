@@ -61,8 +61,8 @@
 
 /obj/item/weapon/gun
 	name = "Gun"
-	icon = 'icons/obj/gun.dmi'
-	icon_state = "laser"
+	icon = 'icons/obj/guns/small_egun.dmi'
+	icon_state = "smallgunkill75"
 
 	var/cooling = FALSE
 	var/cooldown_time_deterministic = 17
