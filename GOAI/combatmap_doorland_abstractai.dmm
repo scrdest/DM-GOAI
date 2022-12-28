@@ -1,7 +1,7 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
 "c" = (/obj/cover/door,/turf/ground,/area)
-"d" = (/obj/spawner/oneshot/commanded_mob{active = 1; commander_name = "ANTAG"; name = "ANTAG"; spawn_commander = 0},/turf/ground,/area)
+"d" = (/obj/spawner/oneshot/commanded_mob,/turf/ground,/area)
 "e" = (/obj/spawner/oneshot/commanded_mob{icon_state = "skrellorist"; name = "Skrellorist"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
