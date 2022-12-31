@@ -1,4 +1,3 @@
-
 /*
 
 AStar implementation shamelessly stolen from SS13 source.
