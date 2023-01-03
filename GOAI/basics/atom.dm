@@ -1,6 +1,10 @@
 /atom
-	var/datum/cover/cover = null
+	// attachments for cover & collision stuff
+	var/datum/cover/cover_data = null
 	var/datum/directional_blocker/directional_blocker = null
+	// toggle for lazy autogeneration of cover & collision
+	var/cover_gen_enabled = FALSE
+	var/blocker_gen_enabled = FALSE
 
 	// a free-form key-value map; intended for associated interfaces/scripts/whatevs
 	// eventually might be redone as a big array/SparseSet with implicit IDs, ECS-style
@@ -33,28 +37,6 @@
 /atom/proc/CurrentPositionAsTriple()
 	var/datum/Triple/pos_triple = new(src.x, src.y, src.z)
 	return pos_triple
-
-
-/atom/proc/IsCover(var/transitive = FALSE, var/for_dir = null, var/default_for_null_dir = FALSE)
-	if(src.density)
-		return TRUE
-
-	if(istype(cover) && cover?.CoversInDir(for_dir, default_for_null_dir))
-		return TRUE
-
-	if(transitive && src.HasCover(for_dir, default_for_null_dir))
-		return TRUE
-
-	return FALSE
-
-
-
-/atom/proc/HasCover(var/for_dir = null, var/default_for_null_dir = FALSE)
-	for(var/atom/local_obj in src.contents)
-		if(local_obj.IsCover(FALSE, for_dir))
-			return local_obj
-
-	return null
 
 
 /atom/Enter(var/atom/movable/O, var/atom/oldloc)

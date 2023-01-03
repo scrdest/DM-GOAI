@@ -27,8 +27,6 @@
 		// some stupid nonsense with how matrix.Turn() works requires this
 		turn_angle = 180 - angle
 
-	world.log << "SpinAngle [angle], YTrans: [y_translate]"
-
 	beam_transform.Scale(1, scale)
 
 	beam_transform.Turn(90) // the icon is vertical, so we reorient it to x-axis alignment
@@ -60,7 +58,7 @@
 
 /obj/vectorbeam/verb/Delete()
 	set src in view()
-	del(src)
+	qdel(src)
 
 
 /mob/verb/DeleteBeams()
@@ -75,7 +73,7 @@
 	. = ..()
 
 	spawn(DEFAULT_BEAM_VANISH_TIME)
-		del(src)
+		qdel(src)
 
 
 /atom/proc/pDrawVectorbeam(var/atom/start, var/atom/end = null, var/beam_icon_state = null)
@@ -97,4 +95,4 @@
 /atom/verb/DrawVectorbeam()
 	set src in view()
 	var/obj/vectorbeam/vanishing/new_beam = src.pDrawVectorbeam(usr)
-	usr << "Spawned new beam [new_beam]"
+	to_chat(usr, "Spawned new beam [new_beam]")

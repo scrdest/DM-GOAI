@@ -49,7 +49,6 @@
 	icon_state = "stone[dense_conn]"
 
 
-
 /proc/trange(rad = 0, turf/centre = null) //alternative to range (ONLY processes turfs and thus less intensive)
 	if(!centre)
 		return
@@ -88,25 +87,36 @@
 		if(!LinkBlocked(A,pStep) && !LinkBlocked(pStep,B)) return FALSE
 		return TRUE
 
-	if(DirBlocked(A,adir))
-		//world.log << "A -> B blocked; A=[A], B=[B]"
+	if(GoaiDirBlocked(A,adir))
+		//to_world_log("A -> B blocked; A=[A], B=[B]")
 		return TRUE
 
-	if(DirBlocked(B,rdir))
-		//world.log << "B -> A blocked; A=[A], B=[B]"
+	if(GoaiDirBlocked(B,rdir))
+		//to_world_log("B -> A blocked; A=[A], B=[B]")
 		return TRUE
 
 	return FALSE
 
 
-/proc/DirBlocked(var/atom/trg, var/dir, var/log=FALSE)
-	if(log)
-		world.log << "DirBlocked for [trg] called!"
+
+/turf/proc/GoaiObjectBlocked()
+	// simplified version of the SS13 logic
+	// TODO: add directional logic for flipped tables etc.
+
+	for(var/obj/object in src.contents)
+		if(!object.density)
+			continue
+
+		if(object.density)
+			return TRUE
+
+	return FALSE
+
+
+/proc/GoaiDirBlocked(var/atom/trg, var/dir)
 
 	for(var/atom/D in trg)
 		var/datum/directional_blocker/dirblocker = D.directional_blocker
-		if(log)
-			world.log << "DirBlocker for [trg] is [D]"
 
 		if(isnull(dirblocker))
 			continue
@@ -121,7 +131,7 @@
 	if(density)
 		return TRUE
 
-	if(check_objects && src.ObjectBlocked())
+	if(check_objects && src.GoaiObjectBlocked())
 		return TRUE
 
 	return FALSE
@@ -188,7 +198,7 @@
 
 /turf/proc/CardinalTurfsNoblocks()
 	var/result = CardinalTurfs(TRUE, FALSE, FALSE)
-	//world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
+	//to_world_log("CardinalTurfsNoblocks([src]) => [result] ([result?.len])")
 	return result
 
 
@@ -197,7 +207,7 @@
 		return
 
 	var/result = fCardinalTurfs(start, TRUE, FALSE, FALSE)
-	//world.log << "CardinalTurfsNoblocks([src]) => [result] ([result?.len])"
+	//to_world_log("CardinalTurfsNoblocks([src]) => [result] ([result?.len])")
 
 	return result
 

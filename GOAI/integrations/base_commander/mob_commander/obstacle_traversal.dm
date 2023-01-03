@@ -1,11 +1,11 @@
 
 /datum/goai/mob_commander/proc/HandleWaypointObstruction(var/atom/obstruction, var/atom/waypoint, var/list/shared_preconds = null, var/list/target_preconds = null, var/list/base_target_effects = null, var/move_action_name = "MoveTowards", var/move_handler = null, var/unique = TRUE, var/allow_failed = TRUE)
 	if(!waypoint || !move_action_name || !move_handler)
-		world.log << "HandleWaypointObstruction failed - no handler! FOUND: <[move_handler]>"
+		to_world_log("HandleWaypointObstruction failed - no handler! FOUND: <[move_handler]>")
 		return FALSE
 
 	if(!waypoint || !move_action_name || !move_handler)
-		world.log << "HandleWaypointObstruction failed! <[obstruction], [waypoint], [move_action_name]>"
+		to_world_log("HandleWaypointObstruction failed! <[obstruction], [waypoint], [move_action_name]>")
 		return FALSE
 
 	var/handled = isnull(obstruction)
@@ -18,7 +18,9 @@
 
 	var/action_key = null
 
-	if(obstruction == src.pawn)
+	var/atom/pawn = src.GetPawn()
+
+	if(pawn && (obstruction == pawn))
 		// Embarassing case...
 		handled = TRUE
 
@@ -114,7 +116,7 @@
 			*/
 			action_name = "[action_name] [waypoint] - [obstruction] @ [ref(obstruction)]"
 
-		//world << "Adding new move action '[action_name]'"
+		//to_world("Adding new move action '[action_name]'")
 		goto_preconds["UsedUpAction [action_name]"] = FALSE
 
 		var/list/goto_effects = (isnull(base_target_effects) ? list() : base_target_effects.Copy())

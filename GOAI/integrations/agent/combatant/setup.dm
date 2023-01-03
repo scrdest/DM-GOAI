@@ -14,7 +14,7 @@
 	states[STATE_DOWNTIME] = TRUE
 
 	/* Simple item tracker. */
-	states[STATE_HASGUN] = (locate(/obj/gun) in src.contents) ? 1 : 0
+	states[STATE_HASGUN] = (locate(/obj/item/weapon/gun) in src.contents) ? 1 : 0
 
 	/* Controls if the agent is *allowed & able* to engage using *anything*
 	// Can be used to force 'hold fire' or simulate the hands being occupied

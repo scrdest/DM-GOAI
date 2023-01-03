@@ -58,7 +58,7 @@
 		tracker.SetFailed()
 		return
 
-	var/obj/gun/my_gun = locate(/obj/gun) in src.contents
+	var/obj/item/weapon/gun/my_gun = locate(/obj/item/weapon/gun) in src.contents
 
 	if(isnull(my_gun))
 		world.log << "Gun not found for [src] to shoot D;"

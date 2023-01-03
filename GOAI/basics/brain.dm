@@ -1,11 +1,9 @@
 // # define ADD_ACTION_DEBUG_LOGGING 0
 
 # ifdef ADD_ACTION_DEBUG_LOGGING
-# define ADD_ACTION_DEBUG_LOG(X) world.log << X
-# define ADD_ACTION_DEBUG_LOG_TOSTR(X) world.log << #X + ": [X]"
+# define ADD_ACTION_DEBUG_LOG(X) to_world_log(X)
 # else
 # define ADD_ACTION_DEBUG_LOG(X)
-# define ADD_ACTION_DEBUG_LOG_TOSTR(X)
 # endif
 
 /datum/brain
@@ -65,13 +63,14 @@
 	*/
 	var/datum/brain/hivemind
 
-	/* Dict containing sensory data indexed by sense key.
-	*/
+	/* Dict containing sensory data indexed by sense key. */
 	var/dict/perceptions
 
-	/* Faction-esque data; relation modifiers by tag.
-	*/
-	var/datum/relationships
+	/* Faction-esque data; relation modifiers by tag. */
+	var/datum/relationships/relations
+
+	// For relations: minimum relation score for which we are NOT hostile
+	var/neutrality_threshold = 1
 
 	/* Bookkeeping for action execution */
 	var/is_planning = 0
@@ -88,39 +87,59 @@
 	var/planning_iter_cutoff = 30
 	var/datum/GOAP/planner
 
+	/* Dynamically attached junk */
+	var/dict/attachments
+
+	/* Cleanup stuff */
+	var/registry_index // our index in the Big Brain List
+
+	// If positive, number of ticks before we deregister & delete ourselves.
+	var/cleanup_detached_threshold = DEFAULT_ORPHAN_CLEANUP_THRESHOLD
+
+	// Tracker for the cleanup
+	var/_ticks_since_detached = 0
+
 
 /datum/brain/New(var/list/actions = null, var/list/init_memories = null, var/init_action = null, var/datum/brain/with_hivemind = null, var/dict/init_personality = null, var/newname = null, var/dict/init_relationships = null)
 	..()
 
-	name = (newname ? newname : name)
+	src.name = (newname ? newname : name)
 
-	memories = new /dict(init_memories)
-	hivemind = with_hivemind
-	personality = (isnull(init_personality) ? personality : init_personality)
-	last_need_update_times = list()
-	perceptions = new()
-	relationships = new(init_relationships)
-	pending_instant_actions = list()
+	src.memories = new /dict(init_memories)
+	src.hivemind = with_hivemind
+	src.personality = (isnull(init_personality) ? personality : init_personality)
+	src.last_need_update_times = list()
+	src.perceptions = new()
+	src.relations = new(init_relationships)
+	src.pending_instant_actions = list()
+	src.attachments = new()
+	src.RegisterBrain()
 
 	if(actions)
-		actionslist = actions.Copy()
+		src.actionslist = actions.Copy()
 
 	if(init_action && init_action in actionslist)
-		running_action_tracker = DoAction(init_action)
+		src.running_action_tracker = DoAction(init_action)
 
-	InitNeeds()
-	InitStates()
+	src.InitNeeds()
+	src.InitStates()
 
 	return
 
 
+/datum/brain/proc/CleanDelete()
+	src.life = FALSE
+	qdel(src)
+	return TRUE
+
+
 /datum/brain/proc/InitNeeds()
-	needs = list()
+	src.needs = list()
 	return needs
 
 
 /datum/brain/proc/InitStates()
-	states = list()
+	src.states = list()
 	return states
 
 
@@ -157,9 +176,9 @@
 
 	var/list/available_actions = list()
 
-	for(var/action_key in actionslist)
+	for(var/action_key in src.actionslist)
 		// Filter out actions w/o charges and non-action items.
-		var/datum/goai_action/action = actionslist[action_key]
+		var/datum/goai_action/action = src.actionslist[action_key]
 
 		if(!action)
 			continue
@@ -169,7 +188,7 @@
 
 		available_actions[action_key] = action
 
-	actionslist = available_actions
+	src.actionslist = available_actions
 	return available_actions
 
 
@@ -180,7 +199,7 @@
 	//                 If FALSE, a reference to the list is returned (faster, but harder to predict)
 	*/
 	ADD_ACTION_DEBUG_LOG("Adding action [name] with [cost] cost, [charges] charges")
-	var/list/available_actions = (clone ? actionslist.Copy() : actionslist) || list()
+	var/list/available_actions = (clone ? src.actionslist.Copy() : src.actionslist) || list()
 	var/datum/goai_action/newaction = new(preconds, effects, cost, name, charges, instant, action_args)
 	available_actions[name] = newaction
 
@@ -188,42 +207,42 @@
 
 
 /datum/brain/proc/GetState(var/key, var/default = null)
-	if(isnull(states))
+	if(isnull(src.states))
 		return default
 
-	var/found = (key in states)
-	var/result = (found ? states[key] : default)
+	var/found = (key in src.states)
+	var/result = (found ? src.states[key] : default)
 	return result
 
 
 /datum/brain/proc/SetState(var/key, var/val)
-	if(isnull(states))
-		states = new()
+	if(isnull(src.states))
+		src.states = new()
 
-	states[key] = val
+	src.states[key] = val
 	return TRUE
 
 
 /datum/brain/proc/GetNeed(var/key, var/default = null)
-	if(isnull(needs))
+	if(isnull(src.needs))
 		return default
 
-	var/found = (key in needs)
-	var/result = (found ? needs[key] : default)
+	var/found = (key in src.needs)
+	var/result = (found ? src.needs[key] : default)
 	return result
 
 
 /datum/brain/proc/SetNeed(var/key, var/val)
 	if(isnull(needs))
-		needs = new()
+		src.needs = new()
 
-	needs[key] = val
+	src.needs[key] = val
 	return TRUE
 
 
 /datum/brain/proc/HasMemory(var/mem_key)
 	var/found = (mem_key in memories.data)
-	//world.log << "Memory for key [mem_key] [found ? "TRUE" : "FALSE"]"
+	//to_world_log("Memory for key [mem_key] [found ? "TRUE" : "FALSE"]")
 	return found
 
 
@@ -248,7 +267,7 @@
 		if(isnull(retrieved_mem))
 
 			if(isnull(hivemind_mem))
-				//world.log << "Retrieved default Memory for removed [mem_key]"
+				//to_world_log("Retrieved default Memory for removed [mem_key]")
 				return default
 
 			// if root has no memory, but the *parent* does - return parent's
@@ -257,13 +276,13 @@
 		var/relevant_age = by_age ? retrieved_mem.GetAge() : retrieved_mem.GetFreshness()
 
 		if(relevant_age < retrieved_mem.ttl)
-			//world.log << "Retrieved Memory: [mem_key]"
+			//to_world_log("Retrieved Memory: [mem_key]")
 			// We already checked for parent preference - no need to redo that.
 			return retrieved_mem
 
 		memories[mem_key] = null
 
-	//world.log << "Retrieved default Memory for missing [mem_key]"
+	//to_world_log("Retrieved default Memory for missing [mem_key]")
 	return (isnull(hivemind_mem) ? default : hivemind_mem)
 
 
@@ -279,12 +298,12 @@
 	var/datum/memory/retrieved_mem = memories.Get(mem_key)
 
 	if(isnull(retrieved_mem))
-		//world.log << "Inserting Memory for [mem_key] with [mem_val]"
+		//to_world_log("Inserting Memory for [mem_key] with [mem_val]")
 		retrieved_mem = new(mem_val, mem_ttl)
 		memories.Set(mem_key, retrieved_mem)
 
 	else
-		//world.log << "Updating Memory for [mem_key] with [mem_val]"
+		//to_world_log("Updating Memory for [mem_key] with [mem_val]")
 		retrieved_mem.Update(mem_val)
 
 	return retrieved_mem
@@ -332,10 +351,7 @@
 	planner.graph = GetAvailableActions()
 
 	for(var/goalkey in goal)
-		world.log << "[src] CreatePlan goal: [goalkey] => [goal[goalkey]]"
-
-	/*for(var/graphkey in planner.graph)
-		world.log << "[src] CreatePlan Planner graph: [graphkey] => [planner.graph[graphkey]]"*/
+		to_world_log("[src] CreatePlan goal: [goalkey] => [goal[goalkey]]")
 
 	var/datum/Tuple/result = planner.Plan(arglist(params))
 
@@ -350,8 +366,54 @@
 	return path
 
 
+/datum/brain/concrete/CleanDelete()
+	deregister_ai_brain(src.registry_index)
+	qdel(src)
+	return TRUE
+
+
+
+/datum/brain/concrete/proc/ShouldCleanup()
+	. = FALSE
+
+	if(src.cleanup_detached_threshold < 0)
+		return FALSE
+
+	if(src._ticks_since_detached > src.cleanup_detached_threshold)
+		return TRUE
+
+	return
+
+
+/datum/brain/concrete/proc/CheckForCleanup()
+	. = ..()
+
+	if(.)
+		return .
+
+	var/should_clean = src.ShouldCleanup()
+	if(should_clean)
+		src.CleanDelete()
+		qdel(src)
+		return TRUE
+
+	if(!(src.attachments && istype(src.attachments)))
+		return FALSE
+
+	var/ai_index = src.attachments[ATTACHMENT_CONTROLLER_BACKREF]
+	var/orphaned = (IS_REGISTERED_AIBRAIN(ai_index))
+
+	if(orphaned)
+		src._ticks_since_detached++
+	else
+		src._ticks_since_detached = 0
+
+	return
+
+
 /datum/brain/concrete/Life()
 	while(life)
+		CheckForCleanup()
 		LifeTick()
 		sleep(AI_TICK_DELAY)
 	return
@@ -366,20 +428,20 @@
 
 	if(running_action_tracker) // processing action
 		var/running_is_active = running_action_tracker.IsRunning()
-		world << "ACTIVE ACTION: [running_action_tracker.tracked_action] @ [running_is_active] | <@[src]>"
+		to_world("ACTIVE ACTION: [running_action_tracker.tracked_action] @ [running_is_active] | <@[src]>")
 
 		if(running_action_tracker.IsStopped())
 			running_action_tracker = null
 			pending_instant_actions = list()
 
 	else if(selected_action) // ready to go
-		world << "SELECTED ACTION: [selected_action] | <@[src]>"
+		to_world("SELECTED ACTION: [selected_action] | <@[src]>")
 		running_action_tracker = DoAction(selected_action)
 		selected_action = null
 
 	else if(active_plan && active_plan.len)
 		//step done, move on to the next
-		world << "ACTIVE PLAN: [active_plan] ([active_plan.len]) | <@[src]>"
+		to_world("ACTIVE PLAN: [active_plan] ([active_plan.len]) | <@[src]>")
 
 		while(active_plan.len && isnull(selected_action))
 			// do instants in one tick
@@ -391,16 +453,16 @@
 			var/datum/goai_action/goai_act = actionslist[selected_action]
 
 			if(!goai_act)
-				//world.log << "[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]"
+				//to_world_log("[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]")
 				continue
 
 			if(goai_act.instant)
-				world << "Instant ACTION: [selected_action] | <@[src]>"
+				to_world("Instant ACTION: [selected_action] | <@[src]>")
 				DoInstantAction(selected_action)
 				selected_action = null
 
 			else
-				world << "Regular ACTION: [selected_action] | <@[src]>"
+				to_world("Regular ACTION: [selected_action] | <@[src]>")
 
 	else //no plan & need to make one
 		var/list/curr_state = states.Copy()
@@ -414,14 +476,14 @@
 				goal_state[need_key] = NEED_SAFELEVEL
 
 		if (goal_state && goal_state.len && (!is_planning))
-			//world.log << "Creating plan!"
+			//to_world_log("Creating plan!")
 			var/list/curr_available_actions = GetAvailableActions()
 
 			spawn(0)
 				var/list/raw_active_plan = CreatePlan(curr_state, goal_state, curr_available_actions)
 
 				if(raw_active_plan)
-					//world.log << "Created plan [raw_active_plan]"
+					//to_world_log("Created plan [raw_active_plan]")
 					var/first_clean_pos = 0
 
 					for (var/planstep in raw_active_plan)
@@ -434,7 +496,7 @@
 					last_plan_successful = TRUE
 
 				else
-					world.log << "Failed to create a plan | <@[src]>"
+					to_world_log("Failed to create a plan | <@[src]>")
 
 
 		else //satisfied, can be lazy
@@ -444,7 +506,7 @@
 
 
 /datum/brain/verb/DoAction(Act as anything in actionslist)
-	//world.log << "DoAction act: [Act]"
+	//to_world_log("DoAction act: [Act]")
 
 	if(!(Act in actionslist))
 		return null
@@ -452,24 +514,24 @@
 	var/datum/goai_action/goai_act = actionslist[Act]
 
 	if(!goai_act)
-		//world.log << "[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]"
+		//to_world_log("[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]")
 		return null
 
-	//world.log << "[src]: RETRIEVED ACTION [goai_act] from [Act]"
+	//to_world_log("[src]: RETRIEVED ACTION [goai_act] from [Act]")
 	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(goai_act)
 
 	if(!new_actiontracker)
-		world.log << "[src]: Failed to create a tracker for [goai_act]!"
+		to_world_log("[src]: Failed to create a tracker for [goai_act]!")
 		return null
 
-	//world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
+	//to_world_log("New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]")
 	running_action_tracker = new_actiontracker
 
 	return new_actiontracker
 
 
 /datum/brain/verb/DoInstantAction(Act as anything in actionslist)
-	//world.log << "DoInstantAction act: [Act]"
+	//to_world_log("DoInstantAction act: [Act]")
 
 	if(!(Act in actionslist))
 		return null
@@ -477,17 +539,17 @@
 	var/datum/goai_action/goai_act = actionslist[Act]
 
 	if(!goai_act)
-		//world.log << "[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]"
+		//to_world_log("[src]: FAILED TO RETRIEVE ACTION [goai_act] from [Act]")
 		return null
 
-	//world.log << "[src]: RETRIEVED ACTION [goai_act] from [Act]"
+	//to_world_log("[src]: RETRIEVED ACTION [goai_act] from [Act]")
 	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(goai_act)
 
 	if(!new_actiontracker)
-		world.log << "[src]: Failed to create a tracker for [goai_act]!"
+		to_world_log("[src]: Failed to create a tracker for [goai_act]!")
 		return null
 
-	//world.log << "New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]"
+	//to_world_log("New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]")
 
 	pending_instant_actions.Add(new_actiontracker)
 
@@ -568,7 +630,7 @@
 	var/fixed_value = min(NEED_MAXIMUM, max(NEED_MINIMUM, (value)))
 	needs[motive_key] = fixed_value
 	last_need_update_times[motive_key] = world.time
-	world.log << "Curr [motive_key] = [needs[motive_key]] <@[src]>"
+	to_world_log("Curr [motive_key] = [needs[motive_key]] <@[src]>")
 
 
 /datum/brain/concrete/proc/AddMotive(var/motive_key, var/amt)

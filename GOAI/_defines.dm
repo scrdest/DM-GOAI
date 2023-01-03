@@ -24,8 +24,8 @@
 # define GOAP_KEY_SRC "source"
 
 # ifdef DEBUG_LOGGING
-# define MAYBE_LOG(X) world.log << X
-# define MAYBE_LOG_TOSTR(X) world.log << #X + ": [X]"
+# define MAYBE_LOG(X) to_world_log(X)
+# define MAYBE_LOG_TOSTR(X) to_world_log(#X + ": [X]")
 # else
 # define MAYBE_LOG(X)
 # define MAYBE_LOG_TOSTR(X)
@@ -35,6 +35,7 @@
 
 # define GUN_DISPERSION 5
 
+# define DEFAULT_ORPHAN_CLEANUP_THRESHOLD 3
 # define SENSE_SIGHT "Sight"
 # define SENSE_SIGHT_CURR "SightCurr"
 # define SENSE_SIGHT_PREV "SightPrev"

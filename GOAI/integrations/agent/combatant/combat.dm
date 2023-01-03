@@ -61,10 +61,10 @@
 	return target
 
 
-/mob/goai/combatant/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
+/mob/goai/combatant/proc/Shoot(var/obj/item/weapon/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
 	. = FALSE
 
-	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.contents) : cached_gun)
+	var/obj/item/weapon/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/item/weapon/gun) in src.contents) : cached_gun)
 
 	if(isnull(my_gun))
 		world.log << "Gun not found for [src] to shoot D;"

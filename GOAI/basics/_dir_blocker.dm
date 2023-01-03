@@ -1,11 +1,9 @@
 // # define DIRBLOCKER_DEBUG_LOGGING 0
 
 # ifdef DIRBLOCKER_DEBUG_LOGGING
-# define DIRBLOCKER_DEBUG_LOG(X) world.log << X
-# define DIRBLOCKER_DEBUG_LOG_TOSTR(X) world.log << #X + ": [X]"
+# define DIRBLOCKER_DEBUG_LOG(X) to_world_log(X)
 # else
 # define DIRBLOCKER_DEBUG_LOG(X)
-# define DIRBLOCKER_DEBUG_LOG_TOSTR(X)
 # endif
 
 /datum/directional_blocker
@@ -35,3 +33,11 @@
 	var/result = blocks & dir
 	DIRBLOCKER_DEBUG_LOG("[src] blocks & dir - [result]")
 	return result
+
+
+/datum/directional_blocker/proc/AttachTo(var/atom/blockerable)
+	if(!blockerable)
+		return FALSE
+
+	blockerable.directional_blocker = src
+	return TRUE

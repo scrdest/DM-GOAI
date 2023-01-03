@@ -2,7 +2,11 @@
 	if(isnull(target))
 		return
 
-	var/targ_distance = EuclidDistance(src.pawn, target)
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		return
+
+	var/targ_distance = EuclidDistance(pawn, target)
 	var/aim_time = rand(clamp(targ_distance*3, 1, 200)) + rand()*15
 	return aim_time
 
@@ -13,15 +17,24 @@
 	if(!(true_searchspace))
 		return
 
-	var/atom/my_loc = src?.pawn?.loc
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		return
+
+	var/atom/my_loc = pawn?.loc
 	if(!my_loc)
-		world.log << "[src] attempted to get loc, but couldn't find one!"
+		to_world_log("[src] attempted to get loc, but couldn't find one!")
 		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
-	for(var/mob/goai/enemy in true_searchspace)
-		// CHECK RELATIONS!!!
+	for(var/mob/enemy in true_searchspace)
+		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal) || istype(enemy, /mob/living/bot)))
+			continue
+
+		if(!(src.IsEnemy(enemy)))
+			continue
+
 		var/enemy_dist = ManhattanDistance(my_loc, enemy)
 
 		if (enemy_dist <= 0)
@@ -41,24 +54,117 @@
 	return target
 
 
-/datum/goai/mob_commander/proc/Shoot(var/obj/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
-	. = FALSE
+/*
+/mob/living/carbon/human/proc/FindGunInHands(var/mob/living/carbon/human/trg_override = null)
+	var/mob/living/carbon/human/H = trg_override
+	if(isnull(H))
+		H = src
 
-	if(!(src.pawn))
-		world.log << "No mob not found for the [src.name] AI to shoot D;"
-		return FALSE
+	var/obj/item/weapon/gun/my_gun = null
 
-	var/obj/gun/my_gun = (isnull(cached_gun) ? (locate(/obj/gun) in src.pawn.contents) : cached_gun)
+	// either hand works
+	if(isnull(my_gun))
+		my_gun = H.get_equipped_item(slot_r_hand)
 
 	if(isnull(my_gun))
-		world.log << "Gun not found for [src.pawn] to shoot D;"
+		my_gun = H.get_equipped_item(slot_l_hand)
+
+	return my_gun
+*/
+
+/datum/goai/mob_commander/proc/Shoot(var/obj/item/weapon/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
+	. = FALSE
+
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("No mob not found for the [src.name] AI to shoot D;")
 		return FALSE
+
+	var/obj/item/weapon/gun/my_gun = cached_gun
+
+	//var/mob/living/carbon/human/H = pawn
+	//var/mob/living/simple_animal/hostile/SAH = pawn
+	var/obj/item/weapon/gun/gun_pawn = pawn
 
 	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
 
-	if(!isnull(target))
-		my_gun.shoot(target, src.pawn)
+	var/mob/living/targetLM = target
+
+	/*
+	if(SAH && istype(SAH) && target && SAH.stat == CONSCIOUS && (targetLM?.stat != DEAD))
+		// SimpleAnimals are simple (duh), *they* handle if they can shoot so we don't have to.
+		SAH.RangedAttack(target)
+		return TRUE
+
+	if(H && istype(H))
+		if(!(H.zone_sel))
+			// weird, but seemingly needed or stuff runtimes
+			H.zone_sel = new /obj/screen/zone_sel()
+
+		if(H.stat == CONSCIOUS)
+			my_gun = (my_gun || H.FindGunInHands())
+			to_world_log("[src] - Humanoid: found gun [my_gun] in [H]'s hands")
+
+		else
+			return FALSE
+	*/
+
+	if(isnull(my_gun))
+		my_gun = (locate(/obj/item/weapon/gun) in pawn.contents)
+
+	if(isnull(my_gun))
+		to_world_log("[src] - Gun not found for [pawn] to shoot D;")
+		return FALSE
+
+	if(!isnull(target) && (targetLM?.stat != DEAD))
+		if(my_gun)
+			my_gun.Fire(target, pawn)
+			return TRUE
+
+		else if(gun_pawn)
+			gun_pawn.Fire(target, gun_pawn)
+			return TRUE
+
+		else
+			to_world_log("[src] - target [target] is null or no gun found!")
+
+	return .
+
+
+/datum/goai/mob_commander/proc/Melee(var/atom/cached_target = null, var/datum/aim/cached_aim = null)
+	. = FALSE
+
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("No mob not found for the [src.name] AI to attack with D;")
+		return FALSE
+
+
+	/*
+	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
+	var/distance = ChebyshevDistance(pawn, target)
+	var/mob/living/targetLM = target
+
+	if(!isnull(target) && distance <= 1 && (targetLM?.stat != DEAD))
+		var/mob/living/carbon/human/H = pawn
+		var/mob/living/simple_animal/hostile/SAH = pawn
+
+		if(H && istype(H) && H?.stat == CONSCIOUS)
+			if(!(H.zone_sel))
+				// weird, but seemingly needed or stuff runtimes
+				H.zone_sel = new /obj/screen/zone_sel()
+
+			var/old_intent = H.a_intent
+			H.a_intent = I_HURT
+			target.attack_hand(H)
+			H.a_intent = old_intent
+
+		else if(SAH && istype(SAH) && SAH.stat == CONSCIOUS)
+			SAH.target = target
+			SAH.AttackTarget()
+
 		. = TRUE
+	*/
 
 	return .
 
@@ -93,10 +199,14 @@
 /datum/goai/mob_commander/proc/GetThreatDistance(var/atom/relative_to = null, var/dict/curr_threat = null, var/default = 0) // -> num
 	var/datum/Tuple/ghost_pos_tuple = GetThreatPosTuple(curr_threat)
 
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		return default
+
 	if(isnull(ghost_pos_tuple))
 		return default
 
-	var/atom/rel_source = isnull(relative_to) ? src.pawn : relative_to
+	var/atom/rel_source = isnull(relative_to) ? pawn : relative_to
 	var/threat_dist = default
 
 	var/threat_pos_x = ghost_pos_tuple?.left
@@ -114,6 +224,10 @@
 	if(isnull(ghost_pos_tuple))
 		return
 
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		return
+
 	var/threat_pos_x = ghost_pos_tuple?.left
 	var/threat_pos_y = ghost_pos_tuple?.right
 
@@ -121,7 +235,7 @@
 
 	if(! (isnull(threat_pos_x) || isnull(threat_pos_y)) )
 		var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
-		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, src.pawn.z)
+		threat_chunk = chunkserver.ChunkForTile(threat_pos_x, threat_pos_y, pawn.z)
 
 	return threat_chunk
 
@@ -132,7 +246,11 @@
 	if(isnull(ghost_pos_tuple))
 		return default
 
-	var/atom/rel_source = isnull(relative_to) ? src.pawn : relative_to
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		return default
+
+	var/atom/rel_source = isnull(relative_to) ? pawn : relative_to
 	var/threat_angle = default
 
 	var/threat_pos_x = ghost_pos_tuple?.left
@@ -257,14 +375,17 @@
 	//
 	// Everything else - extrapolate from the above.
 	*/
-	//world.log << "Impact angle [impact_angle]"
+
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		return
 
 	if(brain)
 		var/list/shot_memory_data = list(
-			KEY_GHOST_X = src.pawn.x,
-			KEY_GHOST_Y = src.pawn.y,
-			KEY_GHOST_Z = src.pawn.z,
-			KEY_GHOST_POS_TUPLE = src.pawn.CurrentPositionAsTuple(),
+			KEY_GHOST_X = pawn.x,
+			KEY_GHOST_Y = pawn.y,
+			KEY_GHOST_Z = pawn.z,
+			KEY_GHOST_POS_TUPLE = pawn.CurrentPositionAsTuple(),
 			KEY_GHOST_ANGLE = impact_angle,
 		)
 		var/dict/shot_memory_ghost = new(shot_memory_data)

@@ -75,10 +75,8 @@ X================================================================X
   (1) at least one Action Graph
   (2) a proc to fetch Preconditions for each Action in the Graph as an assoc list
   (3) a proc to fetch Effects for each Action in the Graph as an assoc list
-  (4) a proc that compares two assoc lists, Current & Preconds and returns 1 if
-      the Current state meets the requirements of the Action, 0 otherwise.
-  (5) a proc that compares two assoc lists, Current & Goal and returns 1 if
-      the Current state meets the requirements of the Goal, 0 otherwise.
+  (4) a proc that compares two assoc lists, Current & Preconds and returns 1 if the Current state meets the requirements of the Action, 0 otherwise.
+  (5) a proc that compares two assoc lists, Current & Goal and returns 1 if the Current state meets the requirements of the Goal, 0 otherwise.
 
   You can see a sample setup in the goap_testing.dm file.
 */
@@ -417,7 +415,7 @@ X================================================================X
 				_pqueue.L.Cut(1, max_queue_size)
 
 	if (_pqueue.L.len <= 0)
-		world.log << "Exhausted all candidates before a path was found!"
+		to_world_log("Exhausted all candidates before a path was found!")
 		return
 
 	var/datum/Quadruple/next_cand_tuple = _pqueue.Dequeue()

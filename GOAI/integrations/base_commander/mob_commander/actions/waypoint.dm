@@ -1,17 +1,19 @@
 // # define OBSTACLEHUNT_DEBUG_LOGGING 0
 
 # ifdef OBSTACLEHUNT_DEBUG_LOGGING
-# define OBSTACLEHUNT_DEBUG_LOG(X) world.log << X
-# define OBSTACLEHUNT_DEBUG_LOG_TOSTR(X) world.log << #X + ": [X]"
+# define OBSTACLEHUNT_DEBUG_LOG(X) to_world_log(X)
 # else
 # define OBSTACLEHUNT_DEBUG_LOG(X)
-# define OBSTACLEHUNT_DEBUG_LOG_TOSTR(X)
 # endif
 
 
 /datum/goai/mob_commander/proc/SpotObstacles(var/datum/goai/mob_commander/owner, var/atom/target = null, var/default_to_waypoint = TRUE, var/proc/adjproc = null, var/proc/costproc = null)
-	if(!(owner && owner.pawn))
+	if(!(owner))
 		// No mob - no point.
+		return
+
+	var/atom/pawn = owner.GetPawn()
+	if(!pawn)
 		return
 
 	var/datum/brain/owner_brain = owner?.brain
@@ -41,11 +43,10 @@
 	var/list/path = null
 	var/turf/target_turf = get_turf(goal)
 
-	world.log << "SpotObstacles goal is [goal]"
 	if(isnull(target_turf))
 		target_turf = get_turf(goal.loc)
 
-	var/turf/startpos = get_turf(owner.pawn)
+	var/turf/startpos = get_turf(pawn)
 	var/init_dist = 30
 	// NOTE: somehow, this once runtimed with the distance seemingly being -1, wtf?
 	//       the max() was added as a measure to ensure sane input
@@ -53,7 +54,7 @@
 
 	if(init_dist < 40)
 		OBSTACLEHUNT_DEBUG_LOG("[owner] entering ASTARS STAGE")
-		path = AStar(get_turf(owner.pawn), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = GoaiAStar(get_turf(pawn), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[owner] found ASTAR 1 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -63,7 +64,7 @@
 
 		// No unobstructed path to target!
 		// Let's try to get a direct path and check for obstacles.
-		path = AStar(get_turf(owner.pawn), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = GoaiAStar(get_turf(pawn), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[src] found ASTAR 2 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -75,7 +76,6 @@
 		OBSTACLEHUNT_DEBUG_LOG("[owner] entering OBSTACLE HUNT STAGE")
 		for(var/turf/pathitem in path)
 			path_pos++
-			//world.log << "[owner]: [pathitem]"
 
 			if(isnull(pathitem))
 				continue
@@ -121,7 +121,7 @@
 							obstruction = potential_obstruction_prev
 							break
 
-				OBSTACLEHUNT_DEBUG_LOG("[owner]: LINK OBSTRUCTION => [obstruction] @ [obstruction?.loc]")
+				OBSTACLEHUNT_DEBUG_LOG("[owner]: LINK OBSTRUCTION => [obstruction] @ [get_turf(obstruction)]")
 				owner.brain.SetMemory(MEM_OBSTRUCTION, obstruction, MEM_TIME_LONGTERM)
 				break
 
@@ -133,9 +133,10 @@
 	// Capture any obstacles
 	// Add Action Goto<Goal> with clearing obstacles as a precond
 
-	if(!(src.pawn))
+	var/atom/movable/pawn = src.GetPawn()
+	if(!pawn)
 		tracker?.SetFailed()
-		world.log << "[src] does not have an owned mob!"
+		to_world_log("[src] does not have an owned mob!")
 		return
 
 	if(!src || !(src?.brain))
@@ -148,7 +149,6 @@
 		return
 
 	// Astar checking for obstacles
-	world.log << "waypoint.dm/HandleWaypoint()'s waypoint is [waypoint]"
 	src.SpotObstacles(owner=src, target=waypoint, default_to_waypoint=FALSE)
 
 	var/list/goto_preconds = list(

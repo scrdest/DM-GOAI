@@ -1,3 +1,4 @@
+
 /proc/spawn_commanded_combatant(var/atom/loc, var/name = null, var/mob_icon = null, var/mob_icon_state = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
@@ -26,13 +27,11 @@
 			M.attachments = pawn_attachments
 
 		pawn_attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
-		world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
 
-		true_name = true_name || "AI of [M.name]"
+		new_commander.name = "AI of [M.name] (#[rand(0, 100000)])"
+
 		if(true_name)
 			new_commander.name = true_name
-
-		world.log << "Spawned [new_commander.name]/[M]"
 
 	return
 
@@ -68,21 +67,133 @@
 	call(script)(arglist(script_args))
 
 
+/*
+// Humanoid (i.e. regular spessman)
+*/
+
+/*
+/proc/spawn_commanded_humanoid(var/atom/loc, var/name = null, var/spawn_commander = TRUE)
+	var/true_name = name
+
+	var/mob/living/carbon/human/M = new(loc)
+	var/mob_gender = pick(MALE, FEMALE)
+	M.gender = mob_gender
+
+	if(true_name)
+		M.real_name = true_name
+	else
+		//M.real_name = random_name(mob_gender, SPECIES_HUMAN)
+		M.real_name = "[rand(0, 10000)]"
+
+	M.h_style = random_hair_style(mob_gender, SPECIES_HUMAN)
+	M.f_style = random_facial_hair_style(mob_gender, SPECIES_HUMAN)
+
+	// hopefully disabling SSD through a self-reference
+	// might have to add a flag in the SSD checks instead
+	M.teleop = M
+
+	var/decl/hierarchy/outfit/antag = outfit_by_type(/decl/hierarchy/outfit/ANTAGlite)
+	antag.equip(M, equip_adjustments = OUTFIT_ADJUSTMENT_SKIP_SURVIVAL_GEAR)
+
+	var/obj/item/weapon/gun/projectile/pistol/military/gun = null
+
+	if(!gun)
+		gun = new(M)
+		M.equip_to_slot_or_del(gun, slot_r_hand)
+
+	if(!gun)
+		gun = new(M)
+		M.equip_to_slot_or_del(gun, slot_l_hand)
+
+	if(spawn_commander)
+		AttachCombatCommanderTo(M)
+
+	return
+
+
+/obj/spawner/oneshot/commanded_humanoid
+	var/commander_name = null
+	var/spawn_commander = TRUE
+
+	icon = 'icons/uristmob/simpleanimals.dmi'
+	icon_state = "ANTAG"
+
+	script = /proc/spawn_commanded_humanoid
+
+
+/obj/spawner/oneshot/commanded_humanoid/CallScript()
+	if(!active)
+		return
+
+	var/script_args = list(
+		loc = src.loc,
+		name = src.commander_name,
+		spawn_commander = spawn_commander
+	)
+
+	call(script)(arglist(script_args))
+
+
+/*
+// SimpleAnimal
+*/
+/proc/spawn_commanded_simpleanimal(var/atom/loc, var/name = null, var/spawn_commander = TRUE)
+	if(!loc)
+		return
+
+	var/true_name = name
+
+	var/mob/living/simple_animal/hostile/urist/commando/M = new()
+	if(true_name)
+		M.name = true_name
+
+	M.loc = loc
+
+	if(spawn_commander)
+		AttachCombatCommanderTo(M)
+
+	return
+
+
+/obj/spawner/oneshot/commanded_simpleanimal
+	var/commander_name = null
+	var/spawn_commander = TRUE
+
+	icon = 'icons/uristmob/simpleanimals.dmi'
+	icon_state = "ANTAG"
+
+	script = /proc/spawn_commanded_simpleanimal
+
+
+/obj/spawner/oneshot/commanded_simpleanimal/CallScript()
+	if(!active)
+		return
+
+	var/script_args = list(
+		loc = src.loc,
+		name = src.commander_name,
+		spawn_commander = spawn_commander
+	)
+
+	call(script)(arglist(script_args))
+*/
+
+/*
+// Object, because why not?
+*/
 
 /proc/spawn_commanded_object(var/atom/loc, var/name = null)
 	var/true_name = name
 
-	var/obj/gun/M = new(loc)
+	var/obj/item/weapon/M = new(loc)
+
 	if(true_name)
 		M.name = true_name
 
 	var/datum/goai/mob_commander/combat_commander/new_commander = new()
 
 	new_commander.pawn = M
-	new_commander.name = "AI of [M.name]"
-
-	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
-	world.log << "Spawned [new_commander.name]/[M]"
+	new_commander.name = "AI of [M.name] (#[rand(0, 100000)])"
 
 	return
 
@@ -104,48 +215,6 @@
 	var/script_args = list(
 		loc = src.loc,
 		name = src.commander_name
-	)
-
-	call(script)(arglist(script_args))
-
-
-
-/proc/spawn_commanded_sim(var/atom/loc, var/name = null)
-	var/true_name = name
-
-	var/obj/gun/M = new(loc)
-	if(true_name)
-		M.name = true_name
-
-	var/datum/goai/mob_commander/sim_commander/new_commander = new()
-
-	new_commander.pawn = M
-	new_commander.name = "AI of [M.name]"
-
-	world.log << "Pawn of [new_commander.name] is [new_commander.pawn]"
-	world.log << "Spawned [new_commander.name]/[M]"
-
-	return
-
-
-/obj/spawner/oneshot/sim_mob
-	var/commander_name = null
-	var/mob_icon = null
-	var/mob_icon_state = null
-
-	icon = 'icons/uristmob/scommobs.dmi'
-	icon_state = "civ10"
-
-	script = /proc/spawn_commanded_sim
-
-
-/obj/spawner/oneshot/sim_mob/CallScript()
-	if(!active)
-		return
-
-	var/script_args = list(
-		loc = src.loc,
-		name = src.commander_name,
 	)
 
 	call(script)(arglist(script_args))

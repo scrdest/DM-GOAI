@@ -20,12 +20,16 @@
 	// AI
 	spawn(0)
 		while(src.life)
-			// Fix the tickrate to prevent runaway loops in case something messes with it.
-			// Doing it here is nice, because it saves us from sanitizing it all over the place.
-			src.ai_tick_delay = max((src?.ai_tick_delay || 0), 1)
+			var/cleaned_up = src.CheckForCleanup()
+			if(cleaned_up)
+				return
 
 			// Run the Life update function.
 			src.LifeTick()
+
+			// Fix the tickrate to prevent runaway loops in case something messes with it.
+			// Doing it here is nice, because it saves us from sanitizing it all over the place.
+			src.ai_tick_delay = max((src?.ai_tick_delay || 0), 1)
 
 			// Wait until the next update tick.
 			sleep(src.ai_tick_delay)
@@ -34,7 +38,8 @@
 	// *in parallel* to other behaviours - e.g. run-and-gun or fire from cover
 	spawn(0)
 		while(src.life)
-			if(src.pawn)
+			var/atom/movable/mypawn = src.GetPawn()
+			if(mypawn)
 				src.FightTick()
 
 			sleep(COMBATAI_FIGHT_TICK_DELAY)
@@ -42,8 +47,6 @@
 
 
 /datum/goai/mob_commander/combat_commander/LifeTick()
-	//world.log << "Mob Commander [src.name] [src] <[src.pawn]> LifeTick()"
-
 	// quick hack:
 	var/datum/brain/concrete/combatbrain = brain
 	var/panicking = GetState(STATE_PANIC, FALSE)
@@ -62,12 +65,8 @@
 
 
 	if(brain)
-		if(brain.last_plan_successful)
-			//brain.SetMemory(MEM_TRUST_BESTPOS, TRUE)
-		else
-			//world.log << "[src]: Getting disoriented!"
+		if(!(brain.last_plan_successful))
 			SetState(STATE_DISORIENTED, TRUE)
-			//brain.SetMemory(MEM_TRUST_BESTPOS, FALSE, 1000)
 
 		brain.LifeTick()
 
@@ -78,7 +77,6 @@
 
 		if(brain.running_action_tracker)
 			var/tracked_action = brain.running_action_tracker.tracked_action
-			//world.log << "MobComm [src] - RUNNING ACTIoN [tracked_action]"
 
 			if(tracked_action)
 				HandleAction(tracked_action, brain.running_action_tracker)

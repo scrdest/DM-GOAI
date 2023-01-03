@@ -12,7 +12,7 @@
 	var/datum/chunkserver/chunkServer = GetOrSetChunkserver(width)
 
 	if(!chunkServer)
-		world.log << "Failed to retrieve a ChunkServer for ChunkAdjacent()"
+		to_world_log("Failed to retrieve a ChunkServer for ChunkAdjacent()")
 		return
 
 	var/list/adjacents = list()
@@ -47,7 +47,7 @@
 	var/datum/chunkserver/chunkServer = GetOrSetChunkserver(source.width)
 
 	if(!chunkServer)
-		world.log << "Failed to retrieve a ChunkServer for ChunkAdjacent()"
+		to_world_log("Failed to retrieve a ChunkServer for ChunkAdjacent()")
 		return
 
 	var/list/adjacents = list()
@@ -122,7 +122,7 @@
 	var/datum/chunkserver/chunkServer = GetOrSetChunkserver()
 
 	if(!chunkServer)
-		world.log << "Failed to retrieve a ChunkServer for ChunkyAStar()"
+		to_world_log("Failed to retrieve a ChunkServer for ChunkyAStar()")
 		return
 
 	var/proc/true_adjproc = (isnull(adjacent) ? /proc/fChunkAdjacent : adjacent)
@@ -131,7 +131,7 @@
 	var/datum/chunk/startchunk = chunkServer.ChunkForAtom(startturf)
 	var/datum/chunk/endchunk = chunkServer.ChunkForAtom(endturf)
 
-	var/list/path = AStar(
+	var/list/path = GoaiAStar(
 		start = startchunk,
 		end = endchunk,
 		adjacent = true_adjproc,

@@ -1,0 +1,1 @@
+# define qdel(x) del(x)

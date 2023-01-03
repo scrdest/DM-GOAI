@@ -40,8 +40,6 @@
 		// some stupid nonsense with how matrix.Turn() works requires this
 		turn_angle = 180 - angle
 
-	//world.log << "SpinAngle [angle], YTrans: [y_translate]"
-
 	beam_transform.Scale(1, scale)
 
 	beam_transform.Turn(90) // the icon is vertical, so we reorient it to x-axis alignment
@@ -61,7 +59,7 @@
 		del(src)
 
 
-/obj/gun
+/obj/item/weapon/gun
 	name = "Gun"
 	icon = 'icons/obj/gun.dmi'
 	icon_state = "laser"
@@ -74,7 +72,7 @@
 	var/ammo_sprite = null
 
 
-/obj/gun/New(var/atom/location)
+/obj/item/weapon/gun/New(var/atom/location)
 	..()
 
 	loc = location
@@ -85,7 +83,7 @@
 	)
 
 
-/obj/gun/proc/cool()
+/obj/item/weapon/gun/proc/cool()
 	cooling = TRUE
 
 	spawn(cooldown_time_deterministic + rand(-cooldown_time_random, cooldown_time_random))
@@ -94,14 +92,13 @@
 	return
 
 
-/obj/gun/proc/shoot(var/atom/At, var/atom/From)
+/obj/item/weapon/gun/proc/shoot(var/atom/At, var/atom/From)
 	if(cooling)
 		return
 
 	cool()
 
 	var/atom/source = (isnull(From) ? src : From)
-	//world.log << "Beam src: [source], at: [At]"
 	var/dist = EuclidDistance(source, At)
 	var/shot_dispersion = rand(-dispersion, dispersion) % 180
 
@@ -112,7 +109,6 @@
 	var/vec_length = dist
 
 	var/obj/projectile/newbeam = new(source.loc, vec_length, vec_length, angle, ammo_sprite)
-	//world.log << "Beam [newbeam] <@[source] length [vec_length]>"
 
 	var/true_dy = vec_length * sin(angle)
 	var/true_dx = vec_length * cos(angle)
@@ -121,7 +117,6 @@
 	var/hit_y = (source.y + true_dy)
 
 	if ((floor(hit_x) == At.x) && (floor(hit_y) == At.y))
-		//world.log << "Emission angle [angle]"
 		At.Hit(angle, From)
 
 		if(At.attachments)
@@ -134,17 +129,22 @@
 	return newbeam
 
 
-/obj/gun/verb/Shoot(var/atom/At as mob in view())
+/obj/item/weapon/gun/proc/Fire(var/atom/At, var/atom/From)
+	src.Shoot(At, From)
+	return
+
+
+/obj/item/weapon/gun/verb/Shoot(var/atom/At as mob in view())
 	set src in view(0)
 
 	if(cooling)
-		usr << "[src] is cooling down, please wait."
+		to_chat(usr, "[src] is cooling down, please wait.")
 
 	else
 		shoot(At, usr)
 
 
 /mob/verb/GimmeGun()
-	var/obj/gun/newgun = new(usr)
+	var/obj/item/weapon/gun/newgun = new(usr)
 
-	usr << "There ya go, one [newgun]!"
+	to_chat(usr, "There ya go, one [newgun]!")

@@ -100,12 +100,12 @@
 			_open_edges &= ~dir
 			continue
 
-		if(DirBlocked(perim_turf, dir))
+		if(GoaiDirBlocked(perim_turf, dir))
 			_blocked_edges |= dir
 			_open_edges &= ~dir
 			continue
 
-		if(DirBlocked(perim_turf, dir2opposite(dir)))
+		if(GoaiDirBlocked(perim_turf, dir2opposite(dir)))
 			_blocked_edges |= dir
 			_open_edges &= ~dir
 			continue

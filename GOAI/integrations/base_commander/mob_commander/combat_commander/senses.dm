@@ -9,7 +9,7 @@
 		// No point processing this if there's no memories to set
 		return
 
-	var/atom/pawn = owner.pawn
+	var/atom/pawn = owner.GetPawn()
 
 	if(isnull(pawn))
 		// We grab the view range from the owned mob, so we need it here
@@ -41,14 +41,21 @@
 	if(!(true_searchspace))
 		return
 
-	var/my_loc = owner?.pawn?.loc
+	var/atom/pawn = owner?.GetPawn()
+	var/my_loc = pawn?.loc
 	if(isnull(my_loc))
 		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
 	// TODO: Refactor to accept objects/structures as threats (turrets, grenades...).
-	for(var/mob/goai/enemy in true_searchspace)
+	for(var/mob/enemy in true_searchspace)
+		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal) || istype(enemy, /mob/living/bot)))
+			continue
+
+		if(!(owner.IsEnemy(enemy)))
+			continue
+
 		var/enemy_dist = ManhattanDistance(my_loc, enemy)
 
 		if (enemy_dist <= 0)
@@ -173,7 +180,9 @@
 		// No mob - no point.
 		return
 
-	if(!(owner.pawn))
+	var/atom/pawn = owner?.GetPawn()
+
+	if(!(pawn))
 		// No mob - no point.
 		return
 
@@ -271,7 +280,11 @@
 		// No mob - no point.
 		return
 
-	var/owner_z = owner?.pawn?.z
+	var/atom/pawn = owner?.GetPawn()
+	if(!pawn)
+		return
+
+	var/owner_z = pawn.z
 
 	var/datum/brain/owner_brain = owner?.brain
 	if(isnull(owner_brain))
@@ -361,8 +374,8 @@
 		// useless in a vacuum
 		return
 
-	if(!owner.pawn)
-		// useless in a vacuum
+	var/atom/pawn = owner.GetPawn()
+	if(!pawn)
 		return
 
 	if(!(owner.brain))

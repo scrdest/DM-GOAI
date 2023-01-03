@@ -19,8 +19,8 @@
 
 
 /obj/cover/proc/GenerateCoverData()
-	cover = new()
-	return cover
+	src.cover_data = new()
+	return src.cover_data
 
 
 /obj/cover/proc/UpdateIcon()
@@ -63,11 +63,11 @@
 
 
 /obj/cover/table/GenerateCoverData()
-	cover = ..()
-	cover.is_active = flipped
-	cover.cover_all = FALSE
-	cover.cover_dir = (flipped ? dir : 0)
-	return cover
+	src.cover_data = ..()
+	src.cover_data.is_active = flipped
+	src.cover_data.cover_all = FALSE
+	src.cover_data.cover_dir = (flipped ? dir : 0)
+	return src.cover_data
 
 
 /obj/cover/table/proc/pFlip(var/flip_dir = null)
@@ -76,8 +76,8 @@
 
 	dir = flip_dir
 	flipped = TRUE
-	cover.is_active = TRUE
-	cover.cover_dir = flip_dir
+	src.cover_data.is_active = TRUE
+	src.cover_data.cover_dir = flip_dir
 
 	if(isnull(directional_blocker))
 		directional_blocker = new()
@@ -94,7 +94,7 @@
 		return
 
 	flipped = FALSE
-	cover.is_active = FALSE
+	src.cover_data.is_active = FALSE
 
 	density = TRUE
 
@@ -141,10 +141,10 @@
 
 
 /obj/cover/door/GenerateCoverData()
-	cover = ..()
-	cover.is_active = (!open)
-	cover.cover_all = TRUE
-	return cover
+	src.cover_data = ..()
+	src.cover_data.is_active = (!open)
+	src.cover_data.cover_all = TRUE
+	return src.cover_data
 
 
 /obj/cover/door/Setup()
@@ -201,10 +201,10 @@
 
 
 /obj/cover/autodoor/GenerateCoverData()
-	cover = ..()
-	cover.is_active = (!open)
-	cover.cover_all = TRUE
-	return cover
+	src.cover_data = ..()
+	src.cover_data.is_active = (!open)
+	src.cover_data.cover_all = TRUE
+	return src.cover_data
 
 
 /obj/cover/autodoor/proc/ProcessTick()

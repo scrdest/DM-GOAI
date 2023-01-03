@@ -6,7 +6,7 @@
 	var/proc/true_adjproc = (isnull(adjproc) ? /proc/fCardinalTurfs : adjproc)
 	var/proc/true_distproc = (isnull(distanceproc) ? /proc/fDistance : distanceproc)
 
-	var/list/path = AStar(
+	var/list/path = GoaiAStar(
 		start = get_turf(loc),
 		end = get_turf(trg),
 		adjacent = true_adjproc,

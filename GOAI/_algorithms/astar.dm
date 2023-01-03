@@ -2,6 +2,9 @@
 
 AStar implementation shamelessly stolen from SS13 source.
 
+This has diverged from the original SS13 AStar slightly,
+so for time being this is going to be a semi-duplicate.
+
 Not really relevant to the GOAP algorithm, which uses my own custom AStar
 implementation; I just needed something better than the DM builtins for the
 demo agent pathfinds and couldn't be bothered to reimplement the algorithm
@@ -10,9 +13,9 @@ just for *that*.
 This implementation is more specialized towards atoms; the GOAP AStar is more
 generic, working on datums and whatever else you massage into a tuple.
 
+-- scrdest
 */
 
-//This file was auto-corrected by findeclaration.exe on 25.5.2012 20:42:31
 
 /*
 A Star pathfinding algorithm
@@ -77,7 +80,7 @@ proc/PathWeightCompare(PathNode/a, PathNode/b)
 	return a.estimated_cost - b.estimated_cost
 
 
-proc/AStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, var/max_node_depth = 30, var/min_target_dist = 0, var/proc/min_node_dist, var/list/adj_args = null, var/exclude)
+proc/GoaiAStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, var/max_node_depth = 30, var/min_target_dist = 0, var/proc/min_node_dist, var/list/adj_args = null, var/exclude)
 	//ADJ ARGS HANDLING TODO
 	var/PriorityQueue/open = new /PriorityQueue(/proc/PathWeightCompare)
 	var/list/closed = list()

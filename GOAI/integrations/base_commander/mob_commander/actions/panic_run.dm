@@ -4,8 +4,9 @@
 // integrations w/ other subsystems (e.g. memory)
 */
 /datum/goai/mob_commander/proc/ChoosePanicRunLandmark(var/atom/primary_threat = null, var/list/threats = null, min_safe_dist = null)
-	if(!(src.pawn))
-		world.log << "[src] does not have an owned mob!"
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("[src] does not have an owned mob!")
 		return
 
 	// Pathfinding/search
@@ -36,28 +37,24 @@
 	var/turf/unreachable = brain?.GetMemoryValue("UnreachableTile", null)
 	var/datum/chunkserver/chunkserver = GetOrSetChunkserver()
 
-	var/my_loc = src.pawn?.loc
-	//world.log << "PANIK my_loc is [my_loc]"
+	var/my_loc = get_turf(pawn)
 
 	for(var/turf/cand in curr_view)
+		sleep(-1)
 		// NOTE: This is DIFFERENT to cover moves! We're not doing a double-loop here!
-		world.log << "PANIK CAND: [cand]"
 
 		if(unreachable && cand == unreachable)
-			world.log << "PANIK skipping [cand] - unreachable!"
 			continue
 
-		if(!(cand?.Enter(src.pawn, my_loc)))
-			world.log << "PANIK skipping [cand] - cannot enter!"
-			continue
+		/*if(!(pawn_mob && istype(pawn_mob)))
+			if(pawn_mob.MayEnterTurf(cand))
+				continue*/
 
 		if(cand in processed)
-			world.log << "PANIK skipping [cand] - procesed!"
 			continue
 
-		if(!(cand in curr_view))
-			world.log << "PANIK skipping [cand] - not in view!"
-			continue
+		/*if(!(cand in curr_view))
+			continue*/
 
 		var/penalty = 0
 		var/threat_dist = 0
@@ -82,29 +79,16 @@
 			penalty += MAGICNUM_DISCOURAGE_SOFT
 
 		if(heat >= 2)
-			world.log << "PANIK skipping [cand] - heat!"
 			continue
-
-		//var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
-
-		/*if (curr_pos_tup ~= shot_at_where)
-			world.log << "[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where"
-			continue*/
 
 		var/cand_dist = ManhattanDistance(cand, my_loc)
 		//var/targ_dist = (waypoint ? ManhattanDistance(cand, waypoint) : 0)
 		var/targ_dist = 0 // ignore waypoint, just leg it!
 		var/total_dist = (cand_dist + targ_dist)
 
-		/*if(threat_dist < min_safe_dist)
-			//processed.Add(cand)
-			world.log << "PANIK skipping [cand] - threat too close!"
-			continue*/
-
 		penalty += -threat_dist  // the further from a threat, the better
 
 		var/datum/Quadruple/cover_quad = new(threat_dist**2, -penalty, -total_dist, cand)
-		world.log << "PANIK: enqueueing [cover_quad]"
 		cover_queue.Enqueue(cover_quad)
 		processed.Add(cand)
 
@@ -138,8 +122,7 @@
 			)
 
 		if(!handled)
-			world.log << "PanicRun target [best_local_pos] is unreachable!"
-			//brain?.SetMemory("UnreachableTile", best_local_pos)
+			to_world_log("Couldn't handle obstruction [obstruction]")
 
 	if(best_local_pos)
 		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*30)
@@ -156,8 +139,9 @@
 	// Abstracted ownership, but defaults to src for convenience.
 	var/datum/goai/mob_commander/true_owner = (owner || src)
 
-	if(!(true_owner.pawn))
-		world.log << "[src] does not have an owned mob!"
+	var/atom/pawn = true_owner.GetPawn()
+	if(!pawn)
+		to_world_log("[src] does not have an owned mob!")
 		return
 
 	var/turf/best_local_pos = null
@@ -181,10 +165,9 @@
 // as a GOAI Action. Also provides defaults, caching, etc.
 */
 /datum/goai/mob_commander/proc/HandleChoosePanicRunLandmark(var/datum/ActionTracker/tracker)
-	world.log << "Running HandleChoosePanicRunLandmark"
-
-	if(!(src.pawn))
-		world.log << "[src] does not have an owned mob!"
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("[src] does not have an owned mob!")
 		return
 
 	var/turf/best_local_pos = brain?.GetMemoryValue(MEM_BESTPOS_PANIC, null)
@@ -201,7 +184,7 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, pawn.z)
 
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
@@ -211,7 +194,7 @@
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.pawn.z)
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, pawn.z)
 
 	if(secondary_threat_ghost)
 		threats[secondary_threat_ghost] = secondary_threat
@@ -259,8 +242,11 @@
 	var/dict/primary_threat_ghost = GetActiveThreatDict()
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
+
+	var/atom/pawn = src.GetPawn()
+
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, pawn?.z)
 
 	var/turf/threat_turf = null
 	if(primary_threat)
@@ -281,8 +267,9 @@
 
 
 /datum/goai/mob_commander/proc/HandlePanickedRun(var/datum/ActionTracker/tracker)
-	if(!(src.pawn))
-		world.log << "[src] does not have an owned mob!"
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("[src] does not have an owned mob!")
 		return
 
 	var/tracker_frustration = tracker?.BBSetDefault("frustration", 0)
@@ -303,19 +290,17 @@
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
 	var/atom/primary_threat = null
 	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, src.pawn.z)
+		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, pawn.z)
 
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
-
-	//world.log << "[src]: Threat for [src]: [threat || "NONE"]"
 
 	// Secondary threat:
 	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
 	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
 	var/atom/secondary_threat = null
 	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, src.pawn.z)
+		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, pawn.z)
 
 	if(secondary_threat_ghost)
 		threats[secondary_threat_ghost] = secondary_threat
@@ -341,7 +326,7 @@
 
 		var/atom/curr_threat = threats[threat_ghost]
 		var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat_ghost, PLUS_INF) : PLUS_INF)
-		var/curr_threat_distance = GetThreatDistance(src.pawn, threat_ghost, PLUS_INF)
+		var/curr_threat_distance = GetThreatDistance(pawn, threat_ghost, PLUS_INF)
 		var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat_ghost, PLUS_INF)
 
 		var/atom/bestpos_threat_neighbor = (curr_threat ? get_step_towards(best_local_pos, curr_threat) : null)
@@ -355,7 +340,6 @@
 		if(bestpos_is_unsafe || currpos_is_unsafe)
 			if(tracker_frustration <= 3)
 				tracker.BBSet("frustration", tracker_frustration+1)
-				world.log << "[src]: Dropping PanicRun bestpos - unsafe!"
 
 				CancelNavigate()
 				best_local_pos = null
@@ -363,24 +347,25 @@
 				brain?.DropMemory(MEM_BESTPOS_PANIC)
 				break
 
-			else
-				world.log << "[src]: PanicRun bestpos unsafe, but too frustrated to care."
 
 
 	if(isnull(best_local_pos))
 		best_local_pos = ChoosePanicRunLandmark(primary_threat, threats, min_safe_dist)
-		world.log << "[src]: Found run away waypoint [best_local_pos]"
 		tracker.BBSet(MEM_BESTPOS_PANIC, best_local_pos)
 		brain?.SetMemory(MEM_BESTPOS_PANIC, best_local_pos, PANIC_SENSE_THROTTLE*3)
-		world.log << (isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos [best_local_pos]")
+		to_world_log((isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos ([best_local_pos?.x], [best_local_pos?.y])"))
 
 	if(best_local_pos && (!src.active_path || src.active_path.target != best_local_pos))
 		// CORE MOVEMENT TRIGGER - FOUND POSITION, START PATHING TO IT
-		world.log << "[src]: Navigating to [best_local_pos]"
-		StartNavigateTo(best_local_pos, 0, primary_threat?.loc, 0, /datum/goai/mob_commander/proc/fPanicRunDistance)
+		to_world_log("[src]: Navigating to [best_local_pos]")
+		var/turf/threat_turf = get_turf(primary_threat)
+		var/new_path = StartNavigateTo(best_local_pos, 0, threat_turf, 0, /datum/goai/mob_commander/proc/fPanicRunDistance)
+
+		if(!new_path)
+			src.WalkPawnAwayFrom(threat_turf)
 
 	if(best_local_pos)
-		var/dist_to_pos = ManhattanDistance(src.pawn.loc, best_local_pos)
+		var/dist_to_pos = ManhattanDistance(get_turf(pawn), best_local_pos)
 		if(dist_to_pos < 1)
 			tracker.SetTriggered()
 
@@ -397,15 +382,12 @@
 
 	else if(src.active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 20))
 		brain?.SetMemory("UnreachableTile", src.active_path.target, MEM_TIME_LONGTERM)
-		if(prob(10))
-			step_away(src, primary_threat || secondary_threat || src)
+		walk_away(src, primary_threat || secondary_threat || get_turf(pawn))
 		tracker.SetFailed()
 
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * 10))
-		if(prob(10))
-			step_away(src, primary_threat || secondary_threat || src)
-
+		walk_away(src, primary_threat || secondary_threat || get_turf(pawn))
 		tracker.SetFailed()
 
 	return

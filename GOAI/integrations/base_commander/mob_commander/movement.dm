@@ -2,24 +2,27 @@
 
 
 /datum/goai/mob_commander/proc/CurrentPositionAsTuple()
-	if(isnull(src.pawn))
-		world.log << "No owned mob found for [src.name] AI"
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("No owned mob found for [src.name] AI")
 		return
 
-	return src.pawn.CurrentPositionAsTuple()
+	return pawn.CurrentPositionAsTuple()
 
 
 /datum/goai/mob_commander/proc/FindPathTo(var/trg, var/min_dist = 0, var/avoid = null, var/proc/adjproc = null, var/proc/distanceproc = null, var/list/adjargs = null)
-	if(isnull(src.pawn))
-		world.log << "No owned mob found for [src.name] AI"
+	var/atom/pawn = src.GetPawn()
+	if(!pawn)
+		to_world_log("No owned mob found for [src.name] AI")
+		return
 
 	var/atom/start_loc = null
 
-	if(src.pawn)
-		start_loc = src.pawn.loc
+	if(pawn)
+		start_loc = pawn.loc
 
 	if(!start_loc)
-		world.log << "No start loc found for [src.name] AI"
+		to_world_log("No start loc found for [src.name] AI")
 		return
 
 	var/true_avoid = (avoid || src.brain?.GetMemoryValue("BadStartTile", null))
@@ -27,8 +30,8 @@
 	var/proc/true_adjproc = (isnull(adjproc) ? /proc/fCardinalTurfs : adjproc)
 	var/proc/true_distproc = (isnull(distanceproc) ? /proc/fDistance : distanceproc)
 
-	var/list/path = AStar(
-		start = get_turf(src.pawn.loc),
+	var/list/path = GoaiAStar(
+		start = get_turf(pawn.loc),
 		end = get_turf(trg),
 		adjacent = true_adjproc,
 		dist = true_distproc,
@@ -59,7 +62,7 @@
 		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
 
 		if(!best_cand_quad)
-			world.log << "[src.name]: No Quad found, breaking the ValidateWaypoint loop!"
+			to_world_log("[src.name]: No Quad found, breaking the ValidateWaypoint loop!")
 			break
 
 		best_local_pos = best_cand_quad.fourth
@@ -119,13 +122,15 @@
 /datum/goai/mob_commander/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/refresh_loc_memories = TRUE, var/proc/costproc = null)
 	src.is_repathing = 1
 
+	var/atom/pawn = src.GetPawn()
+
 	if(brain && refresh_loc_memories)
 		var/atom/previous_oldloc = brain.GetMemoryValue("Location-1")
 
 		if(previous_oldloc && prob(10))
 			brain.SetMemory("Location-2", previous_oldloc)
 
-		brain.SetMemory("Location-1", src.pawn.loc)
+		brain.SetMemory("Location-1", pawn?.loc)
 
 	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, avoid, inh_frustration, costproc)
 
@@ -133,14 +138,17 @@
 		src.active_path = pathtracker
 
 	else
-		var/atom/curr_loc = get_turf(src)
-		world.log << "[src]: Could not build a pathtracker to [trg] @ [curr_loc]"
+		var/atom/curr_loc = get_turf(pawn)
+		to_world_log("[src]: Could not build a pathtracker to [trg] @ ([curr_loc?.x] [curr_loc?.y])")
+		var/atom/potential_step = get_step_towards(pawn, trg)
+		if(potential_step)
+			src.MovePawn(potential_step)
 		//brain?.SetMemory("BadStartTile", curr_loc, 1000)
 
 	var/turf/trg_turf = trg
 
-	if(trg_turf && src.pawn)
-		trg_turf.pDrawVectorbeam(src.pawn, trg_turf)
+	if(trg_turf && pawn)
+		trg_turf.pDrawVectorbeam(pawn, trg_turf)
 
 	src.is_repathing = 0
 
@@ -153,8 +161,113 @@
 	return TRUE
 
 
+/datum/goai/mob_commander/proc/MovePawn(var/atom/trg, var/flee = FALSE, var/atom/override_pawn = null)
+	/* Core API to let our Commanders move our pawns (i.e. any atoms).
+	// Needs to account for different subtypes of atom having specialized
+	// movement APIs (because SS13 code is an eldritch spaghetti from hell)
+	//
+	// ARGUMENTS:
+	// - trg => target atom to move to/from
+	// - flee => boolean; if TRUE, reverses the directions (so we run AWAY from trg rather than TOWARDS it)
+	// - override_pawn => optional, can be used to *explicitly* set a pawn to be moved.
+	*/
+	var/atom/movable/true_pawn = override_pawn
+
+	if(!istype(true_pawn))
+		// Because the null-on-bad-cast is unreliable...
+		true_pawn = null
+
+	if(isnull(true_pawn))
+		true_pawn = src.GetPawn()
+
+	if(isnull(true_pawn))
+		return FALSE
+
+	var/mob/pawn_mob = true_pawn
+
+	if(!(pawn_mob.MayMove()))
+		return FALSE
+
+	var/step_result = FALSE
+
+	if(pawn_mob && istype(pawn_mob))
+		// Mobs have a specialized API for movement
+		var/mob/living/L = pawn_mob
+
+		if(L && istype(L))
+			if(!(L?.stat == CONSCIOUS))
+				return FALSE
+
+	var/movedir = get_dir(get_turf(true_pawn), get_turf(trg))
+
+	if(flee)
+		movedir = dir2opposite(movedir)
+
+	step_result = true_pawn.DoMove(movedir, true_pawn, FALSE)
+	return step_result
+
+
+/datum/goai/mob_commander/proc/WalkPawn(var/atom/trg, var/flee = FALSE, var/stop_on_path = TRUE, var/stop_on_moving = TRUE, var/atom/override_pawn = null)
+	/* This is a fallback movement logic for cases where we don't have a good Astar path.
+	// It's effectively the engine's walk() proc but with an SS13/GOAI layer on top.
+	// Movement will stop once we acquire an actual path.
+	//
+	// ARGUMENTS: see MovePawn
+	*/
+	var/atom/true_pawn = override_pawn
+
+	if(!istype(true_pawn))
+		// Because the null-on-bad-cast is unreliable...
+		true_pawn = null
+
+	if(isnull(true_pawn))
+		true_pawn = src.GetPawn()
+
+	if(isnull(true_pawn))
+		return FALSE
+
+	var/turf/targ_turf = get_turf(trg)
+
+	spawn(0)
+		// kill the loop if we have an actual path
+		while(get_turf(true_pawn) != targ_turf)
+			if(stop_on_path && src.active_path)
+				break
+
+			if(stop_on_moving && src.is_moving)
+				break
+
+			var/step_result = src.MovePawn(trg, flee, true_pawn)
+
+			if(!step_result)
+				break
+
+			sleep(COMBATAI_MOVE_TICK_DELAY)
+
+	return TRUE
+
+
+/datum/goai/mob_commander/proc/WalkPawnTowards(var/atom/trg, var/stop_on_path = TRUE, var/stop_on_moving = TRUE, var/atom/override_pawn = null)
+	/* This is a covenience partial function for WalkPawn(flee=FALSE),
+	// so broadly equivalent to the stock walk_towards() proc
+	*/
+	return src.WalkPawn(trg, FALSE, stop_on_path, stop_on_moving, override_pawn)
+
+
+/datum/goai/mob_commander/proc/WalkPawnAwayFrom(var/atom/trg, var/stop_on_path = TRUE, var/stop_on_moving = TRUE, var/atom/override_pawn = null)
+	/* This is a covenience partial function for WalkPawn(flee=TRUE),
+	// so broadly equivalent to the stock walk_away() proc
+	*/
+	return src.WalkPawn(trg, TRUE, stop_on_path, stop_on_moving, override_pawn)
+
+
 /datum/goai/mob_commander/proc/MovementSystem()
-	if(!(src?.active_path) || src.active_path.IsDone() || src.is_moving)
+	var/atom/movable/pawn = src.GetPawn()
+
+	if(!(src?.active_path) || src.active_path.IsDone() || src.is_moving || isnull(pawn))
+		return
+
+	if(!(pawn.MayMove()))
 		return
 
 	var/success = FALSE
@@ -173,16 +286,22 @@
 			// repath
 			var/frustr_x = followup_step.x
 			var/frustr_y = followup_step.y
-			world.log << "[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
+			to_world_log("[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!")
 			StartNavigateTo(src.active_path.target, src.active_path.min_dist, next_step, src.active_path.frustration)
 			return
 
-		var/step_result = step_towards(src.pawn, next_step, 0)
+		if(get_dist(pawn, next_step) > 0)
+			// If we somehow wind up away from the core path, move back towards it first
+			WalkPawnTowards(next_step, FALSE, TRUE)
+			return
+
+		var/step_result = MovePawn(next_step)
+
 		//success = (is_moving || step_result)
 
 		success = (
 			step_result || (
-				(src.pawn.x == next_step.x) && (src.pawn.y == next_step.y)
+				(pawn.x == next_step.x) && (pawn.y == next_step.y)
 			)
 		)
 
@@ -192,7 +311,6 @@
 		else
 			src.active_path.frustration++
 	else
-		world.log << "[src]: Setting path to Done"
 		src.active_path.SetDone()
 
 	if(success)
@@ -205,14 +323,19 @@
 	if(src.is_moving)
 		return FALSE
 
+	var/atom/movable/pawn = src.GetPawn()
+
+	if(!(pawn?.MayMove()))
+		return FALSE
+
 	src.is_moving = 1
 
-	var/turf/curr_loc = get_turf(src.pawn)
-	var/list/neighbors = fCombatantAdjacents(curr_loc, src.pawn)
+	var/turf/curr_loc = get_turf(pawn)
+	var/list/neighbors = fCombatantAdjacents(curr_loc, pawn)
 
 	if(neighbors)
 		var/movedir = pick(neighbors)
-		step_to(src.pawn, movedir)
+		MovePawn(movedir)
 
 	src.is_moving = 0
 	return TRUE
