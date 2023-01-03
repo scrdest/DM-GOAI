@@ -18,7 +18,6 @@
 #include "demoGoap.dm"
 #include "GOAI.dm"
 #include "helpers.dm"
-#include "combatmap_doorland_abstractai.dmm"
 #include "_algorithms\astar.dm"
 #include "_algorithms\gaussdist.dm"
 #include "_algorithms\linear_algebra.dm"
@@ -121,5 +120,6 @@
 #include "demo\spawners\factions.dm"
 #include "demo\spawners\mob_commanders.dm"
 #include "goap\goap_classy.dm"
+#include "maps\combatmap_doorland_abstractai.dmm"
 // END_INCLUDE
 
