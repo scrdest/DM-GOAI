@@ -27,7 +27,9 @@ jobs:
           chmod +x ./scripts/install-spaceman-dmm.sh
           ./scripts/install-spaceman-dmm.sh dreamchecker
       - name: Run Dreamchecker
-        run: ~/dreamchecker
+        run:  |
+          cd GOAI
+          ~/dreamchecker
       - name: Run Failure Webhook
         env:
           JOB_STATUS: ${{ job.status }}
