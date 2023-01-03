@@ -5,16 +5,16 @@
 	if(isnull(commander))
 		return
 
-	usr << " "
-	usr << "#============================================#"
-	usr << "|          GOAI Mob Commander: [commander]          "
-	usr << "#============================================#"
-	usr << "|"
+	to_chat(usr, " ")
+	to_chat(usr, "#============================================#")
+	to_chat(usr, "|          GOAI Mob Commander: [commander]          ")
+	to_chat(usr, "#============================================#")
+	to_chat(usr, "|")
 
 	for(var/V in commander.vars)
-		usr << "| - [V] = [commander.vars[V]]"
+		to_chat(usr, "| - [V] = [commander.vars[V]]")
 
-	usr << "#============================================#"
+	to_chat(usr, "#============================================#")
 
 	return
 
@@ -25,20 +25,20 @@
 	if(isnull(commander))
 		return
 
-	usr << " "
-	usr << "#============================================#"
-	usr << "|          GOAI Mob Commander: [commander]          "
-	usr << "#============================================#"
-	usr << "|"
+	to_chat(usr, " ")
+	to_chat(usr, "#============================================#")
+	to_chat(usr, "|          GOAI Mob Commander: [commander]          ")
+	to_chat(usr, "#============================================#")
+	to_chat(usr, "|")
 
 	var/list/tracker_vars = commander.active_path?.vars
 	if(isnull(tracker_vars))
 		return
 
 	for(var/V in tracker_vars)
-		usr << "| - [V] = [tracker_vars[V]]"
+		to_chat(usr, "| - [V] = [tracker_vars[V]]")
 
-	usr << "#============================================#"
+	to_chat(usr, "#============================================#")
 
 	return
 
@@ -49,12 +49,13 @@
 	var/removed = 0
 
 	for(var/datum/goai/mob_commander/commander in GLOB?.global_goai_registry)
-		var/mob/living/L = commander?.pawn
+		var/atom/pawn = commander?.GetPawn()
+		var/mob/living/L = pawn
 
-		if(!(commander?.pawn) || (L && istype(L) && L.stat == DEAD))
-			usr << "Deregistering [commander?.name]..."
+		if(!(pawn) || (L && istype(L) && L.stat == DEAD))
+			to_chat(usr, "Deregistering [commander?.name]...")
 			deregister_ai(commander?.registry_index)
 			removed++
 
-	usr << "Finished GOAI mob commander cleanup! Removed entry count: [removed]"
+	to_chat(usr, "Finished GOAI mob commander cleanup! Removed entry count: [removed]")
 	return

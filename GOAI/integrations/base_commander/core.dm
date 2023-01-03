@@ -34,6 +34,9 @@
 	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
 	var/initial_action = null
 
+	// Dynamically attached junk
+	var/dict/attachments
+
 
 /datum/goai/New(var/active = null)
 	..()
@@ -48,6 +51,7 @@
 	var/true_active = (isnull(active) ? TRUE : active)
 
 	var/spawn_time = world.time
+	src.attachments = new()
 	src.last_update_time = spawn_time
 	src.actionlookup = src.InitActionLookup()  // order matters!
 	src.actionslist = src.InitActionsList()
@@ -67,31 +71,36 @@
 		src.Life()
 
 
+/datum/goai/proc/CleanDelete()
+	src.life = 0
+
+	var/datum/brain/mybrain = src.brain
+	if(mybrain && istype(mybrain))
+		mybrain.CleanDelete()
+
+	deregister_ai(src.registry_index)
+	return TRUE
+
+
 /datum/goai/Destroy()
+	src.CleanDelete()
 	. = ..()
-
-	if(!(isnull(src.registry_index)))
-		GLOB?.global_goai_registry[src.registry_index] = null
-
-	qdel(src.brain)
 	return
+
+
+/datum/goai/proc/ShouldCleanup()
+	// purely logical, doesn't DO the cleanup
+	return FALSE
+
+
+/datum/goai/proc/CheckForCleanup()
+	// purely application, runs ShouldCleanup() and handles state as needed
+	// this is just an abstract method for overrides to plug into though
+	return FALSE
 
 
 /datum/goai/proc/LifeTick()
 	return TRUE
-
-
-/datum/goai/proc/RegisterAI()
-	// Registry pattern, to facilitate querying all GOAI AIs in verbs
-
-	GLOB?.global_goai_registry += src
-	src.registry_index = GLOB?.global_goai_registry.len
-
-	if(!(src.name))
-		src.name = src.registry_index
-
-	return GLOB?.global_goai_registry
-
 
 
 /datum/goai/proc/Life()
@@ -100,6 +109,7 @@
 	/*
 		spawn(0)
 			while(src.life)
+				src.CheckForCleanup()
 				src.LifeTick()
 	*/
 	// ...except this would just spin its wheels here, and children

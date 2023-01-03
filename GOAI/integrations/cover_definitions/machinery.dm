@@ -1,5 +1,3 @@
-# ifdef GOAI_SS13_SUPPORT
-
 // MACHINERY
 
 /obj/machinery
@@ -17,4 +15,3 @@
 /obj/machinery/camera
 	cover_gen_enabled = FALSE
 
-# endif

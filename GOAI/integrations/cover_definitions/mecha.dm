@@ -1,5 +1,3 @@
-# ifdef GOAI_SS13_SUPPORT
-
 // MECHS
 
 /obj/mecha
@@ -7,5 +5,3 @@
 
 /obj/mecha/GenerateCover()
 	return GenerateGenericFullCover(src)
-
-# endif
