@@ -71,6 +71,25 @@
 		src.Life()
 
 
+/datum/goai/proc/CleanDelete()
+	src.life = 0
+
+	var/datum/brain/mybrain = src.brain
+	if(mybrain && istype(mybrain))
+		mybrain.CleanDelete()
+
+	deregister_ai(src.registry_index)
+	return TRUE
+
+
+# ifdef GOAI_SS13_SUPPORT
+/datum/goai/Destroy()
+	src.CleanDelete()
+	. = ..()
+	return
+# endif
+
+
 /datum/goai/proc/ShouldCleanup()
 	// purely logical, doesn't DO the cleanup
 	return FALSE

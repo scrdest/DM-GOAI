@@ -28,9 +28,10 @@
 	var/effective_waypoint_x = null
 	var/effective_waypoint_y = null
 
+	var/mob/pawn_mob = pawn
+
 	var/atom/waypoint_ident = brain?.GetMemoryValue(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
 	var/datum/chunk/waypointchunk = null
-	var/mob/pawn_mob = pawn
 
 	if(waypoint_ident)
 		// This only applies to the case where the brain has a Waypoint stored, i.e. when we're
