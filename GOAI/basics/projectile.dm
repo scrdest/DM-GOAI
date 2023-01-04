@@ -59,7 +59,7 @@
 		del(src)
 
 
-/obj/gun
+/obj/item/weapon/gun
 	name = "Gun"
 	icon = 'icons/obj/gun.dmi'
 	icon_state = "laser"
@@ -72,7 +72,7 @@
 	var/ammo_sprite = null
 
 
-/obj/gun/New(var/atom/location)
+/obj/item/weapon/gun/New(var/atom/location)
 	..()
 
 	loc = location
@@ -83,7 +83,7 @@
 	)
 
 
-/obj/gun/proc/cool()
+/obj/item/weapon/gun/proc/cool()
 	cooling = TRUE
 
 	spawn(cooldown_time_deterministic + rand(-cooldown_time_random, cooldown_time_random))
@@ -92,7 +92,7 @@
 	return
 
 
-/obj/gun/proc/shoot(var/atom/At, var/atom/From)
+/obj/item/weapon/gun/proc/shoot(var/atom/At, var/atom/From)
 	if(cooling)
 		return
 
@@ -129,7 +129,12 @@
 	return newbeam
 
 
-/obj/gun/verb/Shoot(var/atom/At as mob in view())
+/obj/item/weapon/gun/proc/Fire(var/atom/At, var/atom/From)
+	src.Shoot(At, From)
+	return
+
+
+/obj/item/weapon/gun/verb/Shoot(var/atom/At as mob in view())
 	set src in view(0)
 
 	if(cooling)
@@ -140,6 +145,6 @@
 
 
 /mob/verb/GimmeGun()
-	var/obj/gun/newgun = new(usr)
+	var/obj/item/weapon/gun/newgun = new(usr)
 
 	to_chat(usr, "There ya go, one [newgun]!")

@@ -38,8 +38,8 @@ var/global/list/global_goai_registry
 	// Registry pattern, to facilitate querying all GOAI AIs in verbs
 	if(src.registry_index)
 		// already done, fix up the registry to be sure and return
-		GLOB?.global_goai_registry?[src.registry_index] = src
-		return GLOB?.global_goai_registry
+		global_goai_registry?[src.registry_index] = src
+		return global_goai_registry
 
 	global_goai_registry += src
 	src.registry_index = global_goai_registry.len
