@@ -38,9 +38,13 @@ var/global/list/global_aibrain_registry
 
 /datum/brain/proc/RegisterBrain()
 	// Registry pattern, to facilitate querying all GOAI Brains in verbs
+
+	if(!(global_aibrain_registry))
+		global_aibrain_registry = list()
+
 	if(src.registry_index)
 		// already done, fix up the registry to be sure and return
-		global_aibrain_registry?[src.registry_index] = src
+		global_aibrain_registry[src.registry_index] = src
 		return global_aibrain_registry
 
 	global_aibrain_registry += src

@@ -128,5 +128,6 @@
 #include "integrations\spawners\factions.dm"
 #include "integrations\spawners\mob_commanders.dm"
 #include "maps\combatmap_doorland_abstractai.dmm"
+#include "Z_testjunk\devmobs.dm"
 // END_INCLUDE
 

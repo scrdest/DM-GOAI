@@ -36,6 +36,10 @@ var/global/list/global_goai_registry
 
 /datum/goai/proc/RegisterAI()
 	// Registry pattern, to facilitate querying all GOAI AIs in verbs
+
+	if(!(global_goai_registry))
+		global_goai_registry = list()
+
 	if(src.registry_index)
 		// already done, fix up the registry to be sure and return
 		global_goai_registry?[src.registry_index] = src
