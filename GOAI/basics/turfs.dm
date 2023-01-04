@@ -67,10 +67,10 @@
 			continue
 
 		if(object.density)
-			//world.log << "[src] hit dense object [object] @ [object.loc]"
+			//to_world_log("[src] hit dense object [object] @ [object.loc]")
 			return TRUE
 
-	//world.log << "[src] is not blocked"
+	//to_world_log("[src] is not blocked")
 	return FALSE
 
 

@@ -155,33 +155,33 @@
 	if(!key)
 		return
 
-	world.log << "[src]: setting state [key] => [val] on the mob!"
+	to_world_log("[src]: setting state [key] => [val] on the mob!")
 	states[key] = val
 
 	if(brain)
-		//world.log << "[src]: brain found ([brain]), setting state [key] => [val]"
+		//to_world_log("[src]: brain found ([brain]), setting state [key] => [val]")
 		brain.SetState(key, val)
 
-	//world.log << "[src]: state for [key] is [GetState(key)]/[brain?.states?[key]]"
+	//to_world_log("[src]: state for [key] is [GetState(key)]/[brain?.states?[key]]")
 	return TRUE
 
 
 /mob/goai/proc/GetState(var/key, var/default = null)
 	if(!key)
-		world.log << "[src]: [key] is null!"
+		to_world_log("[src]: [key] is null!")
 		return
 
 	if(brain && (key in brain.states))
-		//world.log << "[src]: getting state [key] from the brain!"
+		//to_world_log("[src]: getting state [key] from the brain!")
 		return brain.GetState(key, default)
 
 	if(key in states)
-		//world.log << "[src]: getting state [key] from the mob!"
+		//to_world_log("[src]: getting state [key] from the mob!")
 		return states[key]
 
 	return default
 
 
 /mob/goai/verb/Say(words as text)
-	world << "([name]) says: '[words]'"
+	to_world("([name]) says: '[words]'")
 

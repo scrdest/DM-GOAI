@@ -23,27 +23,27 @@
 		var/sqrt_dist = get_dist(startpos, target) * 0.5
 
 		if(init_dist < 40)
-			world.log << "[src] entering ASTARS STAGE"
+			to_world_log("[src] entering ASTARS STAGE")
 			path = AStar(src, target, /turf/proc/CardinalTurfs, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
-			world.log << "[src] found ASTAR 1 path from [startpos] to [target]: [path] ([path?.len])"
+			to_world_log("[src] found ASTAR 1 path from [startpos] to [target]: [path] ([path?.len])")
 
 			if(path)
-				world.log << "[src] entering HAPPYPATH"
+				to_world_log("[src] entering HAPPYPATH")
 				/*for(var/turf/pathitem in path)
-					world.log << "[src] HAPPYPATH: [pathitem]"*/
+					to_world_log("[src] HAPPYPATH: [pathitem]"*/)
 
 			else if(!(path && path.len))
 				// No unobstructed path to target!
 				// Let's try to get a direct path and check for obstacles.
 				path = AStar(src, target, /turf/proc/CardinalTurfsNoblocks, /turf/proc/Distance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
-				world.log << "[src] found ASTAR 2 path from [startpos] to [target]: [path] ([path?.len])"
+				to_world_log("[src] found ASTAR 2 path from [startpos] to [target]: [path] ([path?.len])")
 
 				if(path)
 					var/path_pos = 0
 
 					for(var/turf/pathitem in path)
 						path_pos++
-						//world.log << "[src]: [pathitem]"
+						//to_world_log("[src]: [pathitem]")
 
 						if(isnull(pathitem))
 							continue
@@ -58,7 +58,7 @@
 
 						var/last_link_blocked = LinkBlocked(previous, pathitem)
 						if(last_link_blocked)
-							world.log << "[src]: LINK BETWEEN [previous] & [pathitem] OBSTRUCTED"
+							to_world_log("[src]: LINK BETWEEN [previous] & [pathitem] OBSTRUCTED")
 							// find the obstacle
 							var/atom/obstruction = null
 
@@ -88,7 +88,7 @@
 										obstruction = potential_obstruction_prev
 										break
 
-							world.log << "[src]: LINK OBSTRUCTION => [obstruction] @ [obstruction?.loc]"
+							to_world_log("[src]: LINK OBSTRUCTION => [obstruction] @ [obstruction?.loc]")
 							var/obj/cover/door/D = obstruction
 							if(D && istype(D))
 								brain.SetMemory(MEM_OBSTRUCTION, obstruction, 1000)

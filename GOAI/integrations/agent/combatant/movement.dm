@@ -38,7 +38,7 @@
 		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
 
 		if(!best_cand_quad)
-			world.log << "[src.name] No Quad found, breaking the ValidateWaypoint loop!"
+			to_world_log("[src.name] No Quad found, breaking the ValidateWaypoint loop!")
 			break
 
 		best_local_pos = best_cand_quad.fourth
@@ -112,7 +112,7 @@
 		active_path = pathtracker
 	else
 		var/atom/curr_loc = get_turf(src)
-		world.log << "[src]: Could not build a pathtracker to [trg] @ [curr_loc]"
+		to_world_log("[src]: Could not build a pathtracker to [trg] @ [curr_loc]")
 		//brain?.SetMemory("BadStartTile", curr_loc, 1000)
 
 	var/turf/trg_turf = trg
@@ -149,7 +149,7 @@
 			// repath
 			var/frustr_x = followup_step.x
 			var/frustr_y = followup_step.y
-			world.log << "[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
+			to_world_log("[src]: FRUSTRATION, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!")
 			StartNavigateTo(active_path.target, active_path.min_dist, next_step, active_path.frustration)
 			return
 
@@ -168,7 +168,7 @@
 		else
 			active_path.frustration++
 	else
-		world.log << "[src]: Setting path to Done"
+		to_world_log("[src]: Setting path to Done")
 		active_path.SetDone()
 
 	if(success)

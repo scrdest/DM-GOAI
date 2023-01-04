@@ -1,8 +1,8 @@
 // # define OBSTACLEHUNT_DEBUG_LOGGING 0
 
 # ifdef OBSTACLEHUNT_DEBUG_LOGGING
-# define OBSTACLEHUNT_DEBUG_LOG(X) world.log << X
-# define OBSTACLEHUNT_DEBUG_LOG_TOSTR(X) world.log << #X + ": [X]"
+# define OBSTACLEHUNT_DEBUG_LOG(X) to_world_log(X)
+# define OBSTACLEHUNT_DEBUG_LOG_TOSTR(X) to_world_log(#X + ": [X]")
 # else
 # define OBSTACLEHUNT_DEBUG_LOG(X)
 # define OBSTACLEHUNT_DEBUG_LOG_TOSTR(X)
@@ -74,7 +74,7 @@
 		OBSTACLEHUNT_DEBUG_LOG("[owner] entering OBSTACLE HUNT STAGE")
 		for(var/turf/pathitem in path)
 			path_pos++
-			//world.log << "[owner]: [pathitem]"
+			//to_world_log("[owner]: [pathitem]")
 
 			if(isnull(pathitem))
 				continue

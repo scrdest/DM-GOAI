@@ -7,19 +7,19 @@
 		return
 
 	if(!brain)
-		world.log << "[src] HandleOpenDoor - no brain!"
+		to_world_log("[src] HandleOpenDoor - no brain!")
 		tracker.SetFailed()
 		return
 
 	var/obj/cover/door/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION, null)
 
 	if(isnull(obstruction))
-		world.log << "[src] HandleOpenDoor - no Obstruction!"
+		to_world_log("[src] HandleOpenDoor - no Obstruction!")
 		tracker.SetFailed()
 		return
 
 	/*if(!istype(obstruction))
-		world.log << "[src] HandleOpenDoor - wrong type!"
+		to_world_log("[src] HandleOpenDoor - wrong type!")
 		tracker.SetFailed()
 		return*/
 
@@ -29,7 +29,7 @@
 
 	while(dist_to_obs < 2 && !(obstruction.open))
 		// Within 1-tile range diagonally? Open it.
-		world.log << "[src] is opening a door [obstruction]"
+		to_world_log("[src] is opening a door [obstruction]")
 		opened = obstruction.Open()
 		if(opened)
 			break
@@ -74,19 +74,19 @@
 		return
 
 	if(!brain)
-		world.log << "[src] HandleOpenAutodoor - no brain!"
+		to_world_log("[src] HandleOpenAutodoor - no brain!")
 		tracker.SetFailed()
 		return
 
 	var/obj/cover/autodoor/obstruction = brain.GetMemoryValue(MEM_OBSTRUCTION, null)
 
 	if(isnull(obstruction))
-		world.log << "[src] HandleOpenAutodoor - no Obstruction!"
+		to_world_log("[src] HandleOpenAutodoor - no Obstruction!")
 		tracker.SetFailed()
 		return
 
 	/*if(!istype(obstruction))
-		world.log << "[src] HandleOpenAutodoor - wrong type!"
+		to_world_log("[src] HandleOpenAutodoor - wrong type!")
 		tracker.SetFailed()
 		return*/
 
@@ -94,11 +94,11 @@
 	var/dist_to_obs = ChebyshevDistance(get_turf(src), obs_turf)
 	var/opened = FALSE
 
-	world.log << "[src] distance to autodoor [obstruction] is [dist_to_obs]"
+	to_world_log("[src] distance to autodoor [obstruction] is [dist_to_obs]")
 
 	if(dist_to_obs < 2 && !(obstruction.open))
 		// Within 1-tile range diagonally? Open it.
-		world.log << "[src] is opening an autodoor [obstruction]"
+		to_world_log("[src] is opening an autodoor [obstruction]")
 		opened = obstruction.Open()
 
 	if(obstruction.open || opened)

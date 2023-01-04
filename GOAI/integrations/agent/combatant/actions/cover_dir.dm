@@ -28,10 +28,10 @@
 		var/list/waypoint_memdata = brain?.GetMemoryValue(MEM_WAYPOINT_LKP, null, FALSE, TRUE)
 		var/mem_waypoint_x = waypoint_memdata?[KEY_GHOST_X]
 		var/mem_waypoint_y = waypoint_memdata?[KEY_GHOST_Y]
-		world.log << "[src] waypoint positions: ([mem_waypoint_x], [mem_waypoint_y]) from [waypoint_memdata]"
+		to_world_log("[src] waypoint positions: ([mem_waypoint_x], [mem_waypoint_y]) from [waypoint_memdata]")
 
 		if(!isnull(mem_waypoint_x) && !isnull(mem_waypoint_y))
-			world.log << "[src] found waypoint position in memory!"
+			to_world_log("[src] found waypoint position in memory!")
 			effective_waypoint_x = mem_waypoint_x
 			effective_waypoint_y = mem_waypoint_y
 
@@ -100,7 +100,7 @@
 			//var/datum/Tuple/curr_pos_tup = cand.CurrentPositionAsTuple()
 
 			/*if (curr_pos_tup ~= shot_at_where)
-				world.log << "[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where"
+				to_world_log("[src]: Curr pos tup [curr_pos_tup] ([curr_pos_tup?.left], [curr_pos_tup?.right]) equals shot_at_where")
 				continue*/
 
 			var/cand_dist = ManhattanDistance(cand, src)
@@ -155,7 +155,7 @@
 
 
 /mob/goai/combatant/proc/HandleChooseDirectionalCoverLandmark(var/datum/ActionTracker/tracker)
-	//world.log << "Running HandleChooseDirectionalCoverLandmark"
+	//to_world_log("Running HandleChooseDirectionalCoverLandmark")
 
 	var/turf/best_local_pos = tracker?.BBGet("bestpos", null)
 	if(best_local_pos)
@@ -187,7 +187,7 @@
 
 	// Run pathfind
 	best_local_pos = ChooseDirectionalCoverLandmark(startpos, primary_threat, threats, min_safe_dist)
-	world.log << "[src]: PLAN Best local pos [best_local_pos || "null"]"
+	to_world_log("[src]: PLAN Best local pos [best_local_pos || "null"]")
 
 	if(best_local_pos)
 		tracker.BBSet("bestpos", best_local_pos)
@@ -209,7 +209,7 @@
 	if(brain && isnull(best_local_pos))
 		best_local_pos = brain.GetMemoryValue("DirectionalCoverBestpos", null)
 
-	world.log << "[src]: INITIAL best_local_pos is: [best_local_pos || "null"]"
+	to_world_log("[src]: INITIAL best_local_pos is: [best_local_pos || "null"]")
 
 	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST)) || 2
 	var/frustration_repath_maxthresh = brain?.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || 3
@@ -226,7 +226,7 @@
 	if(primary_threat_ghost)
 		threats[primary_threat_ghost] = primary_threat
 
-	//world.log << "[src]: Threat for [src]: [threat || "NONE"]"
+	//to_world_log("[src]: Threat for [src]: [threat || "NONE"]")
 
 	// Secondary threat:
 	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
@@ -258,7 +258,7 @@
 			continue
 
 		var/atom/curr_threat = threats[threat_ghost]
-		world.log << "[src]: curr_threat is [curr_threat]"
+		to_world_log("[src]: curr_threat is [curr_threat]")
 		var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat_ghost, PLUS_INF) : PLUS_INF)
 		var/curr_threat_distance = GetThreatDistance(src, threat_ghost, PLUS_INF)
 		var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat_ghost, PLUS_INF)
@@ -276,7 +276,7 @@
 
 			CancelNavigate()
 
-			world.log << "[src]: best_local_pos @ [best_local_pos] is unsafe, nulling!"
+			to_world_log("[src]: best_local_pos @ [best_local_pos] is unsafe, nulling!")
 			best_local_pos = null
 			tracker.BBSet("bestpos", null)
 			brain?.DropMemory("DirectionalCoverBestpos")
@@ -288,11 +288,11 @@
 		tracker.BBSet("bestpos", best_local_pos)
 		brain?.SetMemory("DirectionalCoverBestpos", best_local_pos)
 
-		world.log << "[src]: ACTION Best local pos [best_local_pos || "null"]"
+		to_world_log("[src]: ACTION Best local pos [best_local_pos || "null"]")
 
 
 	if(best_local_pos && (!active_path || active_path.target != best_local_pos))
-		world.log << "[src]: Navigating to [best_local_pos]"
+		to_world_log("[src]: Navigating to [best_local_pos]")
 		StartNavigateTo(best_local_pos)
 
 	if(best_local_pos)

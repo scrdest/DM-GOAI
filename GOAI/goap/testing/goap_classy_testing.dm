@@ -56,12 +56,12 @@
 
 	if (result)
 		var/list/path = result.right
-		//world << "Result cost: [result.left]"
-		world << "Path: [path] ([path.len])"
+		//to_world("Result cost: [result.left]")
+		to_world("Path: [path] ([path.len])")
 		for (var/act in path)
-			world << "Step: [act]"
+			to_world("Step: [act]")
 
 	else
-		world << "NO PATH FOUND!"
+		to_world("NO PATH FOUND!")
 
-	world << "   "
+	to_world("   ")

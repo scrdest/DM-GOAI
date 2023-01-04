@@ -56,20 +56,20 @@ var/global/list/actions = list(
 	for (var/state in goal)
 		var/goal_val = goal[state]
 
-		//world.log << "GoalState: [state] = [goal_val]"
+		//to_world_log("GoalState: [state] = [goal_val]")
 
 		if (isnull(goal_val))
 			continue
 
 
 		var/curr_value = (state in pos_effects) ? pos_effects[state] : 0
-		//world.log << "PosState: [state] = [pos_effects[state]]"
+		//to_world_log("PosState: [state] = [pos_effects[state]]")
 		var/cmp_result = call(comparison)(curr_value, goal_val)
 		if (cmp_result <= 0)
-			/*world.log << "MISMATCH: [curr_value] & [goal_val]"
+			/*to_world_log("MISMATCH: [curr_value] & [goal_val]")
 			var/i = 1
 			for (var/mispos in pos)
-				world.log << "MISMATCH POS [i] = [mispos], [pos[mispos]]"
+				to_world_log("MISMATCH POS [i] = [mispos], [pos[mispos]]")
 				i++*/
 			match = 0
 			break
@@ -132,12 +132,12 @@ var/global/list/actions = list(
 
 	if (result)
 		var/list/path = result.right
-		//world << "Result cost: [result.left]"
-		world << "Path: [path] ([path.len])"
+		//to_world("Result cost: [result.left]")
+		to_world("Path: [path] ([path.len])")
 		for (var/act in path)
-			world << "Step: [act]"
+			to_world("Step: [act]")
 
 	else
-		world << "NO PATH FOUND!"
+		to_world("NO PATH FOUND!")
 
-	world << "   "
+	to_world("   ")

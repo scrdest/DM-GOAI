@@ -69,9 +69,9 @@
 			var/actionproc = action_lookup[action.name]
 
 			/*for(var/alkey in action_lookup)
-				world.log << "[src] action lookup: [alkey] => [action_lookup[alkey]]"*/
+				to_world_log("[src] action lookup: [alkey] => [action_lookup[alkey]]"*/)
 
-			//world.log << "[src]: Actionproc for [action] is [actionproc || "null"]"
+			//to_world_log("[src]: Actionproc for [action] is [actionproc || "null"]")
 
 			if(isnull(actionproc))
 				tracker.SetFailed()
@@ -89,7 +89,7 @@
 
 /*
 /mob/goai/sim/verb/DoAction(Act as anything in actionslist)
-	world.log << "DoAction act: [Act]"
+	to_world_log("DoAction act: [Act]")
 
 	if(!(Act in actionslist))
 		return null
@@ -158,7 +158,7 @@
 			// repath
 			var/frustr_x = followup_step.x
 			var/frustr_y = followup_step.y
-			world.log << "FRUSTRATIoN, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!"
+			to_world_log("FRUSTRATIoN, repath avoiding [next_step] @ ([frustr_x], [frustr_y])!")
 			StartNavigateTo(active_path.target, active_path.min_dist, next_step, active_path.frustration)
 
 	return
