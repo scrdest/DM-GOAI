@@ -6,7 +6,7 @@
 
 */
 
-
+/*
 /proc/angle2dir(var/angle)
 	var/true_angle = round(CLOCKWISE_ANGLE(angle))
 	var/direction = null
@@ -22,7 +22,7 @@
 		if (315 to 360) direction = SOUTHEAST
 
 	return direction
-
+*/
 
 /datum/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, var/list/action_args = null)
 	if(charges < 1)

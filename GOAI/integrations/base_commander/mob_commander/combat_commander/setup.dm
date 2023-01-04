@@ -16,7 +16,7 @@
 	states[STATE_DOWNTIME] = TRUE
 
 	/* Simple item tracker. */
-	states[STATE_HASGUN] = (pawn && locate(/obj/item/weapon/gun) in pawn.contents) ? 1 : 0
+	states[STATE_HASGUN] = (pawn && locate(/obj/gun) in pawn.contents) ? 1 : 0
 
 	/* Controls if the agent is *allowed & able* to engage using *anything*
 	// Can be used to force 'hold fire' or simulate the hands being occupied
@@ -127,11 +127,6 @@
 	return actionslist
 
 
-/datum/goai/mob_commander/combat_commander/proc/Equip()
-	. = ..()
-
-	if(src.pawn)
-		new /obj/item/weapon/gun/(src.pawn)
 
 /datum/goai/mob_commander/combat_commander/InitRelations()
 	// NOTE: this is a near-override, practically speaking!
@@ -155,7 +150,6 @@
 			var/datum/relation_data/my_faction_rel = new(5, 1) // slightly positive
 			relations.Insert(my_faction, my_faction_rel)
 
-	/*
 	// For hostile SAs, consider hidden faction too
 	var/mob/living/simple_animal/hostile/SAH = pawn
 	if(SAH && istype(SAH))
@@ -168,10 +162,14 @@
 
 			var/datum/relation_data/my_hiddenfaction_rel = new(1, 1) // minimally positive
 			relations.Insert(my_hiddenfaction, my_hiddenfaction_rel)
-	*/
+
 
 	src.brain.relations = relations
 	return relations
+
+
+/datum/goai/mob_commander/combat_commander/proc/Equip()
+	return
 
 
 /datum/goai/mob_commander/combat_commander/PreSetupHook()

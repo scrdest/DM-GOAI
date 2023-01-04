@@ -121,8 +121,8 @@
 
 /* Simple, non-powered door */
 /obj/cover/door
-	icon = 'icons/obj/doors/mineral_doors.dmi'
-	icon_state = "wood"
+	icon = 'icons/obj/doors/material_doors.dmi'
+	icon_state = "metal"
 
 	var/open = FALSE
 	density = FALSE

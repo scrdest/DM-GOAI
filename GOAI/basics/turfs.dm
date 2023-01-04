@@ -1,3 +1,4 @@
+/*
 /turf/ground
 	icon = 'icons/turf/snow.dmi'
 	icon_state = "snow"
@@ -57,23 +58,6 @@
 	var/turf/x2y2 = locate(((centre.x+rad)>world.maxx ? world.maxx : centre.x+rad),((centre.y+rad)>world.maxy ? world.maxy : centre.y+rad),centre.z)
 	return block(x1y1,x2y2)
 
-
-/turf/proc/ObjectBlocked()
-	// simplified version of the SS13 logic
-	// TODO: add directional logic for flipped tables etc.
-
-	for(var/obj/object in src.contents)
-		if(!object.density)
-			continue
-
-		if(object.density)
-			//to_world_log("[src] hit dense object [object] @ [object.loc]")
-			return TRUE
-
-	//to_world_log("[src] is not blocked")
-	return FALSE
-
-
 /proc/LinkBlocked(var/turf/A, var/turf/B)
 	if(A == null || B == null) return TRUE
 	var/adir = get_dir(A,B)
@@ -87,16 +71,16 @@
 		if(!LinkBlocked(A,pStep) && !LinkBlocked(pStep,B)) return FALSE
 		return TRUE
 
-	if(GoaiDirBlocked(A,adir))
+	if(DirBlocked(A,adir))
 		//to_world_log("A -> B blocked; A=[A], B=[B]")
 		return TRUE
 
-	if(GoaiDirBlocked(B,rdir))
+	if(DirBlocked(B,rdir))
 		//to_world_log("B -> A blocked; A=[A], B=[B]")
 		return TRUE
 
 	return FALSE
-
+*/
 
 
 /turf/proc/GoaiObjectBlocked()
@@ -136,7 +120,7 @@
 
 	return FALSE
 
-
+/*
 /turf/proc/AdjacentTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	var/list/adjacents = list()
 	var/turf/src_turf = get_turf(src)
@@ -150,7 +134,7 @@
 			adjacents += t
 
 	return adjacents
-
+*/
 
 // NOTE: the f-prefix stands for 'functional' (i.e. not bound method)
 /proc/fAdjacentTurfs(var/turf/start, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
@@ -170,7 +154,7 @@
 
 	return adjacents
 
-
+/*
 /turf/proc/CardinalTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	var/list/adjacents = list()
 
@@ -180,7 +164,7 @@
 			adjacents += T
 
 	return adjacents
-
+*/
 
 /proc/fCardinalTurfs(var/turf/start, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	if(!start)
@@ -211,7 +195,7 @@
 
 	return result
 
-
+/*
 /turf/proc/Distance(var/T)
 	var/turf/t = T
 	if(t && get_dist(src,t) == 1)
@@ -220,7 +204,7 @@
 		return cost
 	else
 		return get_dist(src, T)
-
+*/
 
 /proc/fDistance(var/turf/start, var/T)
 	if(!start)
@@ -290,7 +274,3 @@
 		return TRUE
 
 	return FALSE
-
-
-/world
-	turf = /turf/ground

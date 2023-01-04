@@ -1,4 +1,4 @@
-
+/*
 /proc/spawn_commanded_combatant(var/atom/loc, var/name = null, var/mob_icon = null, var/mob_icon_state = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
@@ -65,13 +65,12 @@
 	)
 
 	call(script)(arglist(script_args))
-
+*/
 
 /*
 // Humanoid (i.e. regular spessman)
 */
 
-/*
 /proc/spawn_commanded_humanoid(var/atom/loc, var/name = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
@@ -82,8 +81,7 @@
 	if(true_name)
 		M.real_name = true_name
 	else
-		//M.real_name = random_name(mob_gender, SPECIES_HUMAN)
-		M.real_name = "[rand(0, 10000)]"
+		M.real_name = random_name(mob_gender, SPECIES_HUMAN)
 
 	M.h_style = random_hair_style(mob_gender, SPECIES_HUMAN)
 	M.f_style = random_facial_hair_style(mob_gender, SPECIES_HUMAN)
@@ -176,7 +174,7 @@
 	)
 
 	call(script)(arglist(script_args))
-*/
+
 
 /*
 // Object, because why not?
@@ -185,14 +183,14 @@
 /proc/spawn_commanded_object(var/atom/loc, var/name = null)
 	var/true_name = name
 
-	var/obj/item/weapon/M = new(loc)
+	var/obj/item/weapon/gun/projectile/pistol/military/M = new(loc)
 
 	if(true_name)
 		M.name = true_name
 
 	var/datum/goai/mob_commander/combat_commander/new_commander = new()
 
-	new_commander.pawn = M
+	new_commander.pawn_ref = weakref(M)
 	new_commander.name = "AI of [M.name] (#[rand(0, 100000)])"
 
 	return
@@ -202,8 +200,8 @@
 /obj/spawner/oneshot/commanded_object
 	var/commander_name = null
 
-	icon = 'icons/obj/gun.dmi'
-	icon_state = "laser"
+	icon = 'icons/obj/guns/small_egun.dmi'
+	icon_state = "smallgunkill75"
 
 	script = /proc/spawn_commanded_object
 

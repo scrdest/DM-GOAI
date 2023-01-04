@@ -82,12 +82,10 @@
 	return TRUE
 
 
-# ifdef GOAI_SS13_SUPPORT
 /datum/goai/Destroy()
 	src.CleanDelete()
 	. = ..()
 	return
-# endif
 
 
 /datum/goai/proc/ShouldCleanup()

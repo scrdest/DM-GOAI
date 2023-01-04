@@ -73,8 +73,8 @@
 	var/list/trg_tags = list()
 
 	var/mob/living/L = trg
-	//var/mob/living/carbon/human/H = trg
-	//var/mob/living/simple_animal/hostile/SAH = trg
+	var/mob/living/carbon/human/H = trg
+	var/mob/living/simple_animal/hostile/SAH = trg
 
 	if(istype(L))
 		// Faction:
@@ -82,7 +82,6 @@
 		if(mainfaction)
 			trg_tags.Add(mainfaction)
 
-	/*
 	if(istype(H))
 		// Name, for 1-to-1 relations tracking
 		// Use real_name? Prolly not, because we want masks etc. to work.
@@ -97,7 +96,6 @@
 		var/datum/factions/hiddenfaction = SAH.hiddenfaction
 		if(hiddenfaction && istype(hiddenfaction))
 			trg_tags.Add(hiddenfaction.factionid)
-	*/
 
 	// subclass hook
 	var/list/subclass_tags = HookGetRelationshipTagsFor(trg)

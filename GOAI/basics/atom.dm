@@ -22,7 +22,7 @@
 	var/commander_backref = src.attachments?.Get(ATTACHMENT_CONTROLLER_BACKREF)
 
 	if(IS_REGISTERED_AI(commander_backref))
-		var/datum/goai/mob_commander/commander = global_goai_registry[commander_backref]
+		var/datum/goai/mob_commander/commander = GLOB?.global_goai_registry[commander_backref]
 		if(commander)
 			commander.Hit(hit_angle, shotby)
 
@@ -37,18 +37,3 @@
 /atom/proc/CurrentPositionAsTriple()
 	var/datum/Triple/pos_triple = new(src.x, src.y, src.z)
 	return pos_triple
-
-
-/atom/Enter(var/atom/movable/O, var/atom/oldloc)
-	. = ..()
-
-	var/turf/oldloc_turf = oldloc
-	var/turf/newloc_turf = src
-
-	if(istype(oldloc_turf) && istype(newloc_turf))
-		var/link_is_blocked = LinkBlocked(oldloc_turf, newloc_turf)
-
-		if(link_is_blocked)
-			return FALSE
-
-	return .
