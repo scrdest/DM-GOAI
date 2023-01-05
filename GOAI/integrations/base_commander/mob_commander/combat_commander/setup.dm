@@ -25,12 +25,14 @@
 	states[STATE_CANFIRE] = 1
 
 	states[STATE_PANIC] = FALSE
+	states["BERSERK"] = FALSE
 
 	/* A pseudo-need used to inject a step to movements
 	*/
 	states[STATE_DISORIENTED] = TRUE
 	states["HasTakeCoverPath"] = FALSE
 	states["HasPanicRunPath"] = FALSE
+	states["HasChargePath"] = FALSE
 
 	return states
 
@@ -73,6 +75,7 @@
 			STATE_DOWNTIME = TRUE,
 			STATE_PANIC = -TRUE,
 			"HasTakeCoverPath" = -TRUE,
+			"BERSERK" = -TRUE,
 		),
 		list(
 			"HasTakeCoverPath" = TRUE,
@@ -100,6 +103,40 @@
 	)
 
 	AddAction(
+		"CHARRRRRGE Pathfind",
+		list(
+			STATE_DOWNTIME = TRUE,
+			STATE_PANIC = -TRUE,
+			"HasChargePath" = -TRUE,
+			"BERSERK" = TRUE,
+		),
+		list(
+			"HasChargePath" = TRUE,
+		),
+		/datum/goai/mob_commander/proc/HandleChargeLandmark,
+		10,
+		PLUS_INF,
+		TRUE
+	)
+
+	AddAction(
+		"CHARRRRRGE",
+		list(
+			STATE_DOWNTIME = TRUE,
+			STATE_PANIC = -TRUE,
+			"BERSERK" = TRUE,
+			"HasChargePath" = TRUE,
+		),
+		list(
+			NEED_COVER = NEED_SATISFIED,
+			STATE_INCOVER = TRUE,
+			"HasChargePath" = FALSE,
+		),
+		/datum/goai/mob_commander/proc/HandleCharge,
+		11
+	)
+
+	AddAction(
 		"Plan Path",
 		/* This is a bit convoluted: we need this step to insert new actions (Goto<Targ>/HandleObstacle<Obs>) at runtime.
 		   We need to pretend this satisfies the Needs or the brain won't ever choose it.
@@ -111,6 +148,7 @@
 			STATE_HASWAYPOINT = TRUE,
 			STATE_DISORIENTED = TRUE,
 			STATE_PANIC = -TRUE,
+			"BERSERK" = -TRUE,
 		),
 		list(
 			STATE_DISORIENTED = FALSE,
@@ -121,7 +159,35 @@
 		/datum/goai/mob_commander/proc/HandleWaypoint,
 		100,
 		PLUS_INF,
-		TRUE
+		TRUE,
+		list("move_handler" = /datum/goai/mob_commander/proc/HandleDirectionalCoverLeapfrog)
+	)
+
+	AddAction(
+		"Plan Path (Berserk)",
+		/* This is a bit convoluted: we need this step to insert new actions (Goto<Targ>/HandleObstacle<Obs>) at runtime.
+		   We need to pretend this satisfies the Needs or the brain won't ever choose it.
+		   The prereq on Oriented = FALSE means we won't re-do this unless we manually reset Oriented to FALSE,
+		   which means the AI cannot just Plan Paths all days thinking it would make it happy - it's a one-off.
+		   Now, we could use the Charges system, but that would likely be more painful (need to reinsert them back periodically).
+		*/
+		list(
+			STATE_HASWAYPOINT = TRUE,
+			STATE_DISORIENTED = TRUE,
+			STATE_PANIC = -TRUE,
+			"BERSERK" = TRUE,
+		),
+		list(
+			STATE_DISORIENTED = FALSE,
+			NEED_COVER = NEED_SATISFIED,
+			NEED_OBEDIENCE = NEED_SATISFIED,
+			NEED_COMPOSURE = NEED_SATISFIED,
+		),
+		/datum/goai/mob_commander/proc/HandleWaypoint,
+		100,
+		PLUS_INF,
+		TRUE,
+		list("move_handler" = /datum/goai/mob_commander/proc/HandleCharge, "move_action_name" = "CHAERG")
 	)
 
 	return actionslist

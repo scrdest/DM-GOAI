@@ -1,23 +1,23 @@
-/mob/aitester
+/mob/living/simple_animal/aitester
 	icon = 'icons/uristmob/simpleanimals.dmi'
 	icon_state = "ANTAG"
 
-	var/faction
 	var/real_name
 
 	var/dict/attachments
 
 	var/spawn_commander = TRUE
+	var/equip = TRUE
 	var/ensure_unique_name = FALSE
 
 
-/mob/aitester/proc/ChooseFaction()
+/mob/living/simple_animal/aitester/proc/ChooseFaction()
 	var/list/factions = list("ANTAG", "Skrell", "NTIS")
 	var/myfaction = pick(factions)
 	return myfaction
 
 
-/mob/aitester/proc/SpriteForFaction(var/faction)
+/mob/living/simple_animal/proc/SpriteForFaction(var/faction)
 	if(isnull(faction))
 		return
 
@@ -27,8 +27,17 @@
 		if("NTIS") return "agent"
 
 
-/mob/aitester/New()
+/mob/living/simple_animal/aitester/proc/Equip()
+	var/obj/item/weapon/gun/mygun = new(src)
+	to_chat(src, "You've received a [mygun]")
+	return src
+
+
+/mob/living/simple_animal/aitester/New()
 	. = ..()
+
+	//src.directional_blocker = new(null, TRUE, TRUE)
+	src.cover_data = new(TRUE, TRUE)
 
 	if(isnull(src.faction))
 		src.faction = src.ChooseFaction()
@@ -36,6 +45,9 @@
 
 		if(new_sprite)
 			src.icon_state = new_sprite
+
+	if(equip)
+		src.Equip()
 
 	if(isnull(src.real_name))
 		src.real_name = "AiTester"
@@ -45,7 +57,8 @@
 
 	src.name = src.real_name
 
-	var/datum/goai/mob_commander/combat_commander/new_commander = new()
-	AttachCombatCommanderTo(src, new_commander)
+	if(src.spawn_commander)
+		var/datum/goai/mob_commander/combat_commander/new_commander = new()
+		AttachCombatCommanderTo(src, new_commander)
 
 	return

@@ -8,6 +8,11 @@
 	return .
 
 
-/atom/movable/proc/MayEnterTurf(var/turf/T)
-	. = T?.Enter(src, get_turf(src))
+/atom/movable/proc/MayEnterTurf(var/turf/T, var/atom/From = null)
+	var/turf/startpos = (From ? get_turf(From) : get_turf(src))
+	if(!startpos)
+		return FALSE
+
+	. = T?.Enter(src, startpos)
+
 	return .

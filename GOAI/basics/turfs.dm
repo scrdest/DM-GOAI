@@ -114,7 +114,6 @@
 
 
 /proc/GoaiDirBlocked(var/atom/trg, var/dir)
-
 	for(var/atom/D in trg)
 		var/datum/directional_blocker/dirblocker = D.directional_blocker
 

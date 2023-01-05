@@ -6,7 +6,7 @@
 # define I_HELP "help"
 
 /mob/living
-	var/stat
+	var/stat = CONSCIOUS
 	var/faction
 
 /mob/living/carbon
