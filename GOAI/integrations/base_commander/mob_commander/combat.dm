@@ -7,7 +7,7 @@
 		return
 
 	var/targ_distance = EuclidDistance(pawn, target)
-	var/aim_time = rand(clamp(targ_distance*3, 1, 200)) + rand()*15
+	var/aim_time = rand(clamp(targ_distance*3, 1, 200)) + rand_gauss(7.5, 2.5)
 	return aim_time
 
 

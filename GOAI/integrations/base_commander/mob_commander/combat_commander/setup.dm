@@ -146,8 +146,8 @@
 		*/
 		list(
 			STATE_HASWAYPOINT = TRUE,
-			STATE_DISORIENTED = TRUE,
 			STATE_PANIC = -TRUE,
+			STATE_DISORIENTED = TRUE,
 			"BERSERK" = -TRUE,
 		),
 		list(
@@ -173,8 +173,8 @@
 		*/
 		list(
 			STATE_HASWAYPOINT = TRUE,
-			STATE_DISORIENTED = TRUE,
 			STATE_PANIC = -TRUE,
+			STATE_DISORIENTED = TRUE,
 			"BERSERK" = TRUE,
 		),
 		list(

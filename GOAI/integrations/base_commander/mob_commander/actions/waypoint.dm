@@ -1,4 +1,4 @@
-// # define OBSTACLEHUNT_DEBUG_LOGGING 0
+# define OBSTACLEHUNT_DEBUG_LOGGING 0
 
 # ifdef OBSTACLEHUNT_DEBUG_LOGGING
 # define OBSTACLEHUNT_DEBUG_LOG(X) to_world_log(X)
@@ -38,7 +38,7 @@
 
 	var/true_costproc = costproc
 	if(isnull(true_costproc))
-		true_costproc = /proc/fDistance
+		true_costproc = DEFAULT_GOAI_DISTANCE_PROC
 
 	var/list/path = null
 	var/turf/target_turf = get_turf(goal)
@@ -54,7 +54,7 @@
 
 	if(init_dist < 40)
 		OBSTACLEHUNT_DEBUG_LOG("[owner] entering ASTARS STAGE")
-		path = GoaiAStar(get_turf(pawn), target_turf, /proc/fCardinalTurfs, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = GoaiAStar(get_turf(pawn), target_turf, /proc/fCardinalTurfs, DEFAULT_GOAI_DISTANCE_PROC, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[owner] found ASTAR 1 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -64,7 +64,7 @@
 
 		// No unobstructed path to target!
 		// Let's try to get a direct path and check for obstacles.
-		path = GoaiAStar(get_turf(pawn), target_turf, /proc/fCardinalTurfsNoblocks, /proc/fDistance, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
+		path = GoaiAStar(get_turf(pawn), target_turf, /proc/fCardinalTurfsNoblocks, DEFAULT_GOAI_DISTANCE_PROC, null, init_dist, min_target_dist = sqrt_dist, exclude = null)
 
 		OBSTACLEHUNT_DEBUG_LOG("[src] found ASTAR 2 path from [startpos] to [target_turf]: [path] ([path?.len])")
 
@@ -153,12 +153,10 @@
 
 	var/list/goto_preconds = list(
 		STATE_HASWAYPOINT = TRUE,
-		STATE_PANIC = -TRUE,
 		//STATE_DISORIENTED = -TRUE,
 	)
 
 	var/list/common_preconds = list(
-		STATE_PANIC = -TRUE,
 		//STATE_DISORIENTED = -TRUE,
 	)
 

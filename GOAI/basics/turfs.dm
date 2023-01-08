@@ -227,12 +227,28 @@
 
 	var/turf/t = T
 	if(t && get_dist(start, t) == 1)
-		var/cost = (start.x - t.x) * (start.x - t.x) + (start.y - t.y) * (start.y - t.y)
+		var/cost = SQR(start.x - t.x) + SQR(start.y - t.y)
 		cost *= (start.pathweight + t.pathweight)/2
 		return cost
 
 	else
 		return get_dist(start, T)
+
+
+/proc/fDistanceUnified(var/atom/start, var/atom/T)
+	// TODO!!!
+	if(!start)
+		return PLUS_INF
+
+	var/cost = SQR(start.x - T.x) + SQR(start.y - T.y)
+
+	var/turf/s = start
+	var/turf/t = T
+
+	if(t && istype(t) && s && istype(s))
+		cost *= (s.pathweight + t.pathweight)/2
+
+	return cost
 
 
 /turf/proc/ObstaclePenaltyDistance(var/T)

@@ -1,3 +1,4 @@
+# define GOAI_AGENTS_INCLUDED 1
 # define STEP_SIZE 1
 # define STEP_COUNT 1
 

@@ -1,4 +1,4 @@
-
+# ifdef GOAI_AGENTS_INCLUDED
 /proc/spawn_commanded_combatant(var/atom/loc, var/name = null, var/mob_icon = null, var/mob_icon_state = null, var/spawn_commander = TRUE)
 	var/true_name = name
 
@@ -65,7 +65,7 @@
 	)
 
 	call(script)(arglist(script_args))
-
+# endif
 
 /*
 // Humanoid (i.e. regular spessman)
