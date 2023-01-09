@@ -6,7 +6,7 @@
 
 	if(atom_owner)
 		if(atom_owner.density)
-			cover_data = new(TRUE, TRUE, null)
+			cover_data = new(TRUE, TRUE, ALL_CARDINAL_DIRS)
 
 		else
 			// Caching to speed up queries

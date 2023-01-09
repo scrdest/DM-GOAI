@@ -36,8 +36,10 @@
 
 	var/datum/goai/mob_commander/commander_user = query_user
 
-	if(istype(commander_user) && commander_user?.pawn)
-		if(src == commander_user.pawn.directional_blocker)
+	if(commander_user && istype(commander_user))
+		var/atom/commander_pawn = commander_user.GetPawn()
+
+		if(commander_pawn && src == commander_pawn.directional_blocker)
 			// no self-collisions!
 			return FALSE
 
@@ -56,3 +58,29 @@
 
 	blockerable.directional_blocker = src
 	return TRUE
+
+
+/atom/proc/GenerateBlocker()
+	// by default
+	return null
+
+
+/atom/proc/ShouldHaveBlocker()
+	// by default
+	return FALSE
+
+
+/atom/proc/GetBlockerData(var/generate_if_missing = FALSE, var/log_on_missing = FALSE)
+	var/datum/directional_blocker/myblocker = src.directional_blocker
+
+	if(!myblocker)
+		if(src.blocker_gen_enabled)
+			if(generate_if_missing)
+				spawn(0)
+					myblocker = src.GenerateCover()
+					src.directional_blocker = myblocker
+
+			if(log_on_missing)
+				to_world_log("Failed to get blocker for [src] - no blocker data!")
+
+	return src.directional_blocker
