@@ -26,6 +26,7 @@
 #include "_algorithms\astar.dm"
 #include "_algorithms\beams.dm"
 #include "_algorithms\gaussdist.dm"
+#include "_algorithms\interpolation.dm"
 #include "_algorithms\linear_algebra.dm"
 #include "_algorithms\metrics.dm"
 #include "_algorithms\statistics.dm"
