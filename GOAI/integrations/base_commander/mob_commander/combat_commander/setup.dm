@@ -200,8 +200,9 @@
 /datum/goai/mob_commander/combat_commander/proc/Equip()
 	. = ..()
 
-	if(src.pawn)
-		new /obj/item/weapon/gun/(src.pawn)
+	var/atom/pawn = src.GetPawn()
+	if(pawn)
+		new /obj/item/weapon/gun(pawn)
 
 /datum/goai/mob_commander/combat_commander/InitRelations()
 	// NOTE: this is a near-override, practically speaking!
@@ -225,7 +226,8 @@
 			var/datum/relation_data/my_faction_rel = new(5, 1) // slightly positive
 			relations.Insert(my_faction, my_faction_rel)
 
-	/*
+	# ifdef GOAI_SS13_SUPPORT
+
 	// For hostile SAs, consider hidden faction too
 	var/mob/living/simple_animal/hostile/SAH = pawn
 	if(SAH && istype(SAH))
@@ -238,7 +240,8 @@
 
 			var/datum/relation_data/my_hiddenfaction_rel = new(1, 1) // minimally positive
 			relations.Insert(my_hiddenfaction, my_hiddenfaction_rel)
-	*/
+
+	# endif
 
 	src.brain.relations = relations
 	return relations

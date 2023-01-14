@@ -2,8 +2,6 @@
 	icon = 'icons/uristmob/simpleanimals.dmi'
 	icon_state = "ANTAG"
 
-	var/real_name
-
 	var/dict/attachments
 
 	var/spawn_commander = TRUE

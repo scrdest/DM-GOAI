@@ -32,7 +32,14 @@
 # define MAYBE_LOG_TOSTR(X)
 # endif
 
+
+# ifdef GOAI_LIBRARY_FEATURES
+
 # define get_turf(A) get_step(A,0)
+// 1 (SOUTH) + 2 (NORTH) + 4 (EAST) + 8 (WEST) == 15
+# define ALL_CARDINAL_DIRS 15
+
+# endif
 
 # define GUN_DISPERSION 5
 

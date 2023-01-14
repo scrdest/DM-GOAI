@@ -53,6 +53,9 @@ length to avoid portals or something i guess?? Not that they're counted right no
 
 // Also added 'exclude' turf to avoid travelling over; defaults to null
 
+# ifdef GOAI_LIBRARY_FEATURES
+
+// GOAI library copypasta, will be excluded at compile-time from SS13 code.
 
 PathNode
 	var/datum/position
@@ -79,6 +82,7 @@ PathNode
 proc/PathWeightCompare(PathNode/a, PathNode/b)
 	return a.estimated_cost - b.estimated_cost
 
+# endif
 
 proc/GoaiAStar(var/start, var/end, var/proc/adjacent, var/proc/dist, var/max_nodes, var/max_node_depth = 30, var/min_target_dist = 0, var/proc/min_node_dist, var/list/adj_args = null, var/exclude)
 	//ADJ ARGS HANDLING TODO

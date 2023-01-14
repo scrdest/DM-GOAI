@@ -1,18 +1,24 @@
 // lazily initialized by the first AI to register itself
+
+# ifdef GOAI_LIBRARY_FEATURES
 var/global/list/global_goai_registry
+# endif
+# ifdef GOAI_SS13_SUPPORT
+GLOBAL_LIST_EMPTY(global_goai_registry)
+# endif
 
 # define IS_REGISTERED_AI(id) (id && global_goai_registry && (id <= global_goai_registry.len))
 
 /proc/deregister_ai(var/id, var/delete_ai=TRUE, var/delete_ai_brain=TRUE)
 	// Deletes the AI and deregisters it from the global.
 
-	if(!(global_goai_registry))
+	if(!(GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry))
 		return
 
 	if(!(IS_REGISTERED_AI(id)))
 		return
 
-	var/datum/goai/ai = global_goai_registry[id]
+	var/datum/goai/ai = GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry[id]
 
 	/* We want only valid AIs here; if somehow we get a non-AI here,
 	// we want to null it out; regular nulls stay nulls.
@@ -20,7 +26,7 @@ var/global/list/global_goai_registry
 
 	// Leave a 'hole' in the global list - the indices should NOT be mutable!
 	// (the registry is a babby's first SparseSet)
-	global_goai_registry[id] = null
+	GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry[id] = null
 
 	if(ai)
 		if(delete_ai_brain && ai.brain)
@@ -37,19 +43,19 @@ var/global/list/global_goai_registry
 /datum/goai/proc/RegisterAI()
 	// Registry pattern, to facilitate querying all GOAI AIs in verbs
 
-	if(!(global_goai_registry))
-		global_goai_registry = list()
+	if(!(GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry))
+		GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry = list()
 
 	if(src.registry_index)
 		// already done, fix up the registry to be sure and return
-		global_goai_registry?[src.registry_index] = src
-		return global_goai_registry
+		GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry[src.registry_index] = src
+		return GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry
 
-	global_goai_registry += src
-	src.registry_index = global_goai_registry.len
+	GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry += src
+	src.registry_index = GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry.len
 
 	if(!(src.name))
 		src.name = src.registry_index
 
-	return global_goai_registry
+	return GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry
 

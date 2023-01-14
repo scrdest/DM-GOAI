@@ -5,6 +5,9 @@
 # define I_HURT "harm"
 # define I_HELP "help"
 
+/mob
+	var/real_name
+
 /mob/living
 	var/stat = CONSCIOUS
 	var/faction

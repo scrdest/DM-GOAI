@@ -1,3 +1,6 @@
+# ifdef GOAI_LIBRARY_FEATURES
+// GOAI library copypasta, will be excluded at compile-time from SS13 code.
+
 #define PUBLIC_GAME_MODE SSticker.master_mode
 
 #define Clamp(value, low, high) 	(value <= low ? low : (value >= high ? high : value))
@@ -176,3 +179,5 @@
 #define SPAN_WARNING(X) "<span class='warning'>[X]</span>"
 
 #define SPAN_DANGER(X) "<span class='danger'>[X]</span>"
+
+# endif

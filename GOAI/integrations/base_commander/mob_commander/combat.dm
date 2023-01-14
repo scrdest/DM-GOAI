@@ -54,7 +54,8 @@
 	return target
 
 
-/*
+# ifdef GOAI_SS13_SUPPORT
+
 /mob/living/carbon/human/proc/FindGunInHands(var/mob/living/carbon/human/trg_override = null)
 	var/mob/living/carbon/human/H = trg_override
 	if(isnull(H))
@@ -70,7 +71,8 @@
 		my_gun = H.get_equipped_item(slot_l_hand)
 
 	return my_gun
-*/
+
+# endif
 
 /datum/goai/mob_commander/proc/Shoot(var/obj/item/weapon/gun/cached_gun = null, var/atom/cached_target = null, var/datum/aim/cached_aim = null)
 	. = FALSE
@@ -90,7 +92,8 @@
 
 	var/mob/living/targetLM = target
 
-	/*
+	# ifdef GOAI_SS13_SUPPORT
+
 	if(SAH && istype(SAH) && target && SAH.stat == CONSCIOUS && (targetLM?.stat != DEAD))
 		// SimpleAnimals are simple (duh), *they* handle if they can shoot so we don't have to.
 		SAH.RangedAttack(target)
@@ -107,10 +110,15 @@
 
 		else
 			return FALSE
-	*/
+
+	# endif
+
+	# ifdef GOAI_LIBRARY_FEATURES
 
 	if(isnull(my_gun))
 		my_gun = (locate(/obj/item/weapon/gun) in pawn.contents)
+
+	# endif
 
 	if(isnull(my_gun))
 		to_world_log("[src] - Gun not found for [pawn] to shoot D;")
@@ -139,8 +147,8 @@
 		to_world_log("No mob not found for the [src.name] AI to attack with D;")
 		return FALSE
 
+	# ifdef GOAI_SS13_SUPPORT
 
-	/*
 	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
 	var/distance = ChebyshevDistance(pawn, target)
 	var/mob/living/targetLM = target
@@ -164,7 +172,8 @@
 			SAH.AttackTarget()
 
 		. = TRUE
-	*/
+
+	# endif
 
 	return .
 

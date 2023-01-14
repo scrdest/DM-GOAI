@@ -14,6 +14,7 @@
 // END_PREFERENCES
 
 // BEGIN_INCLUDE
+#include "__goai_library_features.dm"
 #include "_b_debug_modules.dm"
 #include "_defines.dm"
 #include "demoGoap.dm"

@@ -1,3 +1,4 @@
+# ifdef GOAI_LIBRARY_FEATURES
 
 /obj/projectile
 	name = "Projectile"
@@ -148,3 +149,5 @@
 	var/obj/item/weapon/gun/newgun = new(usr)
 
 	to_chat(usr, "There ya go, one [newgun]!")
+
+# endif

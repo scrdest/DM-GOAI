@@ -7,8 +7,16 @@
 /* Abstract Base Class */
 /obj/cover
 	// Abstract Base Class, do not use directly!
+	# ifdef GOAI_LIBRARY_FEATURES
 	icon = 'icons/obj/structures.dmi'
 	icon_state = "woodenbarricade"
+	# endif
+
+	# ifdef GOAI_SS13_SUPPORT
+	icon = 'icons/obj/doors/material_doors.dmi'
+	icon_state = "metal"
+	# endif
+
 	density = 1
 
 

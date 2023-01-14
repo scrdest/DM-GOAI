@@ -86,7 +86,7 @@
 			if(isnull(previous))
 				continue
 
-			var/last_link_blocked = LinkBlocked(previous, pathitem)
+			var/last_link_blocked = GoaiLinkBlocked(previous, pathitem)
 
 			if(last_link_blocked)
 				OBSTACLEHUNT_DEBUG_LOG("[owner]: LINK BETWEEN [previous] & [pathitem] OBSTRUCTED")

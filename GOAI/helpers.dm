@@ -2,6 +2,7 @@
 # define CEIL(x) -round(-x)
 # define SQR(x) ((x) * (x))
 
+# ifdef GOAI_LIBRARY_FEATURES
 /*
 /proc/floor(x)
 	return round(x)
@@ -10,6 +11,7 @@
 /proc/ceil(x)
 	return -round(-x)
 */
+# endif
 
 # define sign(x) (x / abs(x))
 

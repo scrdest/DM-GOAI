@@ -1,3 +1,5 @@
+# ifdef GOAI_LIBRARY_FEATURES
+
 /turf/ground
 	icon = 'icons/turf/snow.dmi'
 	icon_state = "snow"
@@ -73,18 +75,60 @@
 	//to_world_log("[src] is not blocked")
 	return FALSE
 
+/turf/proc/AdjacentTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
+	var/list/adjacents = list()
+	var/turf/src_turf = get_turf(src)
 
-/proc/LinkBlocked(var/turf/A, var/turf/B)
+	for(var/turf/t in (trange(1,src) - src))
+		if(check_blockage)
+			if(!(t.IsBlocked(check_objects)))
+				if(!(check_links && GoaiLinkBlocked(src_turf, t)))
+					adjacents += t
+		else
+			adjacents += t
+
+	return adjacents
+
+
+/turf/proc/CardinalTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
+	var/list/adjacents = list()
+
+	for(var/ad in AdjacentTurfs(check_blockage, check_links, check_objects))
+		var/turf/T = ad
+		if(T.x == src.x || T.y == src.y)
+			adjacents += T
+
+	return adjacents
+
+
+/turf/proc/Distance(var/T)
+	var/turf/t = T
+	if(t && get_dist(src,t) == 1)
+		var/cost = (src.x - t.x) * (src.x - t.x) + (src.y - t.y) * (src.y - t.y)
+		cost *= (pathweight+t.pathweight)/2
+		return cost
+	else
+		return get_dist(src, T)
+
+
+/world
+	turf = /turf/ground
+
+
+# endif
+
+
+/proc/GoaiLinkBlocked(var/turf/A, var/turf/B)
 	if(A == null || B == null) return TRUE
 	var/adir = get_dir(A,B)
 	var/rdir = get_dir(B,A)
 
 	if((adir & (NORTH|SOUTH)) && (adir & (EAST|WEST)))	//	diagonal
 		var/iStep = get_step(A,adir&(NORTH|SOUTH))
-		if(!LinkBlocked(A,iStep) && !LinkBlocked(iStep,B)) return FALSE
+		if(!GoaiLinkBlocked(A,iStep) && !GoaiLinkBlocked(iStep,B)) return FALSE
 
 		var/pStep = get_step(A,adir&(EAST|WEST))
-		if(!LinkBlocked(A,pStep) && !LinkBlocked(pStep,B)) return FALSE
+		if(!GoaiLinkBlocked(A,pStep) && !GoaiLinkBlocked(pStep,B)) return FALSE
 		return TRUE
 
 	if(GoaiDirBlocked(A,adir))
@@ -96,7 +140,6 @@
 		return TRUE
 
 	return FALSE
-
 
 
 /turf/proc/GoaiObjectBlocked()
@@ -136,21 +179,6 @@
 	return FALSE
 
 
-/turf/proc/AdjacentTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
-	var/list/adjacents = list()
-	var/turf/src_turf = get_turf(src)
-
-	for(var/turf/t in (trange(1,src) - src))
-		if(check_blockage)
-			if(!(t.IsBlocked(check_objects)))
-				if(!(check_links && LinkBlocked(src_turf, t)))
-					adjacents += t
-		else
-			adjacents += t
-
-	return adjacents
-
-
 // NOTE: the f-prefix stands for 'functional' (i.e. not bound method)
 /proc/fAdjacentTurfs(var/turf/start, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
 	if(!start)
@@ -162,21 +190,10 @@
 	for(var/turf/t in (trange(1, start) - start))
 		if(check_blockage)
 			if(!(t.IsBlocked(check_objects)))
-				if(!(check_links && LinkBlocked(start_turf, t)))
+				if(!(check_links && GoaiLinkBlocked(start_turf, t)))
 					adjacents += t
 		else
 			adjacents += t
-
-	return adjacents
-
-
-/turf/proc/CardinalTurfs(var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE)
-	var/list/adjacents = list()
-
-	for(var/ad in AdjacentTurfs(check_blockage, check_links, check_objects))
-		var/turf/T = ad
-		if(T.x == src.x || T.y == src.y)
-			adjacents += T
 
 	return adjacents
 
@@ -209,16 +226,6 @@
 	//to_world_log("CardinalTurfsNoblocks([src]) => [result] ([result?.len])")
 
 	return result
-
-
-/turf/proc/Distance(var/T)
-	var/turf/t = T
-	if(t && get_dist(src,t) == 1)
-		var/cost = (src.x - t.x) * (src.x - t.x) + (src.y - t.y) * (src.y - t.y)
-		cost *= (pathweight+t.pathweight)/2
-		return cost
-	else
-		return get_dist(src, T)
 
 
 /proc/fDistance(var/turf/start, var/T)
@@ -256,7 +263,7 @@
 	var/base_dist = fDistance(src, t)
 	var/block_penalty = 0
 
-	if(t && LinkBlocked(src, t))
+	if(t && GoaiLinkBlocked(src, t))
 		block_penalty = 10
 
 	var/total_dist = base_dist + block_penalty
@@ -276,7 +283,7 @@
 	var/base_dist = fDistance(s, t)
 	var/block_penalty = 0
 
-	if(t && LinkBlocked(s, t))
+	if(t && GoaiLinkBlocked(s, t))
 		block_penalty = 10
 
 	var/total_dist = base_dist + block_penalty
@@ -305,7 +312,3 @@
 		return TRUE
 
 	return FALSE
-
-
-/world
-	turf = /turf/ground
