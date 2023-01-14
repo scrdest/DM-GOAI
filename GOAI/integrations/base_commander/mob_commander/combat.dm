@@ -12,7 +12,7 @@
 
 
 /datum/goai/mob_commander/proc/GetTarget(var/list/searchspace = null, var/maxtries = 5)
-	var/list/true_searchspace = (isnull(searchspace) ? brain?.perceptions?.Get(SENSE_SIGHT) : searchspace)
+	var/list/true_searchspace = (isnull(searchspace) ? brain?.perceptions?.Get(SENSE_SIGHT_CURR) : searchspace)
 
 	if(!(true_searchspace))
 		return
@@ -32,13 +32,13 @@
 		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal) || istype(enemy, /mob/living/bot)))
 			continue
 
+		if(enemy == pawn)
+			continue
+
 		if(!(src.IsEnemy(enemy)))
 			continue
 
 		var/enemy_dist = ManhattanDistance(my_loc, enemy)
-
-		if (enemy_dist <= 0)
-			continue
 
 		var/datum/Tuple/enemy_tup = new(-enemy_dist, enemy)
 		target_queue.Enqueue(enemy_tup)

@@ -14,6 +14,7 @@
 // END_PREFERENCES
 
 // BEGIN_INCLUDE
+#include "_b_debug_modules.dm"
 #include "_defines.dm"
 #include "demoGoap.dm"
 #include "GOAI.dm"
@@ -57,6 +58,8 @@
 #include "basics\relationships.dm"
 #include "basics\senses.dm"
 #include "basics\turfs.dm"
+#include "basics\concrete_brains\_concrete.dm"
+#include "basics\concrete_brains\sim.dm"
 #include "basics\testing\generic.dm"
 #include "goap\goap_classy.dm"
 #include "integrations\_defines.dm"

@@ -13,6 +13,9 @@
 	if(!startpos)
 		return FALSE
 
+	if(T.density)
+		return FALSE
+
 	. = T?.Enter(src, startpos)
 
 	return .

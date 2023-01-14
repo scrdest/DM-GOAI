@@ -58,7 +58,7 @@
 
 /datum/goai/mob_commander/combat_commander/InitActionsList()
 	/* TODO: add Time as a resource! */
-	// Name, Req-ts, Effects, Priority, [Charges]
+	// Name, Req-ts, Effects, Handler, Priority, [Charges], [Is Instant], [Bound Args List], [Validator List]
 	// Priority - higher is better; -INF would only be used if there's no other option.
 
 	/*AddAction(
@@ -83,7 +83,8 @@
 		/datum/goai/mob_commander/proc/HandleChooseDirectionalCoverLandmark,
 		10,
 		PLUS_INF,
-		TRUE
+		TRUE,
+		null
 	)
 
 	AddAction(
@@ -99,7 +100,10 @@
 			"HasTakeCoverPath" = FALSE,
 		),
 		/datum/goai/mob_commander/proc/HandleDirectionalCover,
-		11
+		11,
+		PLUS_INF,
+		FALSE,
+		null
 	)
 
 	AddAction(
@@ -160,7 +164,7 @@
 		100,
 		PLUS_INF,
 		TRUE,
-		list("move_handler" = /datum/goai/mob_commander/proc/HandleDirectionalCoverLeapfrog)
+		list("move_handler" = /datum/goai/mob_commander/proc/HandleDirectionalCoverLeapfrog),
 	)
 
 	AddAction(
