@@ -1,3 +1,4 @@
+# ifdef GOAI_LIBRARY_FEATURES
 /*
 	These are simple defaults for your project.
  */
@@ -16,9 +17,12 @@ mob
 	icon = 'icons/mob/mob.dmi'
 	icon_state = "ghost1"
 
+
 obj
 	var/pathweight = 1
 	//step_size = 32
 
 /turf
 	var/pathweight = 1
+
+# endif
