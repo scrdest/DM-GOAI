@@ -25,6 +25,7 @@
 		if("ANTAG") return "ANTAG"
 		if("Skrell") return "skrellorist"
 		if("NTIS") return "agent"
+		if("Terran") return "terran_marine"
 
 
 /mob/living/simple_animal/aitester/proc/Equip()
