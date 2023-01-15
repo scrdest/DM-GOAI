@@ -13,6 +13,7 @@
 // Plain globals
 // NOTE: this macro is extra-weird looking, even by macro standards.
 # define GOAI_LIBBED_GLOB_PREFIX(operator)
+# define GOAI_LIBBED_GLOB_ATTR(globject) GLOB?.globject
 
 # else
 
@@ -29,5 +30,6 @@
 
 // We 'SS13-ify' globals using a prefix + access op (`.` / `?.`)
 # define GOAI_LIBBED_GLOB_PREFIX(operator) GLOBoperator
+# define GOAI_LIBBED_GLOB_ATTR(globject) globject
 
 # endif

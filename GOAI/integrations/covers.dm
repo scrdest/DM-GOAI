@@ -129,8 +129,15 @@
 
 /* Simple, non-powered door */
 /obj/cover/door
+	# ifdef GOAI_LIBRARY_FEATURES
 	icon = 'icons/obj/doors/mineral_doors.dmi'
 	icon_state = "wood"
+	# endif
+
+	# ifdef GOAI_SS13_SUPPORT
+	icon = 'icons/obj/doors/material_doors.dmi'
+	icon_state = "metal"
+	# endif
 
 	var/open = FALSE
 	density = FALSE

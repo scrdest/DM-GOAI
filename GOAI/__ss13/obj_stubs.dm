@@ -1,3 +1,5 @@
+# ifdef GOAI_LIBRARY_FEATURES
+
 /obj/machinery
 
 /obj/mecha
@@ -7,3 +9,5 @@
 /obj/vehicle
 
 /obj/item/weapon/gun
+
+# endif

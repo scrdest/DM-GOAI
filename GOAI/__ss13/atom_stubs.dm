@@ -1,3 +1,5 @@
+# ifdef GOAI_LIBRARY_FEATURES
+
 /atom/movable/proc/DoMove(var/dir, var/mover, var/external = FALSE)
 	. = step(src, dir)
 	return .
@@ -19,3 +21,5 @@
 	. = T?.Enter(src, startpos)
 
 	return .
+
+# endif

@@ -1,3 +1,5 @@
+# ifdef GOAI_LIBRARY_FEATURES
+
 # define CONSCIOUS 0
 # define UNCONSCIOUS 1
 # define DEAD 2
@@ -23,3 +25,4 @@
 
 /mob/living/bot
 
+# endif
