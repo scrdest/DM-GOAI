@@ -25,16 +25,16 @@
 
 /datum/faction_data/proc/RegisterFaction()
 	// Registry pattern, to facilitate querying all Factions
-	if(!(GOAI_LIBBED_GLOB_PREFIX(?.)global_faction_registry))
+	if(!(GOAI_LIBBED_GLOB_ATTR(global_faction_registry)))
 		global_faction_registry = list()
 
 	global_faction_registry += src
-	src.registry_index = GOAI_LIBBED_GLOB_PREFIX(?.)global_faction_registry.len
+	src.registry_index = GOAI_LIBBED_GLOB_ATTR(global_faction_registry.len)
 
 	if(!(src.name))
 		src.name = src.registry_index
 
-	return GOAI_LIBBED_GLOB_PREFIX(?.)global_goai_registry
+	return GOAI_LIBBED_GLOB_ATTR(global_goai_registry)
 
 
 /datum/faction_data/proc/BuildRelations()
