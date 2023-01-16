@@ -24,6 +24,13 @@
 # define PLUS_INF 1.#INF
 # define GOAP_KEY_SRC "source"
 
+# define LOAD_TEXT(fp) file2text(fp)
+# define SAVE_TEXT(txt, fp) text2file(txt, fp)
+
+# define LOAD_JSON(fp) json_decode(LOAD_TEXT)
+# define SAVE_JSON(data, fp) SAVE_TEXT(json_encode(data), fp)
+# define SAVE_JSON_OVERWRITE(data, fp) fdel(fp); SAVE_TEXT(json_encode(data), fp)
+
 # ifdef DEBUG_LOGGING
 # define MAYBE_LOG(X) to_world_log(X)
 # define MAYBE_LOG_TOSTR(X) to_world_log(#X + ": [X]")
