@@ -15,6 +15,9 @@
 	var/is_failed = FALSE
 	var/is_aborted = FALSE
 
+	// Special flag; when TRUE, plan is invalid but not failed (typically, a dependency popped up)
+	var/replan = FALSE
+
 	var/creation_time = null
 	var/trigger_time = null
 	var/last_check_time = null
@@ -72,7 +75,7 @@
 
 
 /datum/ActionTracker/proc/TriggeredMoreThan(var/max_lag_ds, var/relativeTo = null)
-	if(isnull(trigger_time))
+	if(isnull(src.trigger_time))
 		return FALSE
 
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
@@ -81,14 +84,14 @@
 	var/result = (timeDelta >= max_lag_ds) ? TRUE : FALSE
 
 	// Need to update last visit time
-	last_check_time = world.time
+	src.last_check_time = world.time
 
 	return result
 
 
 /datum/ActionTracker/proc/IsCheckStale(var/max_lag_ds, var/relativeTo = null)
 	var/curr_time = isnull(relativeTo) ? world.time : relativeTo
-	var/timeDelta = curr_time - last_check_time
+	var/timeDelta = curr_time - src.last_check_time
 
 	var/result = (timeDelta >= max_lag_ds) ? TRUE : FALSE
 
@@ -96,59 +99,59 @@
 
 
 /datum/ActionTracker/proc/IsStopped()
-	var/result = (is_done || is_failed)
+	var/result = (src.is_done || src.is_failed)
 	last_check_time = world.time
 	return result
 
 
 /datum/ActionTracker/proc/IsRunning()
-	var/result = !IsStopped()
+	var/result = !(src.IsStopped())
 	return result
 
 
 /datum/ActionTracker/proc/IsTriggered()
-	var/result = !isnull(trigger_time)
+	var/result = !isnull(src.trigger_time)
 	return result
 
 
 /datum/ActionTracker/proc/IsAbandoned()
-	if (isnull(timeout_ds))
+	if (isnull(src.timeout_ds))
 		// tasks w/o a timeout are never abandonable
 		return FALSE
 
-	var/result = IsCheckStale(timeout_ds, world.time)
+	var/result = src.IsCheckStale(timeout_ds, world.time)
 	return result
 
 
 /datum/ActionTracker/proc/ShouldAbort()
-	return is_aborted
+	return src.is_aborted
 
 
 /datum/ActionTracker/proc/CheckAbandoned()
-	var/abandoned = IsAbandoned()
+	var/abandoned = src.IsAbandoned()
 	if(abandoned)
-		SetFailed()
+		src.SetFailed()
 	return abandoned
 
 
 /datum/ActionTracker/proc/SetTriggered()
 	if(!IsTriggered())
 		ACTIONTRACKER_DEBUG_LOG("Setting tracker to triggered!")
-		trigger_time = world.time
+		src.trigger_time = world.time
 	return
 
 
 /datum/ActionTracker/proc/ResetTriggered()
 	ACTIONTRACKER_DEBUG_LOG("Setting tracker to non-triggered!")
-	trigger_time = null
+	src.trigger_time = null
 	return
 
 
 /datum/ActionTracker/proc/SetDone()
 	if(!is_done)
 		ACTIONTRACKER_DEBUG_LOG("Setting tracker to done!")
-		tracked_action.ReduceCharges(1)
-		is_done = TRUE
+		src.tracked_action.ReduceCharges(1)
+		src.is_done = TRUE
 
 	return
 
@@ -156,8 +159,8 @@
 /datum/ActionTracker/proc/SetFailed()
 	if(!is_failed)
 		ACTIONTRACKER_DEBUG_LOG("Setting tracker to failed!")
-		tracked_action.ReduceCharges(1)
-		is_failed = TRUE
+		src.tracked_action.ReduceCharges(1)
+		src.is_failed = TRUE
 
 	return
 
@@ -171,7 +174,26 @@
 	// longer valid *as a whole* and needs to be cancelled.
 	*/
 	ACTIONTRACKER_DEBUG_LOG("Setting tracker to ABORT!!!")
-	is_aborted = TRUE
+	src.is_aborted = TRUE
+	return
+
+
+/datum/ActionTracker/proc/RaiseReplan()
+	ACTIONTRACKER_DEBUG_LOG("REPLAN raised for tracker [src]")
+	src.replan = TRUE
+	return
+
+
+/datum/ActionTracker/proc/ResetReplan()
+	/* While the code is similar, the purpose of ABORTs is different than
+	// normal DONE/FAILED states, hence the different name (Raise vs Set).
+	//
+	// The latter two are for 'internal' signalling; ABORTs are meant for
+	// signalling to the Plan that, for whatever reason, the Plan is no
+	// longer valid *as a whole* and needs to be cancelled.
+	*/
+	ACTIONTRACKER_DEBUG_LOG("REPLAN reset for tracker [src]")
+	src.replan = FALSE
 	return
 
 
