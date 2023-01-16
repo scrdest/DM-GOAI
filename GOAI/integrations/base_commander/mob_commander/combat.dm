@@ -84,8 +84,6 @@
 
 	var/obj/item/weapon/gun/my_gun = cached_gun
 
-	//var/mob/living/carbon/human/H = pawn
-	//var/mob/living/simple_animal/hostile/SAH = pawn
 	var/obj/item/weapon/gun/gun_pawn = pawn
 
 	var/atom/target = (isnull(cached_target) ? GetTarget() : cached_target)
@@ -93,6 +91,9 @@
 	var/mob/living/targetLM = target
 
 	# ifdef GOAI_SS13_SUPPORT
+
+	var/mob/living/carbon/human/H = pawn
+	var/mob/living/simple_animal/hostile/SAH = pawn
 
 	if(SAH && istype(SAH) && target && SAH.stat == CONSCIOUS && (targetLM?.stat != DEAD))
 		// SimpleAnimals are simple (duh), *they* handle if they can shoot so we don't have to.

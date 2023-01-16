@@ -9,32 +9,23 @@
 
 # ifdef GOAI_LIBRARY_FEATURES
 var/global/list/global_aibrain_registry
-# define IS_REGISTERED_AIBRAIN(id) ((id && global_aibrain_registry) && (id <= global_aibrain_registry.len))
 # endif
-
 # ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_aibrain_registry)
-# define IS_REGISTERED_AIBRAIN(id) ((id && GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry) && (id <= GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry.len)))
 # endif
 
+# define IS_REGISTERED_AIBRAIN(id) (id && GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry) && (id <= GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry.len)))
 
 /proc/deregister_ai_brain(var/id)
 	// Deletes the AI Brain and deregisters it from the global.
 
-	# ifdef GOAI_LIBRARY_FEATURES
-	if(isnull(global_aibrain_registry))
+	if(!(GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)))
 		return
-	# endif
-
-	# ifdef GOAI_SS13_SUPPORT
-	if(!(GLOB?.global_aibrain_registry))
-		return
-	# endif
 
 	if(!(IS_REGISTERED_AI(id)))
 		return
 
-	var/datum/brain/aibrain = GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry))[id]
+	var/datum/brain/aibrain = GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry[id])
 
 	/* We want only valid AIs here; if somehow we get a non-AI here,
 	// we want to null it out; regular nulls stay nulls.
@@ -42,7 +33,7 @@ GLOBAL_LIST_EMPTY(global_aibrain_registry)
 
 	// Leave a 'hole' in the global list - the indices should NOT be mutable!
 	// (the registry is a babby's first SparseSet)
-	GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry))[id] = null
+	GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry[id]) = null
 
 	if(aibrain)
 		qdel(aibrain)
@@ -53,19 +44,18 @@ GLOBAL_LIST_EMPTY(global_aibrain_registry)
 /datum/brain/proc/RegisterBrain()
 	// Registry pattern, to facilitate querying all GOAI Brains in verbs
 
-	if(!(GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry))))
-		GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)) = list()
+	if(!(GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)))
+		GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry) = list()
 
 	if(src.registry_index)
 		// already done, fix up the registry to be sure and return
-		GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry))[src.registry_index] = src
-		return GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry))
+		GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry[src.registry_index]) = src
+		return GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)
 
-	GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)) += src
-	src.registry_index = GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)).len
+	GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry) += src
+	src.registry_index = GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry.len)
 
 	if(!(src.name))
 		src.name = src.registry_index
 
-	return GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry))
-
+	return GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry)

@@ -22,7 +22,7 @@
 	var/commander_backref = src.attachments?.Get(ATTACHMENT_CONTROLLER_BACKREF)
 
 	if(IS_REGISTERED_AI(commander_backref))
-		var/datum/goai/mob_commander/commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry)[commander_backref]
+		var/datum/goai/mob_commander/commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[commander_backref])
 		if(commander)
 			commander.Hit(hit_angle, shotby)
 

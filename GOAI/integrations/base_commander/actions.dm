@@ -7,6 +7,8 @@
 */
 
 
+# ifdef GOAI_LIBRARY_FEATURES
+
 /proc/angle2dir(var/angle)
 	var/true_angle = round(CLOCKWISE_ANGLE(angle))
 	var/direction = null
@@ -23,6 +25,7 @@
 
 	return direction
 
+# endif
 
 /datum/goai/proc/AddAction(var/name, var/list/preconds, var/list/effects, var/handler, var/cost = null, var/charges = PLUS_INF, var/instant = FALSE, var/list/action_args = null, var/list/act_validators = null)
 	if(charges < 1)
