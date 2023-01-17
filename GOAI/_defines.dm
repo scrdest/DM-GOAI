@@ -39,6 +39,12 @@
 # define MAYBE_LOG_TOSTR(X)
 # endif
 
+# define COORDS_TUPLE_2D(A) "([A?.x], [A?.y])"
+# define COORDS_TUPLE_3D(A) "([A?.x], [A?.y], [A?.z])"
+// defaulting:
+# define COORDS_TUPLE COORDS_TUPLE_2D
+# define LOCATION_WITH_COORDS(At) "[get_turf(At)] @ [COORDS_TUPLE(At)]"
+
 
 # ifdef GOAI_LIBRARY_FEATURES
 

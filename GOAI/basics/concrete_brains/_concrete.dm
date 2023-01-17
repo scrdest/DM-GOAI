@@ -38,7 +38,7 @@
 	// serving 'their' actions (similar to how BYOND Verbs can broadcast themselves
 	// to other nearby objects with set src in whatever).
 	*/
-	planner.graph = GetAvailableActions()
+	planner.graph = (isnull(actions) ? GetAvailableActions() : actions)
 
 	for(var/goalkey in goal)
 		PLANNING_DEBUG_LOG("[src] CreatePlan goal: [goalkey] => [goal[goalkey]]")

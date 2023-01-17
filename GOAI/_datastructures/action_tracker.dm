@@ -16,7 +16,9 @@
 	var/is_aborted = FALSE
 
 	// Special flag; when TRUE, plan is invalid but not failed (typically, a dependency popped up)
+	// The value might be a key - this indicates the reason for replan (i.e. OBSTACLE might have an obstacle-specific replanner)
 	var/replan = FALSE
+	var/list/replan_data
 
 	var/creation_time = null
 	var/trigger_time = null
@@ -178,9 +180,14 @@
 	return
 
 
-/datum/ActionTracker/proc/RaiseReplan()
-	ACTIONTRACKER_DEBUG_LOG("REPLAN raised for tracker [src]")
-	src.replan = TRUE
+/datum/ActionTracker/proc/RaiseReplan(var/reason = null, var/list/replanning_data = null)
+	ACTIONTRACKER_DEBUG_LOG("REPLAN raised for tracker [src] with reason: [reason || "null"]")
+	src.replan = (reason || TRUE)
+	PUT_EMPTY_LIST_IN(src.replan_data)
+
+	if(replanning_data)
+		src.replan_data.Add(replanning_data)
+
 	return
 
 
@@ -194,6 +201,7 @@
 	*/
 	ACTIONTRACKER_DEBUG_LOG("REPLAN reset for tracker [src]")
 	src.replan = FALSE
+	PUT_EMPTY_LIST_IN(src.replan_data)
 	return
 
 
