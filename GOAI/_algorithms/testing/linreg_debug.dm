@@ -99,3 +99,22 @@ Temporary disable - gets in the way in the dropdown
 
 	usr << " "
 	return
+
+
+/atom/verb/TestRaytrace()
+	set src in world
+
+	var/atom/result = AtomDensityRaytrace(usr, src, list(usr))
+
+	if(result && istype(result))
+		result.pDrawVectorbeam(usr, result)
+		result.pDrawVectorbeam(usr, src, "n_beam")
+
+	usr << "Hit [result]"
+
+	usr << " "
+	return
+
+
+/mob/verb/CheckAtan(var/x as num)
+	usr << "Atan [x] == [arctan(x)]"

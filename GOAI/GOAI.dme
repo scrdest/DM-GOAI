@@ -31,6 +31,7 @@
 #include "_algorithms\interpolation.dm"
 #include "_algorithms\linear_algebra.dm"
 #include "_algorithms\metrics.dm"
+#include "_algorithms\raytrace.dm"
 #include "_algorithms\statistics.dm"
 #include "_algorithms\turfchunk.dm"
 #include "_datastructures\action_tracker.dm"
