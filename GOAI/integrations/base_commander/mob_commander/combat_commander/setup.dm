@@ -140,6 +140,7 @@
 		11
 	)
 
+	/*
 	AddAction(
 		"Plan Path",
 		/* This is a bit convoluted: we need this step to insert new actions (Goto<Targ>/HandleObstacle<Obs>) at runtime.
@@ -193,6 +194,7 @@
 		TRUE,
 		list("move_handler" = /datum/goai/mob_commander/proc/HandleCharge, "move_action_name" = "CHAERG")
 	)
+	*/
 
 	return actionslist
 
