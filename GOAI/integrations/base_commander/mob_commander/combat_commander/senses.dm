@@ -245,15 +245,24 @@
 	/* Initialize sense objects: */
 	var/sense/combatant_commander_eyes/eyes = new()
 	//var/sense/combatant_commander_obstruction_handler/obstacle_handler = new()
-	var/sense/combatant_commander_panic_pathfinder/panicpath_handler = new()
+	//var/sense/combatant_commander_panic_pathfinder/panicpath_handler = new()
 	//var/sense/combatant_commander_safespace_finder/safety_finder = new()
 	var/sense/combatant_commander_coverleap_wayfinder/coverleap_wayfinder = new()
 
-	/* Register each Sense: */
-	senses.Add(eyes)
-	//senses.Add(obstacle_handler)
-	//senses.Add(panicpath_handler)
-	//senses.Add(safety_finder)
-	senses.Add(coverleap_wayfinder)
+	// Should start off and get toggled on by request
+	//coverleap_wayfinder.Disable()
 
+	if(isnull(src.senses_index))
+		src.senses_index = list()
+
+	/* Register each Sense: */
+	src.senses.Add(eyes)
+	//src.senses.Add(obstacle_handler)
+	//src.senses.Add(panicpath_handler)
+	//src.senses.Add(safety_finder)
+	src.senses.Add(coverleap_wayfinder)
+
+	/* Register lookup by key for quick access (optional) */
+	src.senses_index[SENSE_SIGHT] = eyes
+	src.senses_index[SENSE_COVERLEAP_WAYFINDER] = coverleap_wayfinder
 	return

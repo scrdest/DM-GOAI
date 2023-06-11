@@ -1,36 +1,13 @@
-/* In this module:
-===================
+/datum/utility_ai
+	var/name = "utility AI"
+	var/life = TRUE
 
- - AI Mainloop (Life()/LifeTick())
- - Init for subsystems per AI (by extension - it's in Life())
-
-*/
-
-
-/datum/goai
-	var/name = "GOAI"
-	var/life = GOAI_AI_ENABLED
-
-	var/list/needs
-	var/list/states
+	var/datum/brain/utility/brain
 	var/list/actionslist
 	var/list/actionlookup
-	var/list/inventory
-
-	var/list/senses // array, primary DS for senses
-	var/list/senses_index // assoc, used for quick lookups/access only
-
-	var/last_update_time
-	var/list/last_need_update_times
-	var/last_action_update_time
-
-	var/planning_iter_cutoff = 30
-	var/pathing_dist_cutoff = 60
-
-	var/datum/brain/brain
 
 	// Private-ish, generally only debug procs should touch these
-	var/ai_tick_delay = COMBATAI_AI_TICK_DELAY
+	var/ai_tick_delay = UTILITYAI_AI_TICK_DELAY
 	var/registry_index
 
 	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).
@@ -40,7 +17,22 @@
 	var/dict/attachments
 
 
-/datum/goai/New(var/active = null)
+/datum/utility_ai/proc/InitActionLookup()
+	/* Largely redundant; initializes handlers, but
+	// InitActions should generally use AddAction
+	// with a handler arg to register them.
+	// Mostly a relic of past design iterations.
+	*/
+	var/list/new_actionlookup = list()
+	return new_actionlookup
+
+
+/datum/utility_ai/proc/InitActionsList()
+	var/list/new_actionslist = list()
+	return new_actionslist
+
+
+/datum/utility_ai/New(var/active = null)
 	..()
 
 	/*
@@ -52,29 +44,29 @@
 	*/
 	var/true_active = (isnull(active) ? TRUE : active)
 
-	var/spawn_time = world.time
+	//var/spawn_time = world.time
+	//src.last_update_time = spawn_time
 	src.attachments = new()
-	src.last_update_time = spawn_time
 	src.actionlookup = src.InitActionLookup()  // order matters!
 	src.actionslist = src.InitActionsList()
 
-	src.PreSetupHook()
+	//src.PreSetupHook()
 
-	src.brain = src.CreateBrain(actionslist)
-	src.InitNeeds()
-	src.InitStates()
+	src.brain = src.CreateBrain()
+	//src.InitNeeds()
+	//src.InitStates()
 	src.UpdateBrain()
-	src.InitRelations()
-	src.InitSenses()
+	//src.InitRelations()
+	//src.InitSenses()
 
-	src.PostSetupHook()
+	//src.PostSetupHook()
 
 	if(true_active)
 		src.Life()
 
 
-/datum/goai/proc/CleanDelete()
-	src.life = 0
+/datum/utility_ai/proc/CleanDelete()
+	src.life = FALSE
 
 	var/datum/brain/mybrain = src.brain
 	if(mybrain && istype(mybrain))
@@ -85,29 +77,29 @@
 
 
 # ifdef GOAI_SS13_SUPPORT
-/datum/goai/Destroy()
+/datum/utility_ai/Destroy()
 	src.CleanDelete()
 	. = ..()
 	return
 # endif
 
 
-/datum/goai/proc/ShouldCleanup()
+/datum/utility_ai/proc/ShouldCleanup()
 	// purely logical, doesn't DO the cleanup
 	return FALSE
 
 
-/datum/goai/proc/CheckForCleanup()
+/datum/utility_ai/proc/CheckForCleanup()
 	// purely application, runs ShouldCleanup() and handles state as needed
 	// this is just an abstract method for overrides to plug into though
 	return FALSE
 
 
-/datum/goai/proc/LifeTick()
+/datum/utility_ai/proc/LifeTick()
 	return TRUE
 
 
-/datum/goai/proc/Life()
+/datum/utility_ai/proc/Life()
 	src.RegisterAI()
 	// LifeTick WOULD be called here (in a loop) like so...:
 	/*
@@ -121,7 +113,8 @@
 	return TRUE
 
 
-/datum/goai/proc/SetState(var/key, var/val)
+/*
+/datum/utility_ai/proc/SetState(var/key, var/val)
 	if(!key)
 		return
 
@@ -133,7 +126,7 @@
 	return TRUE
 
 
-/datum/goai/proc/GetState(var/key, var/default = null)
+/datum/utility_ai/proc/GetState(var/key, var/default = null)
 	if(!key)
 		return
 
@@ -144,3 +137,36 @@
 		return states[key]
 
 	return default
+*/
+
+
+/datum/utility_ai/mob_commander
+	name = "utility AI commander"
+
+	# ifdef GOAI_LIBRARY_FEATURES
+	var/atom/pawn
+	# endif
+
+	# ifdef GOAI_SS13_SUPPORT
+	var/weakref/pawn_ref
+	# endif
+
+	var/datum/ActivePathTracker/active_path
+
+	var/is_repathing = 0
+	var/is_moving = 0
+
+
+/datum/utility_ai/mob_commander/proc/GetPawn()
+	var/atom/movable/mypawn = null
+
+	# ifdef GOAI_LIBRARY_FEATURES
+	mypawn = (mypawn || src.pawn)
+	# endif
+
+	# ifdef GOAI_SS13_SUPPORT
+	mypawn = (mypawn || (pawn_ref?.resolve()))
+	# endif
+
+	return mypawn
+

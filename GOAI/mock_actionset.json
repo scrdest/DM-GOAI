@@ -1,0 +1,36 @@
+{
+	"active": 1, 
+	"actions": [
+		{
+			"name": "mock_action", 
+			"description": "foos the bar", 
+			"handler": "/proc/curve_linear", 
+			"context_proc": "/proc/ctxfetcher_adjacent_turfs", 
+			"priority": 1, 
+			"considerations": [
+				{
+					"name": "ConsiderationB",
+					"lo_mark": 0, 
+					"hi_mark": 2, 
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"curve_proc": "/proc/curve_antisquare"
+				}
+			]}, 
+		{
+			"name": "mock_action2", 
+			"description": "boos the far", 
+			"handler": "/proc/curve_linear", 
+			"context_proc": "/proc/ctxfetcher_adjacent_turfs", 
+			"priority": 2, 
+			"considerations": [
+				{
+					"name": "ConsiderationC",
+					"lo_mark": 0, 
+					"hi_mark": 2, 
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"curve_proc": "/proc/curve_antilinear"
+				}
+			]
+		}
+	]
+}

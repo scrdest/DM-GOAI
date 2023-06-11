@@ -8,6 +8,8 @@
 	var/equip = TRUE
 	var/ensure_unique_name = FALSE
 
+	var/commander_id = null
+
 
 /mob/living/simple_animal/aitester/proc/ChooseFaction()
 	var/list/factions = list("ANTAG", "Skrell", "NTIS")
@@ -29,6 +31,12 @@
 /mob/living/simple_animal/aitester/proc/Equip()
 	var/obj/item/weapon/gun/mygun = new(src)
 	to_chat(src, "You've received a [mygun]")
+	return src
+
+
+/mob/living/simple_animal/aitester/proc/SpawnCommander()
+	var/datum/goai/mob_commander/combat_commander/new_commander = new()
+	AttachCombatCommanderTo(src, new_commander)
 	return src
 
 
@@ -57,7 +65,35 @@
 	src.name = src.real_name
 
 	if(src.spawn_commander)
-		var/datum/goai/mob_commander/combat_commander/new_commander = new()
-		AttachCombatCommanderTo(src, new_commander)
+		src.SpawnCommander()
 
 	return
+
+
+// Spawns with a pure Utility AI instead
+/mob/living/simple_animal/aitester/utility
+
+
+/mob/living/simple_animal/aitester/utility/SpawnCommander()
+	var/datum/utility_ai/mob_commander/combat_commander/new_commander = new()
+	AttachUtilityCommanderTo(src, new_commander)
+	src.commander_id = new_commander.registry_index
+	return src
+
+
+
+/mob/living/simple_animal/aitester/utility/verb/ReloadAi()
+	set src in view()
+
+	if(!src.commander_id)
+		return
+
+
+	if(IS_REGISTERED_AI(src.commander_id))
+		var/datum/utility_ai/mob_commander/commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[src.commander_id])
+		var/datum/brain/utility/ubrain = commander?.brain
+		if(ubrain)
+			PUT_EMPTY_LIST_IN(ubrain.file_actionsets)
+			to_chat(usr, "AI for [src] reloaded!")
+
+	return src

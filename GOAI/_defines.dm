@@ -55,9 +55,9 @@
 # endif
 
 # define GUN_DISPERSION 5
-
 # define DEFAULT_ORPHAN_CLEANUP_THRESHOLD 3
-# define SENSE_SIGHT "Sight"
+
+# define SENSE_SIGHT "SenseSight"
 # define SENSE_SIGHT_CURR "SightCurr"
 # define SENSE_SIGHT_PREV "SightPrev"
 
@@ -69,12 +69,19 @@
 # define ATTACHMENT_CONTROLLER_BACKREF "AiControllerId"
 # define ATTACHMENT_EVTQUEUE_HIT "HitEventQueue"
 
+
+
 // Helpers
 # define IS_VALID_NON_NULL(X) (!(isnull(X)) && istype(X))
 # define PUT_EMPTY_LIST_IN(X) if(IS_VALID_NON_NULL(X)) { X.Cut() } else { X = list() }
 
 # define DEFAULT_GOAI_DISTANCE_PROC /proc/fDistanceUnified
 
-# define DEBUG_LOG_LIST_ARRAY(L) for(var/_li_ in L) { to_world_log("[_li_]") }
-# define DEBUG_LOG_LIST_ASSOC(L) for(var/_li_ in L) { to_world_log("[_li_]: [L[_li_]]") }
+# define DEBUG_LOG_LIST_ARRAY(L, LOGGER) for(var/_li_ in L) { LOGGER("[_li_]") }
+# define DEBUG_LOG_LIST_ASSOC(L, LOGGER) for(var/_li_ in L) { LOGGER("[_li_]: [L[_li_]]") }
 
+# define SET_IF_NOT_NULL(Nullable, Var) if(!(isnull(Nullable))) { ##Var = Nullable }
+# define DEFAULT_IF_NULL(Nullable, Default) (isnull(Nullable) ? Default : Nullable)
+
+// Kinda black magic; looks up an AI reference and puts it into the variable PATH specified in the second argument.
+# define FetchAiControllerForObjIntoVar(gameobj, VarPath) var/__commander_backref = gameobj?.attachments?.Get(ATTACHMENT_CONTROLLER_BACKREF); VarPath = IS_REGISTERED_AI(__commander_backref) && GOAI_LIBBED_GLOB_ATTR(global_goai_registry[__commander_backref])

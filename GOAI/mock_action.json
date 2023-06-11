@@ -1,0 +1,1 @@
+{"action_name": "mock_action", "description": "foos the bar", "handler": "/proc/curve_linear", "priority": 0, "considerations": [{"lo_mark": -3, "hi_mark": 5, "input_proc": "/proc/curve_linear", "curve_proc": "/proc/curve_linear"}, {"lo_mark": -4, "hi_mark": 6, "input_proc": "/proc/curve_square", "curve_proc": "/proc/curve_square"}]}

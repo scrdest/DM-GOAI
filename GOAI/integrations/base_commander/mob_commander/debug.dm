@@ -1,3 +1,12 @@
+/mob/verb/TestDLL()
+	set category = "TestDLL"
+
+	usr << "Calling test DLL"
+	var/raw_result = call("byondexp.dll", "testfn")()
+	var/result = copytext(raw_result, 1, 0)
+	usr << result
+
+
 
 /mob/verb/InspectGoaiMobCommanderVars(datum/goai/mob_commander/commander in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
 	set category = "Debug GOAI Commanders"

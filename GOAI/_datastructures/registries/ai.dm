@@ -59,3 +59,23 @@ GLOBAL_LIST_EMPTY(global_goai_registry)
 
 	return GOAI_LIBBED_GLOB_ATTR(global_goai_registry)
 
+
+
+/datum/utility_ai/proc/RegisterAI()
+	// Registry pattern, to facilitate querying all GOAI AIs in verbs
+
+	if(!GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
+		GOAI_LIBBED_GLOB_ATTR(global_goai_registry) = list()
+
+	if(src.registry_index)
+		// already done, fix up the registry to be sure and return
+		GOAI_LIBBED_GLOB_ATTR(global_goai_registry[src.registry_index]) = src
+		return GOAI_LIBBED_GLOB_ATTR(global_goai_registry)
+
+	GOAI_LIBBED_GLOB_ATTR(global_goai_registry) += src
+	src.registry_index = GOAI_LIBBED_GLOB_ATTR(global_goai_registry.len)
+
+	if(!(src.name))
+		src.name = src.registry_index
+
+	return GOAI_LIBBED_GLOB_ATTR(global_goai_registry)

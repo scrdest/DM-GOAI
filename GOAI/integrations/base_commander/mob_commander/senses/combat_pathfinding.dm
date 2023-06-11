@@ -20,6 +20,7 @@
 	// any of the stages' Actions might have Preconditions that require
 	// additional steps to be sandwiched between the stages above.
 	*/
+	var/last_run_time = null
 
 
 /sense/combatant_commander_coverleap_wayfinder/proc/ScorePositions(var/datum/goai/mob_commander/owner, var/atom/startpos = null, var/atom/primary_threat = null, var/turf/prev_loc_memdata = null, var/list/threats = null, var/min_safe_dist = null)
@@ -360,6 +361,8 @@
 
 
 /sense/combatant_commander_coverleap_wayfinder/proc/PlanPath(var/datum/goai/mob_commander/combat_commander/owner)
+	src.last_run_time = world.time
+
 	if(!owner)
 		// No owner - no point.
 		COMBAT_WAYFINDER_LOG("[src] does not have an owner! <[owner]>")
@@ -486,15 +489,17 @@
 		premove_effects["PreObstacleSatisfied"] = 1
 		postmove_preconds["PreObstacleSatisfied"] = 1
 
+		var/atom/preobs_bestpos = best_pos_path[obstruction_pos-1]
+
 		owner.AddAction(
 			name = "(Pre-obstacle) [generic_move_name_suffix]",
 			preconds = premove_preconds,
 			effects = premove_effects,
 			handler = base_movement_proc,
-			cost = 4,
+			cost = 10,
 			charges = PLUS_INF,
 			instant = FALSE,
-			action_args = list("best_local_pos" = best_pos_path[obstruction_pos-1])
+			action_args = list("best_local_pos" = preobs_bestpos)
 		)
 
 		if(handled)
@@ -505,10 +510,10 @@
 				preconds = postmove_preconds,
 				effects = postmove_effects,
 				handler = base_movement_proc,
-				cost = 4,
+				cost = 1,
 				charges = PLUS_INF,
 				instant = FALSE,
-				action_args = list("best_local_pos" = best_pos)
+				action_args = list("best_local_pos" = best_pos, "sense_callback" = TRUE)
 			)
 
 	else
@@ -518,10 +523,10 @@
 			preconds = postmove_preconds,
 			effects = postmove_effects,
 			handler = base_movement_proc,
-			cost = 4,
+			cost = 20,
 			charges = 1,
 			instant = FALSE,
-			action_args = list("best_local_pos" = best_pos)
+			action_args = list("best_local_pos" = best_pos, "sense_callback" = TRUE)
 		)
 
 	return
@@ -529,6 +534,9 @@
 
 /sense/combatant_commander_coverleap_wayfinder/ProcessTick(var/owner)
 	..(owner)
+
+	if((world.time - last_run_time) > 50)
+		processing = FALSE
 
 	if(processing)
 		return
@@ -538,12 +546,5 @@
 	// This is the Sense's proc, not the mob's; name's the same:
 	world.log << "Running Sense PlanPath"
 	src.PlanPath(owner)
-
-	spawn(src.GetOwnerAiTickrate(owner) * 10)
-		// Sense-side delay to avoid spamming view() scans too much
-		processing = FALSE
-
-
-	//processing = FALSE
 
 	return

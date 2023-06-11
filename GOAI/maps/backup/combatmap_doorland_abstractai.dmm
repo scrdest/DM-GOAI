@@ -1,14 +1,15 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
 "c" = (/obj/cover/door,/turf/ground,/area)
-"d" = (/mob/aitester{faction = "ANTAG"; name = "ANTAG"; real_name = "ANTAG"},/turf/ground,/area)
-"e" = (/mob/aitester{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist"; real_name = "Skrellorist"},/turf/ground,/area)
+"d" = (/mob/living/simple_animal/aitester{faction = "ANTAG"; name = "ANTAG"; real_name = "ANTAG"; spawn_commander = 0},/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist"; real_name = "Skrellorist"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
 "h" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
 "i" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
 "j" = (/obj/cover/autodoor,/turf/ground,/area)
-"k" = (/mob/goai/dummy{name = "dummy 2"},/turf/ground,/area)
+"k" = (/mob/living/simple_animal/aitester{ensure_unique_name = 1; faction = "dummy"; icon_state = "amorphic"; name = "Dummy"; real_name = "Dummy"; spawn_commander = 0},/turf/ground,/area)
+"l" = (/mob/living/simple_animal/horror,/turf/ground,/area)
 
 (1,1,1) = {"
 aaaaaaaaaaaaaaaaaa
@@ -25,8 +26,8 @@ abiabbbbfbbbbbbbab
 abbbbbbbbbkbbabaab
 abbabbbbbbbbbbbbab
 aaaaaabbbbbbbacaaa
-aabbbacaiaiaiabaab
-abbebjbbbbbbbbbbab
-aabbbabbbbbbbbbbab
+aalbbacaiaiaiabaab
+albebjbbbbbbbbbbab
+aalbbabbbbbbbbbbab
 aaaaaaaaaaaaaaaaaa
 "}
