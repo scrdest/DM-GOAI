@@ -19,13 +19,18 @@
 //
 */
 
+// Macro-ized callsig to make it easy/mandatory to use the proper API conventions
+// For those less familiar with macros, pretend this is a normal proc definition with parent/requester/context_args as params.
+// (ActionTemplate, Optional<Any>, Optional<assoc>) -> [{Any: Any}]
+# define CTXFETCHER_CALL_SIGNATURE(procpath) ##procpath(var/datum/utility_action_template/parent = null, var/requester = null, var/list/context_args = null)
 
-/proc/ctxfetcher_null(var/datum/utility_action_template/parent = null, var/requester = null) // (ActionTemplate, Optional<Any>) -> [{Any: Any}]
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_null)
 	// A simple, demo/placeholder Fetcher, always returns null
 	return null
 
 
-/proc/ctxfetcher_turfs_in_view(var/datum/utility_action_template/parent = null, var/requester = null) // (ActionTemplate, Optional<Any>) -> [{Any: Any}]
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_turfs_in_view)
 	// Returns a simple list of visible turfs, suitable e.g. for pathfinding.
 
 	if(isnull(requester))
@@ -46,7 +51,7 @@
 	return contexts
 
 
-/proc/ctxfetcher_adjacent_turfs(var/datum/utility_action_template/parent = null, var/requester = null) // (ActionTemplate, Optional<Any>) -> [{Any: Any}]
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_adjacent_turfs)
 	// Returns a simple list of visible turfs, suitable e.g. for pathfinding.
 
 	if(isnull(requester))
@@ -61,11 +66,24 @@
 
 	var/list/contexts = list()
 
+	var/filter_type = null
+	if(!isnull(context_args))
+		var/raw_type = context_args[CTX_KEY_FILTERTYPE]
+		filter_type = text2path(raw_type)
+
 	for(var/turf/pos in trangeGeneric(1, atom_requester.x, atom_requester.y, atom_requester.z))
 		if(isnull(pos))
 			continue
 
 		var/list/ctx = list()
+
+		if(filter_type)
+			var/found_type = locate(filter_type) in pos.contents
+			if(isnull(found_type))
+				continue
+
+			ctx[CTX_KEY_FILTERTYPE] = found_type
+
 		ctx[CTX_KEY_POSITION] = pos
 		contexts.len++; contexts[contexts.len] = ctx
 		//UTILITYBRAIN_DEBUG_LOG("INFO: added position #[posidx] [pos] context [ctx] (len: [ctx?.len]) to contexts (len: [contexts.len]) @ L[__LINE__] in [__FILE__]!")

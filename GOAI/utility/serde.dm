@@ -5,6 +5,47 @@
 
 //# define DEBUG_SERDE_LOADS 1
 
+
+// Unfortunately DM is suffering, so these have to be 'plain' procs and not classmethods.
+
+# define READ_JSON_FILE(FP) (fexists(FP) && json_decode(file2text(FP)))
+# define WRITE_JSON_FILE(Data, FP) ((!isnull(Data)) && text2file(json_encode(Data), FP))
+
+/* ====  JSON schemas  ==== */
+
+// Generic:
+# define JSON_KEY_VERSION "version"
+
+// Consideration schema:
+# define JSON_KEY_CONSIDERATION_INPPROC "input_proc"
+# define JSON_KEY_CONSIDERATION_CURVEPROC "curve_proc"
+# define JSON_KEY_CONSIDERATION_LOMARK "lo_mark"
+# define JSON_KEY_CONSIDERATION_HIMARK "hi_mark"
+# define JSON_KEY_CONSIDERATION_NOISESCALE "noise_scale"
+# define JSON_KEY_CONSIDERATION_NAME "name"
+# define JSON_KEY_CONSIDERATION_DESC "description"
+# define JSON_KEY_CONSIDERATION_ACTIVE "active"
+# define JSON_KEY_CONSIDERATION_ARGS "input_args"
+
+// ActionTemplate schema:
+# define JSON_KEY_CONSIDERATIONS "considerations"
+# define JSON_KEY_ACT_CTXPROC "context_proc"
+# define JSON_KEY_ACT_CTXARGS "context_args"
+# define JSON_KEY_ACT_HANDLER "handler"
+# define JSON_KEY_ACT_PRIORITY "priority"
+# define JSON_KEY_ACT_CHARGES "charges"
+# define JSON_KEY_ACT_ISINSTANT "instant"
+# define JSON_KEY_ACT_NAME "name"
+# define JSON_KEY_ACT_DESCRIPTION "description"
+# define JSON_KEY_ACT_ACTIVE "active"
+
+// ActionSet schema:
+# define JSON_KEY_ACTSET_ACTIVE "active"
+# define JSON_KEY_ACTSET_ACTIONS "actions"
+
+/* ============================================= */
+
+
 /proc/UtilityConsiderationFromData(var/list/json_data) // list -> ActionTemplate
 	ASSERT(json_data)
 
@@ -12,9 +53,11 @@
 	var/raw_curve_proc = json_data[JSON_KEY_CONSIDERATION_CURVEPROC]
 	var/bookmark_low = json_data[JSON_KEY_CONSIDERATION_LOMARK]
 	var/bookmark_high = json_data[JSON_KEY_CONSIDERATION_HIMARK]
+	var/noise_scale = json_data[JSON_KEY_CONSIDERATION_NOISESCALE]
 	var/name = json_data[JSON_KEY_CONSIDERATION_NAME]
 	var/description = json_data[JSON_KEY_CONSIDERATION_DESC]
 	var/active = json_data[JSON_KEY_CONSIDERATION_ACTIVE]
+	var/list/consideration_args = json_data[JSON_KEY_CONSIDERATION_ARGS]
 
 	// Yeah, I know, for data-driven stuff you just gotta bite your tongue and take it
 	var/inp_proc = STR_TO_PROC(raw_inp_proc)
@@ -25,10 +68,12 @@
 		curve_proc=curve_proc,
 		loMark=bookmark_low,
 		hiMark=bookmark_high,
+		noiseScale=noise_scale,
 		id=null,
 		name=name,
 		description=description,
-		active=active
+		active=active,
+		consideration_args=consideration_args
 	)
 
 	return new_consideration
@@ -46,14 +91,14 @@
 
 		if(isnull(new_consideration))
 			//log
-			world.log << "Failed to load Consideration at idx [idx]"
+			UTILITYBRAIN_DEBUG_LOG("Failed to load Consideration at idx [idx]")
 			continue
 
 		# ifdef DEBUG_SERDE_LOADS
-		world.log << "   "
-		world.log << "Loaded new Consideration: "
+		UTILITYBRAIN_DEBUG_LOG("   ")
+		UTILITYBRAIN_DEBUG_LOG("Loaded new Consideration: ")
 		for(var/varkey in new_consideration.vars)
-			world.log << "o [varkey] => [new_consideration.vars[varkey]]"
+			UTILITYBRAIN_DEBUG_LOG("o [varkey] => [new_consideration.vars[varkey]]")
 		# endif
 
 		considerations.Add(new_consideration)
@@ -69,6 +114,8 @@
 	var/raw_ctxproc = json_data[JSON_KEY_ACT_CTXPROC]
 	var/context_proc = STR_TO_PROC(raw_ctxproc)
 
+	var/context_args = json_data[JSON_KEY_ACT_CTXARGS]
+
 	var/raw_handler = json_data[JSON_KEY_ACT_HANDLER]
 	var/handler = STR_TO_PROC(raw_handler)
 
@@ -81,13 +128,24 @@
 
 	var/list/considerations = UtilityConsiderationArrayFromData(considerations_data)
 
-	var/datum/utility_action_template/new_action_template = new(considerations, handler, context_proc, priority, charges, instant, act_name, act_description, active)
+	var/datum/utility_action_template/new_action_template = new(
+		considerations,
+		handler,
+		context_proc,
+		context_args,
+		priority,
+		charges,
+		instant,
+		act_name,
+		act_description,
+		active
+	)
 
 	# ifdef DEBUG_SERDE_LOADS
 	if(new_action_template)
-		world.log << "Loaded new ActionTemplate: "
+		UTILITYBRAIN_DEBUG_LOG("Loaded new ActionTemplate: ")
 		for(var/varkey in new_action_template.vars)
-			world.log << "o [varkey] => [new_action_template.vars[varkey]]"
+			UTILITYBRAIN_DEBUG_LOG("o [varkey] => [new_action_template.vars[varkey]]")
 	# endif
 
 	return new_action_template
@@ -121,9 +179,9 @@
 			continue
 
 		# ifdef DEBUG_SERDE_LOADS
-		world.log << "Loaded ActionSet item [new_action_template]"
+		UTILITYBRAIN_DEBUG_LOG("Loaded ActionSet item [new_action_template]")
 		for(var/nav in new_action_template.vars)
-			world.log << "[nav] => [new_action_template.vars[nav]]"
+			UTILITYBRAIN_DEBUG_LOG("[nav] => [new_action_template.vars[nav]]")
 		# endif
 
 		actions.Add(new_action_template)

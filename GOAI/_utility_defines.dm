@@ -4,6 +4,8 @@
 // Is the DM compiler dumber than a bag of extra-chonky bricks and so we cannot do that? Also yes.
 */
 
+/* ============================================= */
+
 // Meta-definition for compile-time-conditional logging
 # ifdef UTILITYBRAIN_DEBUG_LOGGING
 # define UTILITYBRAIN_DEBUG_LOG(X) to_world_log(X)
@@ -11,6 +13,8 @@
 # define UTILITYBRAIN_DEBUG_LOG(X)
 # endif
 
+
+/* ============================================= */
 
 // Normalization scale for Activations.
 // We can scale either 0 -> 1 or 0 -> 100, not sure yet what's better so we'll macro it
@@ -20,6 +24,8 @@
 // Abstracting for the sake of replacing w/ less of a hack later (maybe the new `::` operator?)
 # define STR_TO_PROC(procpath) text2path(procpath)
 
+
+/* ============================================= */
 
 /*
 // Functions inlined for efficiency, because see top comment:
@@ -35,12 +41,15 @@
 // vvv THIS is the actual correction, the above is just a helper
 # define CORRECT_UTILITY_SCORE(Score, NumConstraints) (Score + (Score * UTILITY_MITIGATING_FACTOR(NumConstraints)))
 
-// Core utility calculation - normalize inputs then get an Activation response from a curve.
-// e.g. UTILITY_CONSIDERATION(5, 2, 8, /proc/curve_linear) => 0.5
-//  or: UTILITY_CONSIDERATION(5, 2, 8, /proc/curve_binary) => 0.0
-//  or: UTILITY_CONSIDERATION(5, 0, 4, /proc/curve_linear) => 1.0
-# define UTILITY_CONSIDERATION(RawData, LoMark, HiMark, CurveProc) call(CurveProc)(NORMALIZE_UTILITY_INPUT(RawData, LoMark, HiMark))
+// Core utility calculation - normalize inputs, fuzz, then get an Activation response from a curve.
+// e.g. UTILITY_CONSIDERATION(5, 2, 8, 0, /proc/curve_linear) => 0.5
+//  or: UTILITY_CONSIDERATION(5, 2, 8, 0, /proc/curve_binary) => 0.0
+//  or: UTILITY_CONSIDERATION(5, 0, 4, 0, /proc/curve_linear) => 1.0
+// Note that at NoisePerc>=100, the curve inputs are dominated by noise.
+# define UTILITY_CONSIDERATION(RawData, LoMark, HiMark, NoisePerc, CurveProc) call(CurveProc)(clamp(NORMALIZE_UTILITY_INPUT(RawData, LoMark, HiMark) + ((rand() - 0.5) * NoisePerc / 50), ACTIVATION_NONE, ACTIVATION_FULL))
 
+
+/* ============================================= */
 
 /*
 // Priority weights.
@@ -74,43 +83,11 @@
 # define UTILITY_PRIORITY_FORCED 100
 
 
-// Unfortunately DM is suffering, so these have to be 'plain' procs and not classmethods.
-
-# define READ_JSON_FILE(FP) (fexists(FP) && json_decode(file2text(FP)))
-# define WRITE_JSON_FILE(Data, FP) ((!isnull(Data)) && text2file(json_encode(Data), FP))
-
-/* ====  JSON schemas  ==== */
-
-// Generic:
-# define JSON_KEY_VERSION "version"
-
-// Consideration schema:
-# define JSON_KEY_CONSIDERATION_INPPROC "input_proc"
-# define JSON_KEY_CONSIDERATION_CURVEPROC "curve_proc"
-# define JSON_KEY_CONSIDERATION_LOMARK "lo_mark"
-# define JSON_KEY_CONSIDERATION_HIMARK "hi_mark"
-# define JSON_KEY_CONSIDERATION_NAME "name"
-# define JSON_KEY_CONSIDERATION_DESC "description"
-# define JSON_KEY_CONSIDERATION_ACTIVE "active"
-
-// ActionTemplate schema:
-# define JSON_KEY_CONSIDERATIONS "considerations"
-# define JSON_KEY_ACT_CTXPROC "context_proc"
-# define JSON_KEY_ACT_HANDLER "handler"
-# define JSON_KEY_ACT_PRIORITY "priority"
-# define JSON_KEY_ACT_CHARGES "charges"
-# define JSON_KEY_ACT_ISINSTANT "instant"
-# define JSON_KEY_ACT_NAME "name"
-# define JSON_KEY_ACT_DESCRIPTION "description"
-# define JSON_KEY_ACT_ACTIVE "active"
-
-// ActionSet schema:
-# define JSON_KEY_ACTSET_ACTIVE "active"
-# define JSON_KEY_ACTSET_ACTIONS "actions"
-
 /* ============================================= */
 
 /* == Context Keys == */
 # define CTX_KEY_POSITION "position"
+# define CTX_KEY_FILTERTYPE "if_contains_type"
+
 
 /* ============================================= */

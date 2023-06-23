@@ -73,7 +73,7 @@
 		for(var/datum/ActionTracker/instant_action_tracker in brain.pending_instant_actions)
 			var/tracked_instant_action = instant_action_tracker?.tracked_action
 			if(tracked_instant_action)
-				HandleInstantAction(tracked_instant_action, instant_action_tracker)
+				src.HandleInstantAction(tracked_instant_action, instant_action_tracker)
 
 		PUT_EMPTY_LIST_IN(brain.pending_instant_actions)
 
@@ -81,7 +81,7 @@
 			var/tracked_action = brain.running_action_tracker.tracked_action
 
 			if(tracked_action)
-				HandleAction(tracked_action, brain.running_action_tracker)
+				src.HandleAction(tracked_action, brain.running_action_tracker)
 
 
 	return

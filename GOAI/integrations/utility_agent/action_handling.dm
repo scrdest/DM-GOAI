@@ -31,10 +31,6 @@
 	MAYBE_LOG("Tracker: [tracker]")
 	var/running = 1
 
-	var/list/action_lookup = src.actionlookup // abstract maybe
-	if(isnull(action_lookup))
-		return
-
 	while (tracker && running)
 		// TODO: Interrupts
 		running = tracker.IsRunning()
@@ -45,19 +41,27 @@
 			// task-specific logic goes here
 			MAYBE_LOG("[src]: HandleAction action is: [action]")
 
-			var/actionproc = action_lookup[action.name]
+			var/actionproc = action.handler
 
 			var/list/action_args = list()
 			action_args["tracker"] = tracker
 			action_args += action.arguments
 
 			if(isnull(actionproc))
+				world << "Failed to call [actionproc]([json_encode(action_args)])!"
 				tracker.SetFailed()
 
 			else
+				if(tracker.IsStopped())
+					break
+
+				world << "Calling [actionproc]!"
 				call(src, actionproc)(arglist(action_args))
 
 				if(action.instant)
+					break
+
+				if(tracker.IsStopped())
 					break
 
 		var/safe_ai_delay = max(1, src.ai_tick_delay)

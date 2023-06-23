@@ -14,19 +14,25 @@
 # define DEBUGLOG_UTILITY_INPUT_FETCHERS(X)
 # endif
 
-/proc/consideration_input_always(var/list/context, var/requester = null) // (<assoc>, Any) -> float
+
+// Macro-ized callsig to make it easy/mandatory to use the proper API conventions
+// For those less familiar with macros, pretend this is a normal proc definition with context/requester/consideration_args as params.
+# define CONSIDERATION_CALL_SIGNATURE(procpath) ##procpath(var/list/context = null, var/requester = null, var/list/consideration_args = null)
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_always)
 	// A dumb debug Consideration input that always returns 100% activation
 	return ACTIVATION_FULL
 
 
-/proc/consideration_input_urand(var/list/context, var/requester = null) // (<assoc>, Any) -> float
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_urand)
 	// A Consideration input that returns an activation that is uniform random between 0% and 100%
 	return rand() * 100
 
 
 # ifdef GOAI_SS13_SUPPORT
 
-/proc/consideration_input_mobhealth_abs(var/list/context, var/requester = null) // (<assoc>, Any) -> float
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_mobhealth_abs)
 	// Returns the mob's absolute health. Duh.
 	// Note that because we yeeted normalization to the Scoring logic, this will Just Work
 	// for any mob, regardless of their default Health pool, as long as we set the Consideration params right.
@@ -39,7 +45,8 @@
 
 	return mob.health
 
-/proc/consideration_input_mobhealth_rel(var/list/context, var/requester = null) // (<assoc>, Any) -> float
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_mobhealth_rel)
 	// Returns the mob's health as a fraction of their maxHealth.
 	// This is suitable for queries like 'is my health low?'.
 	var/mob/pawn = requester
@@ -55,9 +62,8 @@
 # endif
 
 
-/proc/consideration_input_manhattan_distance_to_requester(var/list/context, var/requester = null) // (<assoc>, Any) -> float
-	// Returns the mob's health as a fraction of their maxHealth.
-	// This is suitable for queries like 'is my health low?'.
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_manhattan_distance_to_requester)
+	//
 	var/atom/requester_entity = requester
 
 	if(isnull(requester_entity))
@@ -75,5 +81,47 @@
 
 	var/result = ManhattanDistance(requester_entity, query_target)
 	//DEBUGLOG_UTILITY_INPUT_FETCHERS("ManhattanDistance input is [result || "null"] @ L[__LINE__] in [__FILE__]")
+	return result
+
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
+	//
+	var/default_from_arg = consideration_args?["default"]
+	var/default = isnull(default_from_arg) ? TRUE : default_from_arg
+
+	var/raw_queried_object = context[CTX_KEY_POSITION]
+	//DEBUGLOG_UTILITY_INPUT_FETCHERS("Raw query target is [raw_qry_target || "null"] @ L[__LINE__] in [__FILE__]")
+
+	var/turf/queried_turf = raw_queried_object
+	//DEBUGLOG_UTILITY_INPUT_FETCHERS("Query target is [query_target || "null"] @ L[__LINE__] in [__FILE__]")
+
+	if(isnull(raw_queried_object))
+		return default
+
+	var/raw_find_type = consideration_args?["locate_type_as_target"]
+	var/find_type = text2path(raw_find_type)
+	to_world_log("consideration_input_is_passable find_type is [find_type || "null"] ([raw_find_type || "null"]) @ L[__LINE__] in [__FILE__]")
+
+	if(!isnull(find_type))
+		var/atom/found_instance = (locate(find_type) in queried_turf.contents)
+
+		if(isnull(found_instance))
+			to_world_log("consideration_input_is_passable found_instance is null @ L[__LINE__] in [__FILE__]")
+			return default
+
+		var/datum/directional_blocker/dirblocker = found_instance.GetBlockerData(TRUE, TRUE)
+
+		if(isnull(dirblocker))
+			to_world_log("consideration_input_is_passable DirBlocker is null @ L[__LINE__] in [__FILE__]")
+			return TRUE
+
+		var/instance_result = !(dirblocker.is_active && dirblocker.block_all)
+		to_world_log("consideration_input_is_passable instance_result is [instance_result] @ L[__LINE__] in [__FILE__]")
+		return instance_result
+
+	// Basic implementation not using colliders yet!!!
+	var/result = !(queried_turf.IsBlocked(TRUE, FALSE))
+	to_world_log("consideration_input_is_passable result is [result] @ L[__LINE__] in [__FILE__]")
 	return result
 

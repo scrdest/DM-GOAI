@@ -1,4 +1,3 @@
-
 /* Response curves
 //
 // Simply map a single (normalized) input to an output normalized to the same range.
@@ -6,18 +5,27 @@
 // We want to be able to call() these, so we cannot inline them with macros.
 */
 
+// # define UTILITYBRAIN_LOG_CURVE_INPUTS 0
+
+
 /proc/curve_linear(var/input) // float -> activation (float)
 	// The simplest possible curve, just returns normalized input.
 	// So, anything at/below the Lo bookmark will have probability 0%;
 	// anything at or above the Hi will be 100%;
 	// everything else is a simple Lerp between the two.
-	world.log << "CurveLinear input: [input]"
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveLinear input: [input]")
+	# endif
+
 	return input
 
 
 /proc/curve_antilinear(var/input) // float -> activation (float)
 	// The same as Linear, but inverted - as input increases, Activation *decreases*.
-	world.log << "CurveAntiLinear input: [input]"
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveAntiLinear input: [input]")
+	# endif
+
 	var/result = ACTIVATION_FULL - input
 	return result
 
@@ -28,7 +36,10 @@
 	//   if and only if the condition is True.
 	// Useful for Actions like Attack(enemy), where if there's no enemy, there's no point whatsoever.
 
-	world.log << "CurveBinary input: [input]"
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveBinary input: [input]")
+	# endif
+
 	var/activation = ACTIVATION_NONE
 
 	if(input >= ACTIVATION_FULL)
@@ -41,7 +52,10 @@
 /proc/curve_antibinary(var/input)
 	// Like Binary, but with inverted logic; acts like a NOT gate.
 
-	world.log << "CurveAntiBinary input: [input]"
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveAntiBinary input: [input]")
+	# endif
+
 	var/activation = ACTIVATION_FULL
 
 	if(input >= ACTIVATION_FULL)
@@ -55,13 +69,21 @@
 	// Similar to Linear, but more 'binary', in that weak activations
 	// get more attenuated by getting squished towards zero.
 	// IOW, penalizes 'waffley' activations but not as hard as Binary.
-	world.log << "CurveSquare input: [input]"
+
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveSquare input: [input]")
+	# endif
+
 	return input ** 2
 
 
 /proc/curve_antisquare(var/input)
 	// Flipped Square, Activation falls with higher inputs
-	world.log << "CurveAntiSquare input: [input]"
+
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveAntiSquare input: [input]")
+	# endif
+
 	var/result = ACTIVATION_FULL - (input ** 2)
 	return result
 
@@ -77,7 +99,9 @@
 	// Handy if you want a 'golden mean' value for some parameter,
 	// like a bandpass filter in signal processing.
 
-	world.log << "CurveFakeGauss36 input: [input]"
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveFakeGauss36 input: [input]")
+	# endif
 
 	// replace '0.5' with another constant float in <0;1> to center at that value
 	var/dist = (input - 0.5) ** 2
@@ -101,7 +125,9 @@
 	// but at mid-range the stamina drain combined with relative proximity to enemies means you just
 	// exhaust yourself sprinting but don't have enough energy to follow through with attacks.
 
-	world.log << "CurveAntiFakeGauss36 input: [input]"
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveAntiFakeGauss36 input: [input]")
+	# endif
 
 	var/dist = (input - 0.5) ** 2
 

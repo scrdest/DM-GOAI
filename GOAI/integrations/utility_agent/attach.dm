@@ -19,6 +19,8 @@
 		M.attachments = pawn_attachments
 
 	M.attachments[ATTACHMENT_CONTROLLER_BACKREF] = new_commander.registry_index
+	M.attachments["commander_removeme"] = new_commander
+	M.attachments["aibrain_removeme"] = new_commander.brain
 
 	new_commander.name = "AI of [M?.real_name || M?.name] (#[rand(0, 100000)])"
 	new_commander.brain.name = "Brain of [new_commander.name]"

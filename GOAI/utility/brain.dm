@@ -4,17 +4,27 @@
 // The underscore in the filename is just to trick DM into sorting this correctly.
 */
 
+# define UTILITYBRAIN_LOG_UTILITIES 0
+//# define UTILITYBRAIN_LOG_CONTEXTS 0
+//# define UTILITYBRAIN_LOG_CONTROLLER_LOOKUP 0
+
 
 /datum/brain/utility
 	// NOTE: we'll reuse actionslist from the parent for ActionSets; this is not ideal
 	//       but I don't want to refactor the parent into a GOAPy subclass.
 	var/list/file_actionsets = null
 
+	var/list/smart_objects = null
+	var/list/smartobject_last_fetched = null
+
 
 /datum/brain/utility/GetAiController()
-	var/__commander_backref = src.attachments.Get(ATTACHMENT_CONTROLLER_BACKREF)
-	world.log << "Backref is [__commander_backref] @ L[__LINE__] in [__FILE__]"
 	var/datum/commander = null
+	var/__commander_backref = src.attachments.Get(ATTACHMENT_CONTROLLER_BACKREF)
+
+	# ifdef UTILITYBRAIN_LOG_CONTROLLER_LOOKUP
+	UTILITYBRAIN_DEBUG_LOG("Backref is [__commander_backref] @ L[__LINE__] in [__FILE__]")
+	# endif
 
 	if(IS_REGISTERED_AI(__commander_backref))
 		commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[__commander_backref])
@@ -114,8 +124,13 @@
 			var/list/contexts = action_template.GetCandidateContexts(requester)
 
 			if(contexts)
-				world.log << "Found contexts ([contexts.len])"
+				# ifdef UTILITYBRAIN_LOG_CONTEXTS
+				UTILITYBRAIN_DEBUG_LOG("Found contexts ([contexts.len])")
+				# endif
+
+				# ifdef UTILITYBRAIN_LOG_UTILITIES
 				var/ctxidx = 0
+				# endif
 
 				for(var/ctx in contexts)
 					// Yes, this is a triple-nested for-loop, and that's fine since we're looping
@@ -125,7 +140,11 @@
 					// That said, the amount of evaluated Contexts should be kept tightly constrained.
 					// Only fetch contexts that are likely to be a) relevant & b) executed.
 					var/utility = action_template.ScoreAction(ctx, requester)
-					world.log << "Utility for [action_template?.name] ctx #[ctxidx++]: [utility]"
+
+					# ifdef UTILITYBRAIN_LOG_UTILITIES
+					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name] ctx #[ctxidx++]: [utility]")
+					# endif
+
 					var/datum/Triple/scored_action = new(utility, action_template, ctx)
 					utility_ranking.Enqueue(scored_action)
 
@@ -155,6 +174,15 @@
 		src.file_actionsets[filename] = file_actionset
 
 	actionsets.Add(file_actionset)
+
+	/*
+	if(src.smart_objects)
+		if(isnull(src.smartobject_last_fetched))
+			src.smartobject_last_fetched = list()
+
+		for(var/datum/smart_object/SO in src.smart_objects)
+	*/
+
 	return actionsets
 
 
@@ -240,7 +268,7 @@
 
 		/* STATE: Ready */
 		else if(selected_action) // ready to go
-			RUN_ACTION_DEBUG_LOG("SELECTED ACTION: [selected_action] | <@[src]>")
+			RUN_ACTION_DEBUG_LOG("SELECTED ACTION: [selected_action]([selected_action?:arguments && json_encode(selected_action:arguments)]) | <@[src]>")
 
 			var/is_valid = src.IsActionValid(selected_action)
 
@@ -265,12 +293,14 @@
 			DEBUG_LOG_LIST_ARRAY(active_plan, RUN_ACTION_DEBUG_LOG)
 
 			while(active_plan.len && isnull(selected_action))
-				// do instants in one tick
-				selected_action = lpop(active_plan)
+				// Unlike GOAP as of writing, active_plan is a STACK.
+				// (it's faster this way and GOAP should use a stack too but honk)
+				selected_action = pop(active_plan)
 
 				var/datum/utility_action/action = selected_action
-				world.log << "Selected action: [action?.name || "NONE"]"
+				UTILITYBRAIN_DEBUG_LOG("Selected action: [action?.name || "NONE"]")
 
+				// do instants in one tick
 				if(action?.instant)
 					RUN_ACTION_DEBUG_LOG("Instant ACTION: [selected_action] | <@[src]>")
 					DoInstantAction(selected_action)
@@ -323,6 +353,23 @@
 	src.selected_action = null
 
 	return TRUE
+
+
+/datum/brain/utility/DoAction(Act as anything in src.GetAvailableActions())
+	RUN_ACTION_DEBUG_LOG("Running DoAction: [Act] | <@[src]> | L[__LINE__] in [__FILE__]")
+
+	var/datum/utility_action/utility_act = Act
+
+	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(utility_act)
+
+	if(!new_actiontracker)
+		RUN_ACTION_DEBUG_LOG("[src]: Failed to create a tracker for [utility_act]!")
+		return null
+
+	//to_world_log("New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]")
+	running_action_tracker = new_actiontracker
+
+	return new_actiontracker
 
 
 /* Motives */

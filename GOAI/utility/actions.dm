@@ -8,6 +8,7 @@
 	*/
 	var/id // this will/may be assigned at runtime, as a position index in an array
 	var/name = "UtilityAction"
+	var/handler = null // proc
 	var/instant = FALSE
 	var/charges = PLUS_INF
 	var/list/arguments
@@ -15,6 +16,12 @@
 
 /datum/utility_action/New(var/name, var/handler, var/charges, var/instant = FALSE, var/list/action_args = null)
 	SET_IF_NOT_NULL(name, src.name)
+	SET_IF_NOT_NULL(handler, src.handler)
 	SET_IF_NOT_NULL(charges, src.charges)
 	SET_IF_NOT_NULL(instant, src.instant)
 	SET_IF_NOT_NULL(action_args, src.arguments)
+
+
+/datum/utility_action/proc/ReduceCharges(var/amt=1)
+	src.charges -= amt
+	return src.charges

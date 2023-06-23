@@ -11,9 +11,14 @@
 	*/
 	var/name = "Action"
 	var/description = null
+
 	var/active = TRUE  // meant to granularly disable options (e.g. for cooldowns) without affecting the whole ActionSet.
+
 	var/context_fetcher = null // a proc that generates candidate context for the action
-	var/handler = null
+	var/list/context_args = null // a list of arguments argslisted into the context_fetcher; optional
+
+	var/handler = null // a proc to run if the action is actually taken
+
 	var/instant = FALSE
 	var/charges = PLUS_INF
 
@@ -24,9 +29,10 @@
 	var/list/considerations
 
 
-/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetcher = null, var/priority = null, var/charges = null, var/instant = null, var/name_override = null, var/description_override = null, var/active = null)
+/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetcher = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/name_override = null, var/description_override = null, var/active = null)
 	SET_IF_NOT_NULL(bound_considerations, src.considerations)
 	SET_IF_NOT_NULL(context_fetcher, src.context_fetcher)
+	SET_IF_NOT_NULL(context_args, src.context_args)
 	SET_IF_NOT_NULL(handler, src.handler)
 	SET_IF_NOT_NULL(priority, src.priority_class)
 	SET_IF_NOT_NULL(charges, src.charges)
@@ -54,7 +60,7 @@
 		UTILITYBRAIN_DEBUG_LOG("WARNING: no ContextFetcher bound to Action [src.name] @ L[__LINE__]!")
 		return
 
-	var/list/contexts = call(src.context_fetcher)(src, requester)
+	var/list/contexts = call(src.context_fetcher)(src, requester, src.context_args)
 	UTILITYBRAIN_DEBUG_LOG("INFO: found [contexts?.len] contexts for Action [src.name] @ L[__LINE__]")
 	return contexts
 

@@ -1,3 +1,6 @@
+# define UTILITYBRAIN_LOG_CONSIDERATION_INPUTS 0
+# define UTILITYBRAIN_LOG_AXIS_SCORES 0
+
 
 /datum/consideration
 	/* This datum is designed to be a 'persistent' representation of a Consideration,
@@ -12,38 +15,39 @@
 	var/lo_bookmark = 0
 	var/hi_bookmark = 100
 
+	// The higher, the noisier the Consideration inputs are
+	// and therefore the more random the Outputs become.
+	//
+	// Useful for getting out of bad action loops and general
+	// organic-ness and unpredictability of agents (though a pain for debugging).
+	//
+	// 0 is infinite precision, 100+ is totally random.
+	var/sensor_noise_perc = 0
+
 	var/name = "consideration"
 	var/description = "<no description>"
 
 	var/response_curve_proc // Fn<float -> float>
 	var/get_input_val_proc // Fn<() -> float>
 
+	var/list/consideration_args // assoc
 
-/datum/consideration/New(var/input_val_proc, var/curve_proc, var/loMark = null, var/hiMark = null, var/id = null, var/name = null, var/description = null, var/active = null)
+
+/datum/consideration/New(var/input_val_proc, var/curve_proc, var/loMark = null, var/hiMark = null, var/noiseScale = null, var/id = null, var/name = null, var/description = null, var/active = null, var/list/consideration_args = null)
 	ASSERT(input_val_proc)
 	ASSERT(curve_proc)
 
 	src.get_input_val_proc = input_val_proc
 	src.response_curve_proc = curve_proc
 
-	if(!isnull(loMark))
-		src.lo_bookmark = loMark
-
-	if(!isnull(hiMark))
-		// I did naaaaaaaht...
-		src.hi_bookmark = hiMark
-
-	if(!isnull(id))
-		src.id = id
-
-	if(!isnull(name))
-		src.name = name
-
-	if(!isnull(description))
-		src.description = description
-
-	if(!isnull(active))
-		src.active = active
+	SET_IF_NOT_NULL(loMark, src.lo_bookmark)
+	SET_IF_NOT_NULL(hiMark, src.hi_bookmark) // I did naaaaaaaht...
+	SET_IF_NOT_NULL(noiseScale, src.sensor_noise_perc)
+	SET_IF_NOT_NULL(id, src.id)
+	SET_IF_NOT_NULL(name, src.name)
+	SET_IF_NOT_NULL(description, src.description)
+	SET_IF_NOT_NULL(active, src.active)
+	SET_IF_NOT_NULL(consideration_args, src.consideration_args)
 
 
 /datum/consideration/proc/Activate() // () -> bool
@@ -72,9 +76,11 @@
 		UTILITYBRAIN_DEBUG_LOG("Consideration `[src.name]` is not active.")
 		return ACTIVATION_NONE
 
+	# ifdef UTILITYBRAIN_LOG_CONSIDERATION_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("UtilityConsideration raw data is [raw_input], LO: [src.lo_bookmark], HI: [src.hi_bookmark]")
+	# endif
 
-	var/activation = UTILITY_CONSIDERATION(raw_input, src.lo_bookmark, src.hi_bookmark, src.response_curve_proc)
+	var/activation = UTILITY_CONSIDERATION(raw_input, src.lo_bookmark, src.hi_bookmark, src.sensor_noise_perc, src.response_curve_proc)
 	return activation
 
 
@@ -92,11 +98,13 @@
 	if(!(src.active))
 		return ACTIVATION_NONE
 
-	var/raw_input = call(src.get_input_val_proc)(context, requester)
-	//UTILITYBRAIN_DEBUG_LOG("INFO: Raw input for Consideration `[src.name]` is [raw_input || "null"] <- [src.get_input_val_proc]; CTX: [context], RQS: [requester] @ L[__LINE__] in [__FILE__]!")
+	var/raw_input = call(src.get_input_val_proc)(context, requester, src.consideration_args)
+
+	# ifdef UTILITYBRAIN_LOG_CONSIDERATION_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("INFO: Raw input for Consideration `[src.name]` is [raw_input || "null"] <- [src.get_input_val_proc]; CTX: [context], RQS: [requester] @ L[__LINE__] in [__FILE__]!")
+	# endif
 
 	var/activation = src.Run(raw_input)
-
 	return activation
 
 
@@ -120,10 +128,10 @@
 	var/valid_cutoff = !(isnull(cutoff_thresh))
 	var/cutoff = clamp(cutoff_thresh, ACTIVATION_NONE, ACTIVATION_FULL)
 
-	UTILITYBRAIN_DEBUG_LOG("INFO: run_considerations total is [total]")
-
 	for(var/datum/consideration/axis in inputs)
+		# ifdef UTILITYBRAIN_LOG_AXIS_SCORES
 		UTILITYBRAIN_DEBUG_LOG(" ")
+		# endif
 
 		if(isnull(axis))
 			UTILITYBRAIN_DEBUG_LOG("WARNING: null Consideration axis on iteration [axis_count+1] @ L[__LINE__] in [__FILE__]!")
@@ -131,11 +139,13 @@
 
 		axis_count++
 		var/axis_score = axis.FetchAndRun(context, requester)
+
+		# ifdef UTILITYBRAIN_LOG_AXIS_SCORES
 		UTILITYBRAIN_DEBUG_LOG("INFO: Axis score for axis [axis_count] is: [axis_score]")
+		# endif
 
 		// Multiply scores to get a probabilistic logical AND on criteria
 		total = total * axis_score
-		UTILITYBRAIN_DEBUG_LOG("INFO: run_considerations total is [total]")
 
 		if(valid_cutoff && total < cutoff)
 			// If we already know we have better candidates, we can stop.
