@@ -45,6 +45,16 @@
 	return maxY
 
 
+/datum/chunk/proc/MinZ()
+	var/minZ = centerZ
+	return minZ
+
+
+/datum/chunk/proc/MaxZ()
+	var/maxZ = centerZ
+	return maxZ
+
+
 /datum/chunk/proc/Perimeter(var/dirs = ALL_CARDINAL_DIRS)
 	var/result = tperimeter(
 		radius = src.Radius(),
@@ -63,6 +73,18 @@
 
 	var/result = block(BL, TR)
 	return result
+
+
+/datum/chunk/proc/ContainsCoords(var/x, var/y, var/z)
+	var/in_range = (!(isnull(x) || isnull(y) || isnull(z)) && x >= src.MinX() && x <= src.MaxX()) && (y >= src.MinY() && y <= src.MaxY()) && (z >= src.MinZ() && z <= src.MaxZ())
+	return in_range
+
+
+/datum/chunk/proc/ContainsAtom(var/atom/A)
+	if(isnull(A) || !istype(A))
+		return FALSE
+
+	return src.ContainsCoords(A.x, A.y, A.z)
 
 
 /datum/chunk/proc/DirOpen(var/dir = NORTH)

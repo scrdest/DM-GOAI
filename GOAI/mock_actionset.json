@@ -2,49 +2,61 @@
 	"active": 1, 
 	"actions": [
 		{
-			"name": "mock_action", 
+			"name": "Idle", 
 			"description": "foos the bar", 
-			"handler": "/datum/utility_ai/mob_commander/proc/MoveTo", 
-			"context_proc": "/proc/ctxfetcher_adjacent_turfs", 
+			"handler": "/datum/utility_ai/mob_commander/proc/Idle", 
+			"priority": 0.001,
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"considerations": [
+				{
+					"name": "Got nothing better to do",
+					"input_proc": "/proc/consideration_input_always",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_binary"
+				}
+			]
+		},
+		{
+			"name": "Step To AiTarget", 
+			"description": "foos the bar", 
+			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
+			"context_procs": ["/proc/ctxfetcher_adjacent_turfs"], 
+			"context_args": [
+				{
+					"tag": "ai_target"
+				}
+			],
 			"priority": 1, 
 			"considerations": [
 				{
-					"name": "CanEnterA",
+					"name": "CanEnterMoveToTarget",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_input_is_passable", 
+					"input_args": {
+						"default": 1
+					},
 					"curve_proc": "/proc/curve_binary"
 				},
 				{
-					"name": "ConsiderationB",
+					"name": "DistanceToCandTile",
 					"lo_mark": 0, 
 					"hi_mark": 2, 
-					"noise_scale": 10,
+					"noise_scale": 0,
 					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
 					"curve_proc": "/proc/curve_fakegauss_a"
-				}
-			]}, 
-		{
-			"name": "mock_action2", 
-			"description": "boos the far", 
-			"handler": "/datum/utility_ai/mob_commander/proc/MoveTo", 
-			"context_proc": "/proc/ctxfetcher_adjacent_turfs", 
-			"priority": 2, 
-			"considerations": [
-				{
-					"name": "CanEnterB",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_is_passable", 
-					"curve_proc": "/proc/curve_binary"
 				},
 				{
-					"name": "ConsiderationC",
-					"lo_mark": 0, 
-					"hi_mark": 2, 
-					"noise_scale": 10,
-					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
-					"curve_proc": "/proc/curve_fakegauss_a"
+					"name": "DistanceToTarget",
+					"lo_mark": 1, 
+					"hi_mark": 20, 
+					"noise_scale": 30,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_tagged_target", 
+					"input_args": {
+						"locate_tag_as_target": "ai_target"
+					},
+					"curve_proc": "/proc/curve_antisquare"
 				}
 			]
 		}, 
@@ -52,11 +64,13 @@
 			"name": "Open Autodoor", 
 			"description": "Opens a nearby autodoor", 
 			"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor", 
-			"context_proc": "/proc/ctxfetcher_adjacent_turfs", 
-			"context_args": {
-				"if_contains_type": "/obj/cover/autodoor"
-			},
-			"priority": 4, 
+			"context_procs": ["/proc/ctxfetcher_adjacent_turfs"], 
+			"context_args": [
+				{
+					"if_contains_type": "/obj/cover/autodoor"
+				}
+			],
+			"priority": 2, 
 			"considerations": [
 				{
 					"name": "Closed Door Nearby",
@@ -82,11 +96,13 @@
 			"name": "Open Door", 
 			"description": "Opens a nearby door", 
 			"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor", 
-			"context_proc": "/proc/ctxfetcher_adjacent_turfs", 
-			"context_args": {
-				"if_contains_type": "/obj/cover/door"
-			},
-			"priority": 4, 
+			"context_procs": ["/proc/ctxfetcher_adjacent_turfs"], 
+			"context_args": [
+				{
+					"if_contains_type": "/obj/cover/door"
+				}
+			],
+			"priority": 2, 
 			"considerations": [
 				{
 					"name": "Closed Door Nearby",

@@ -14,8 +14,8 @@
 
 	var/active = TRUE  // meant to granularly disable options (e.g. for cooldowns) without affecting the whole ActionSet.
 
-	var/context_fetcher = null // a proc that generates candidate context for the action
-	var/list/context_args = null // a list of arguments argslisted into the context_fetcher; optional
+	var/list/context_fetchers = null // a list of procs that generate candidate context for the action
+	var/list/context_args = null // a list of lists of arguments argslisted into the context_fetchers; index should correspond to the ContextFetcher to route args to; optional
 
 	var/handler = null // a proc to run if the action is actually taken
 
@@ -29,9 +29,9 @@
 	var/list/considerations
 
 
-/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetcher = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/name_override = null, var/description_override = null, var/active = null)
+/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetchers = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/name_override = null, var/description_override = null, var/active = null)
 	SET_IF_NOT_NULL(bound_considerations, src.considerations)
-	SET_IF_NOT_NULL(context_fetcher, src.context_fetcher)
+	SET_IF_NOT_NULL(context_fetchers, src.context_fetchers)
 	SET_IF_NOT_NULL(context_args, src.context_args)
 	SET_IF_NOT_NULL(handler, src.handler)
 	SET_IF_NOT_NULL(priority, src.priority_class)
@@ -56,11 +56,27 @@
 	// Emphasis on relevant b/c you SHOULD NOT test all possible candidates;
 	// if a context is not particularly likely to succeed, don't fetch it at all!
 	*/
-	if(!(src.context_fetcher))
-		UTILITYBRAIN_DEBUG_LOG("WARNING: no ContextFetcher bound to Action [src.name] @ L[__LINE__]!")
+	if(!(src.context_fetchers))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: no ContextFetchers bound to Action [src.name] @ L[__LINE__]!")
 		return
 
-	var/list/contexts = call(src.context_fetcher)(src, requester, src.context_args)
+	var/list/contexts = list()
+	var/ctx_idx = 0
+
+	for(var/context_fetcher in src.context_fetchers)
+		if(!context_fetcher)
+			continue
+
+		ctx_idx++
+
+		var/list/ctx_args = null
+
+		if(src.context_args?.len >= ctx_idx)
+			ctx_args = src.context_args[ctx_idx]
+
+		var/list/sub_context = call(context_fetcher)(src, requester, ctx_args)
+		contexts.Add(sub_context)
+
 	UTILITYBRAIN_DEBUG_LOG("INFO: found [contexts?.len] contexts for Action [src.name] @ L[__LINE__]")
 	return contexts
 

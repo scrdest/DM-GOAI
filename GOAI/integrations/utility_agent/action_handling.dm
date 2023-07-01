@@ -45,7 +45,8 @@
 
 			var/list/action_args = list()
 			action_args["tracker"] = tracker
-			action_args += action.arguments
+			if(action?.arguments?.len)
+				action_args += action.arguments
 
 			if(isnull(actionproc))
 				world << "Failed to call [actionproc]([json_encode(action_args)])!"
@@ -55,7 +56,7 @@
 				if(tracker.IsStopped())
 					break
 
-				world << "Calling [actionproc]!"
+				world << "Calling [actionproc]([json_encode(action_args)])!"
 				call(src, actionproc)(arglist(action_args))
 
 				if(action.instant)

@@ -93,7 +93,10 @@
 		var/datum/utility_ai/mob_commander/commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[src.commander_id])
 		var/datum/brain/utility/ubrain = commander?.brain
 		if(ubrain)
-			PUT_EMPTY_LIST_IN(ubrain.file_actionsets)
+			for(var/cache_key in ubrain.file_actionsets)
+				actionset_file_cache[cache_key] = null  // clear the global cache
+
+			PUT_EMPTY_LIST_IN(ubrain.file_actionsets)  // clear the local cache
 			to_chat(usr, "AI for [src] reloaded!")
 
 	return src

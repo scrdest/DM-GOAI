@@ -1,5 +1,7 @@
 /*
-// This file is a library of ContextFetchers that can be plugged into ActionTemplates..
+// This file is a library of ContextFetchers that can be plugged into ActionTemplates.
+//
+//  => MOST OF THE USAGE OF THESE FUNCTIONS WILL BE IN ACTIONTEMPLATE.DM! <=
 //
 // A ContextFetcher is a simple proc that (optionally) takes the parent Template and
 // (optionally) whoever requested the fetch as input and returns
@@ -88,4 +90,30 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_adjacent_turfs)
 		contexts.len++; contexts[contexts.len] = ctx
 		//UTILITYBRAIN_DEBUG_LOG("INFO: added position #[posidx] [pos] context [ctx] (len: [ctx?.len]) to contexts (len: [contexts.len]) @ L[__LINE__] in [__FILE__]!")
 
+	return contexts
+
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_tagged_target)
+	// Returns a simple list of gameobjects with the specified tag
+
+	var/list/contexts = list()
+
+	/*var/filter_type = null
+	if(!isnull(context_args))
+		var/raw_type = context_args[CTX_KEY_FILTERTYPE]
+		filter_type = text2path(raw_type)*/
+
+	var/tag_to_find = context_args["tag"]
+
+	if(isnull(tag_to_find))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: tag for ctxfetcher_get_tagged_target is null @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/target = locate(tag_to_find)
+
+	if(isnull(tag_to_find))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: could not locate tagged entity for ctxfetcher_get_tagged_target @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	contexts.Add(target)
 	return contexts

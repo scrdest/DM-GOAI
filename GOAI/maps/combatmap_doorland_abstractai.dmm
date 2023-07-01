@@ -1,13 +1,13 @@
 "a" = (/turf/wall,/area)
 "b" = (/mob/living/simple_animal/aitester/utility,/turf/ground,/area)
 "c" = (/obj/cover/door,/turf/ground,/area)
-"d" = (/mob/living/simple_animal/aitester{faction = "ANTAG"; name = "ANTAG"; real_name = "ANTAG"; spawn_commander = 0},/turf/ground,/area)
+"d" = (/mob/living/simple_animal/aitester{faction = "ANTAG"; name = "ANTAG"; real_name = "ANTAG"; spawn_commander = 0; tag = "ai_target"},/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester{ensure_unique_name = 1; faction = "dummy"; icon_state = "amorphic"; name = "Dummy"; real_name = "Dummy"; spawn_commander = 0; tag = "dummy"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
 "h" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
 "i" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
 "j" = (/obj/cover/autodoor,/turf/ground,/area)
-"k" = (/mob/living/simple_animal/aitester{ensure_unique_name = 1; faction = "dummy"; icon_state = "amorphic"; name = "Dummy"; real_name = "Dummy"; spawn_commander = 0},/turf/ground,/area)
 "l" = (/turf/ground,/area)
 
 (1,1,1) = {"
@@ -22,7 +22,7 @@ allglllllllallllal
 allalllllllaajaaal
 allglllfllllllllaa
 aliallllflllllllal
-alllllllllkllalaal
+alllllllllellalaal
 allallllllllllllal
 aaaaaalllllllacaaa
 aalllacaiaiaialaal

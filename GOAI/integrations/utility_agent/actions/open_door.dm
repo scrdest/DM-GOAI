@@ -17,7 +17,6 @@
 	# ifdef GOAI_LIBRARY_FEATURES
 	var/obj/cover/door/D = if_contains_type
 	var/obj/cover/autodoor/AD = if_contains_type
-	world.log << "Door D: [D]; AD: [AD]"
 	# endif
 
 	var/list/available_doors = tracker.BBGet("available_doors")
@@ -48,9 +47,8 @@
 	# endif
 
 	# ifdef GOAI_LIBRARY_FEATURES
-	world.log << "Got to Arrtt; Avail: [available_doors] L: [available_doors?.len]"
+
 	for(var/abstract_door in available_doors)
-		world.log << "AbsDoor: [abstract_door]"
 		var/obj/cover/door/DtoOpen = abstract_door
 		var/obj/cover/autodoor/ADtoOpen = abstract_door
 

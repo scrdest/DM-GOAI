@@ -29,7 +29,7 @@
 
 // ActionTemplate schema:
 # define JSON_KEY_CONSIDERATIONS "considerations"
-# define JSON_KEY_ACT_CTXPROC "context_proc"
+# define JSON_KEY_ACT_CTXPROC "context_procs"
 # define JSON_KEY_ACT_CTXARGS "context_args"
 # define JSON_KEY_ACT_HANDLER "handler"
 # define JSON_KEY_ACT_PRIORITY "priority"
@@ -42,6 +42,12 @@
 // ActionSet schema:
 # define JSON_KEY_ACTSET_ACTIVE "active"
 # define JSON_KEY_ACTSET_ACTIONS "actions"
+
+# define JSON_KEY_ACTSET_TTL_REMOVE "ttl_removal"
+# define JSON_KEY_ACTSET_TTL_DEACTIVATE "ttl_deactivate"
+# define JSON_KEY_ACTSET_TIME_RETRIEVED "time_retrieved"
+# define JSON_KEY_ACTSET_FRESHNESS_PROC "freshness_proc"
+# define JSON_KEY_ACTSET_FRESHNESS_PROC_ARGS "freshness_proc_args"
 
 /* ============================================= */
 
@@ -111,8 +117,12 @@
 
 	var/list/considerations_data = json_data[JSON_KEY_CONSIDERATIONS]
 
-	var/raw_ctxproc = json_data[JSON_KEY_ACT_CTXPROC]
-	var/context_proc = STR_TO_PROC(raw_ctxproc)
+	var/list/raw_ctxprocs = json_data[JSON_KEY_ACT_CTXPROC] || list()
+	var/list/true_ctxprocs = list()
+
+	for(var/ctxproc_path in raw_ctxprocs)
+		var/resolved_context_proc = STR_TO_PROC(ctxproc_path)
+		true_ctxprocs.Add(resolved_context_proc)
 
 	var/context_args = json_data[JSON_KEY_ACT_CTXARGS]
 
@@ -131,7 +141,7 @@
 	var/datum/utility_action_template/new_action_template = new(
 		considerations,
 		handler,
-		context_proc,
+		true_ctxprocs,
 		context_args,
 		priority,
 		charges,
@@ -168,6 +178,15 @@
 	var/active = json_data[JSON_KEY_ACTSET_ACTIVE]
 	var/list/action_data = json_data[JSON_KEY_ACTSET_ACTIONS]
 
+	var/ttl_remove = json_data[JSON_KEY_ACTSET_TTL_REMOVE]
+	var/ttl_deactivate = json_data[JSON_KEY_ACTSET_TTL_DEACTIVATE]
+	var/time_retrieved = json_data[JSON_KEY_ACTSET_TIME_RETRIEVED] || world.time
+
+	var/raw_freshness_proc = json_data[JSON_KEY_ACTSET_FRESHNESS_PROC]
+	var/true_freshness_proc = STR_TO_PROC(raw_freshness_proc)
+
+	var/list/freshness_proc_args = json_data[JSON_KEY_ACTSET_FRESHNESS_PROC_ARGS]
+
 	var/list/actions = list()
 
 	for(var/action_definition in action_data)
@@ -186,7 +205,8 @@
 
 		actions.Add(new_action_template)
 
-	var/datum/action_set/new_actionset = new(actions, active)
+	// origin left null, to be set by the caller
+	var/datum/action_set/new_actionset = new(actions, active, ttl_remove, ttl_deactivate, time_retrieved, null, true_freshness_proc, freshness_proc_args)
 	return new_actionset
 
 

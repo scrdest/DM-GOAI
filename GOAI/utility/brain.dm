@@ -14,9 +14,6 @@
 	//       but I don't want to refactor the parent into a GOAPy subclass.
 	var/list/file_actionsets = null
 
-	var/list/smart_objects = null
-	var/list/smartobject_last_fetched = null
-
 
 /datum/brain/utility/GetAiController()
 	var/datum/commander = null
@@ -139,11 +136,22 @@
 					//
 					// That said, the amount of evaluated Contexts should be kept tightly constrained.
 					// Only fetch contexts that are likely to be a) relevant & b) executed.
+					to_world_log("ScoreAction context: [ctx]")
+					var/subctx_idx = 0
+					for(var/subctx in ctx)
+						subctx_idx++
+						to_world_log("ScoreAction subcontext: [subctx] @ [subctx_idx]")
+						DEBUG_LOG_LIST_ASSOC(subctx, to_world_log)
+
 					var/utility = action_template.ScoreAction(ctx, requester)
 
 					# ifdef UTILITYBRAIN_LOG_UTILITIES
 					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name] ctx #[ctxidx++]: [utility]")
 					# endif
+
+					if(utility <= 0)
+						// To prevent impossible actions from being considered!
+						continue
 
 					var/datum/Triple/scored_action = new(utility, action_template, ctx)
 					utility_ranking.Enqueue(scored_action)
@@ -152,27 +160,51 @@
 				// Some actions could have a 'null' context (i.e. they don't care about the world-state)
 				// We should support this to avoid alloc-ing empty lists for efficiency, at the cost of smol code duplication
 				var/utility = action_template.ScoreAction(null, requester) // null/default context
+
+				if(utility <= 0)
+					// To prevent impossible actions from being considered!
+					continue
+
 				var/datum/Triple/scored_action = new(utility, action_template, null) // ...and here, as a triple!
 				utility_ranking.Enqueue(scored_action)
 
 	return utility_ranking
 
 
-/datum/brain/utility/GetAvailableActions()
-	var/list/actionsets = list()
-	var/filename = "mock_actionset.json"
-
+/datum/brain/utility/proc/GetActionSetFromFile(var/filename)
 	if(isnull(src.file_actionsets))
 		src.file_actionsets = list()
 
-	var/cached_as = src.file_actionsets[filename]
+	var/datum/action_set/file_actionset = src.file_actionsets[filename]
 
-	var/datum/action_set/file_actionset = cached_as
+	var/local_cache_miss = FALSE
+	var/global_cache_miss = FALSE
 
 	if(isnull(file_actionset))
-		file_actionset = ActionSetFromJsonFile(filename)
-		src.file_actionsets[filename] = file_actionset
+		local_cache_miss = TRUE
 
+		if(isnull(actionset_file_cache))
+			actionset_file_cache = list()
+
+		file_actionset = actionset_file_cache[filename]
+
+		if(isnull(file_actionset))
+			global_cache_miss = TRUE
+
+	if(global_cache_miss)
+		file_actionset = ActionSetFromJsonFile(filename)
+		actionset_file_cache[filename] = file_actionset
+
+		if(local_cache_miss)
+			src.file_actionsets[filename] = file_actionset
+
+	return file_actionset
+
+
+/datum/brain/utility/GetAvailableActions()
+	var/list/actionsets = list()
+
+	var/datum/action_set/file_actionset = src.GetActionSetFromFile("mock_actionset.json")
 	actionsets.Add(file_actionset)
 
 	/*
@@ -290,7 +322,7 @@
 		else if(active_plan && active_plan.len)
 			//step done, move on to the next
 			RUN_ACTION_DEBUG_LOG("ACTIVE PLAN: [active_plan] ([active_plan.len]) | <@[src]>")
-			DEBUG_LOG_LIST_ARRAY(active_plan, RUN_ACTION_DEBUG_LOG)
+			DEBUG_LOG_LIST_ASSOC(active_plan, RUN_ACTION_DEBUG_LOG)
 
 			while(active_plan.len && isnull(selected_action))
 				// Unlike GOAP as of writing, active_plan is a STACK.
