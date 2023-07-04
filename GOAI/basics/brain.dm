@@ -12,7 +12,7 @@
 # endif
 
 # ifdef RUN_ACTION_DEBUG_LOGGING
-# define RUN_ACTION_DEBUG_LOG(X) to_world(X)
+# define RUN_ACTION_DEBUG_LOG(X) to_world(X); to_world_log(X)
 # else
 # define RUN_ACTION_DEBUG_LOG(X)
 # endif
@@ -366,12 +366,14 @@
 			return hivemind_mem
 
 		var/relevant_age = by_age ? retrieved_mem.GetAge() : retrieved_mem.GetFreshness()
+		to_world_log("Age for memory [mem_key]: [relevant_age], TTL: [retrieved_mem.ttl]")
 
 		if(relevant_age < retrieved_mem.ttl)
 			//to_world_log("Retrieved Memory: [mem_key]")
 			// We already checked for parent preference - no need to redo that.
 			return retrieved_mem
 
+		to_world_log("Stale Memory for missing [mem_key]")
 		memories[mem_key] = null
 
 	//to_world_log("Retrieved default Memory for missing [mem_key]")
@@ -383,6 +385,7 @@
 	// This is a bit lossy, but 99% of the time that's all you care about.
 	var/datum/memory/retrieved_mem = GetMemory(mem_key, null, by_age, check_hivemind, recursive, prefer_hivemind)
 	var/memory_value = retrieved_mem?.val
+	to_world_log("Key: [mem_key] - Retrieved memory [retrieved_mem || "null"] w/val [memory_value || "null"] @ TTL: [retrieved_mem?.ttl || "null"]")
 	return (isnull(memory_value) ? default : memory_value)
 
 

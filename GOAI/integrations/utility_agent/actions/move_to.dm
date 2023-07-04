@@ -11,6 +11,8 @@
 
 	if(isnull(position))
 		RUN_ACTION_DEBUG_LOG("Target position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		tracker.SetFailed()
+		return
 
 	var/atom/pawn = src.GetPawn()
 
@@ -22,7 +24,7 @@
 		tracker.SetDone()
 		return
 
-	var/succeeded = step_towards(pawn, position)
+	var/succeeded = MovePawn(position)
 
 	if(!succeeded)
 		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)
@@ -34,9 +36,16 @@
 	return
 
 
-/datum/utility_ai/mob_commander/proc/MoveTo(var/datum/ActionTracker/tracker, var/atom/position)
+/datum/utility_ai/mob_commander/proc/RunTo(var/datum/ActionTracker/tracker, var/atom/position)
 	/*
-	// Fancier movement Action; persist an Astar path to avoid getting stuck
+	// Fancier movement; will *keep* walking to the target. Also a fair bit faster, for Reasons (TM).
+	//
+	// Note that this will NOT terminate until the pawn has reached the target pos (or we time out),
+	// so the Action slot will be locked down for the duration of the move
+	// and the AI won't replan until we stop.
+	//
+	// For single-action Brains, this means this is effectively a blind charge, good for e.g. diving to cover,
+	// but not suitable if we potentially want to switch to doing *literally anything else*.
 	*/
 	if(isnull(tracker))
 		RUN_ACTION_DEBUG_LOG("Tracker position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
@@ -47,6 +56,8 @@
 
 	if(isnull(position))
 		RUN_ACTION_DEBUG_LOG("Target position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		tracker.SetFailed()
+		return
 
 	var/atom/pawn = src.GetPawn()
 
@@ -58,13 +69,12 @@
 		tracker.SetDone()
 		return
 
-	var/list/chunkypath = tracker.BBGet("path")
+	var/min_dist = 0
 
-	if(isnull(chunkypath))
-		chunkypath = ChunkyAStar(pawn, position)
-		tracker.BBSet("path", chunkypath)
+	if((!src.active_path || src.active_path.target != position))
+		StartNavigateTo(position, min_dist, null)
 
-	var/succeeded = FALSE
+	var/succeeded = TRUE
 
 	if(!succeeded)
 		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)
@@ -74,4 +84,3 @@
 			tracker.SetFailed()
 
 	return
-

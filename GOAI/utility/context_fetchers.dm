@@ -47,7 +47,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_turfs_in_view)
 
 		var/list/ctx = list()
 		ctx[CTX_KEY_POSITION] = pos
-		contexts.len++; contexts[contexts.len] = ctx
+		contexts[++(contexts.len)] = ctx
 		//UTILITYBRAIN_DEBUG_LOG("INFO: added position #[posidx] [pos] context [ctx] (len: [ctx?.len]) to contexts (len: [contexts.len]) @ L[__LINE__] in [__FILE__]!")
 
 	return contexts
@@ -87,7 +87,47 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_adjacent_turfs)
 			ctx[CTX_KEY_FILTERTYPE] = found_type
 
 		ctx[CTX_KEY_POSITION] = pos
-		contexts.len++; contexts[contexts.len] = ctx
+		contexts[++(contexts.len)] = ctx
+		//UTILITYBRAIN_DEBUG_LOG("INFO: added position #[posidx] [pos] context [ctx] (len: [ctx?.len]) to contexts (len: [contexts.len]) @ L[__LINE__] in [__FILE__]!")
+
+	return contexts
+
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_cardinal_turfs)
+	// Returns a simple list of visible turfs, suitable e.g. for pathfinding.
+
+	if(isnull(requester))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: requester for ctxfetcher_adjacent_turfs is null @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/turf/requester_tile = get_turf(requester)
+
+	if(isnull(requester_tile))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: requester for ctxfetcher_adjacent_turfs does not have a turf position! @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/list/contexts = list()
+
+	var/filter_type = null
+	if(!isnull(context_args))
+		var/raw_type = context_args[CTX_KEY_FILTERTYPE]
+		filter_type = text2path(raw_type)
+
+	for(var/turf/pos in requester_tile.CardinalTurfs())
+		if(isnull(pos))
+			continue
+
+		var/list/ctx = list()
+
+		if(filter_type)
+			var/found_type = locate(filter_type) in pos.contents
+			if(isnull(found_type))
+				continue
+
+			ctx[CTX_KEY_FILTERTYPE] = found_type
+
+		ctx[CTX_KEY_POSITION] = pos
+		contexts[++(contexts.len)] = ctx
 		//UTILITYBRAIN_DEBUG_LOG("INFO: added position #[posidx] [pos] context [ctx] (len: [ctx?.len]) to contexts (len: [contexts.len]) @ L[__LINE__] in [__FILE__]!")
 
 	return contexts
@@ -109,11 +149,54 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_tagged_target)
 		UTILITYBRAIN_DEBUG_LOG("WARNING: tag for ctxfetcher_get_tagged_target is null @ L[__LINE__] in [__FILE__]!")
 		return null
 
+	var/context_key = context_args["output_context_key"] || "position"
 	var/target = locate(tag_to_find)
 
 	if(isnull(tag_to_find))
 		UTILITYBRAIN_DEBUG_LOG("WARNING: could not locate tagged entity for ctxfetcher_get_tagged_target @ L[__LINE__] in [__FILE__]!")
 		return null
 
-	contexts.Add(target)
+	var/list/ctx = list()
+	ctx[context_key] = target
+
+	contexts[++(contexts.len)] = ctx
+	return contexts
+
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value)
+	// Returns a stored Memory
+
+	if(isnull(requester))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: requester for ctxfetcher_get_memory_value is null @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/atom/pawn_requester = requester
+
+	if(isnull(pawn_requester))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: pawn requester for ctxfetcher_get_memory_value is not an atom! @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/datum/utility_ai/controller = null
+	FetchAiControllerForObjIntoVar(pawn_requester, controller)
+
+	if(isnull(controller))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: controller for ctxfetcher_get_memory_value is null @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/key = context_args["key"]
+
+	if(isnull(key))
+		UTILITYBRAIN_DEBUG_LOG("WARNING: key for ctxfetcher_get_memory_value is null @ L[__LINE__] in [__FILE__]!")
+		return null
+
+	var/list/contexts = list()
+
+	var/memory_val = controller.brain?.GetMemoryValue(key, null)
+
+	var/context_key = context_args["output_context_key"] || key
+
+	var/list/ctx = list()
+	ctx[context_key] = memory_val
+
+	contexts[++(contexts.len)] = ctx
 	return contexts

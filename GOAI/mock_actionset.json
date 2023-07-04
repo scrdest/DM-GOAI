@@ -18,17 +18,80 @@
 			]
 		},
 		{
-			"name": "Step To AiTarget", 
+			"name": "Coverleap", 
 			"description": "foos the bar", 
-			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
-			"context_procs": ["/proc/ctxfetcher_adjacent_turfs"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog", 
+			"priority": 0,
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"considerations": [
+				{
+					"name": "Feeling insecure",
+					"input_proc": "/proc/consideration_input_always",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 100,
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "PlanRouteToAiTarget", 
+			"description": "foos the bar", 
+			"handler": "/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise", 
+			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
 			"context_args": [
 				{
-					"tag": "ai_target"
+					"key": "ai_target",
+					"output_context_key": "position"
 				}
 			],
-			"priority": 1, 
+			"priority": 4, 
 			"considerations": [
+				{
+					"name": "HasTarget",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_arg_not_null", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_binary"
+				},
+				{
+					"name": "HasPlan",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_has_planned_path", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1,
+						"default": 0
+					},
+					"curve_proc": "/proc/curve_antibinary"
+				}
+			]
+		}, 
+		{
+			"name": "FollowRouteToAiTarget", 
+			"description": "foos the bar", 
+			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
+			"context_procs": ["/proc/ctxfetcher_cardinal_turfs"], 
+			"priority": 2, 
+			"considerations": [
+				{
+					"name": "Has Plan",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_has_planned_path", 
+					"input_args": {
+						"input_key": "path_target",
+						"path_target": "",
+						"from_context": 0,
+						"default": 0
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
 				{
 					"name": "CanEnterMoveToTarget",
 					"lo_mark": 0, 
@@ -37,26 +100,20 @@
 					"input_args": {
 						"default": 1
 					},
-					"curve_proc": "/proc/curve_binary"
+					"curve_proc": "/proc/curve_linear"
 				},
 				{
-					"name": "DistanceToCandTile",
+					"name": "IsOnPath",
 					"lo_mark": 0, 
-					"hi_mark": 2, 
+					"hi_mark": 100, 
 					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
-					"curve_proc": "/proc/curve_fakegauss_a"
-				},
-				{
-					"name": "DistanceToTarget",
-					"lo_mark": 1, 
-					"hi_mark": 20, 
-					"noise_scale": 30,
-					"input_proc": "/proc/consideration_input_manhattan_distance_to_tagged_target", 
+					"input_proc": "/proc/consideration_input_is_on_path_gradient", 
 					"input_args": {
-						"locate_tag_as_target": "ai_target"
+						"input_key": "position",
+						"from_context": 1,
+						"minimum_distance_to_path_tile": 1
 					},
-					"curve_proc": "/proc/curve_antisquare"
+					"curve_proc": "/proc/curve_antilinear"
 				}
 			]
 		}, 
@@ -70,7 +127,7 @@
 					"if_contains_type": "/obj/cover/autodoor"
 				}
 			],
-			"priority": 2, 
+			"priority": 3, 
 			"considerations": [
 				{
 					"name": "Closed Door Nearby",
@@ -102,7 +159,7 @@
 					"if_contains_type": "/obj/cover/door"
 				}
 			],
-			"priority": 2, 
+			"priority": 3, 
 			"considerations": [
 				{
 					"name": "Closed Door Nearby",

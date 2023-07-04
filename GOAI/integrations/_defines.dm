@@ -27,13 +27,13 @@
 # define COMBATAI_MOVE_TICK_DELAY 5
 # define COMBATAI_FIGHT_TICK_DELAY 25
 
-# define UTILITYAI_AI_TICK_DELAY 1  // utility goes brr
+# define UTILITYAI_AI_TICK_DELAY 2  // utility goes brr
 
 // Lower bound on the tick rate to prevent sanic loops eating your CPU.
 # define MINIMUM_ALLOWED_DELAY 1
 
 // Memory system constants
-# define MEM_TIME_LONGTERM 10000
+# define MEM_TIME_LONGTERM 1000000
 
 // Keys for the memory dict
 # define MEM_SHOTAT "ShotAt"
@@ -47,6 +47,7 @@
 # define MEM_OBSTRUCTION(X) "Obstruction [X]"
 # define MEM_BESTPOS_PANIC "BestPosPanic"
 # define MEM_TRUST_BESTPOS "TrustFirstBestpos"
+# define MEM_PATH_TO_POS(Pos) "path_to_[Pos]"
 
 # define MEM_DIRLEAP_BESTPOS "DirectionalCoverleapBestpos"
 # define MEM_CHARGE_BESTPOS "ChargeBestpos"

@@ -26,7 +26,35 @@
 	UTILITYBRAIN_DEBUG_LOG("CurveAntiLinear input: [input]")
 	# endif
 
+	if(isnull(input))
+		return null
+
 	var/result = ACTIVATION_FULL - input
+	return result
+
+
+/proc/curve_linear_leaky(var/input) // float -> activation (float)
+	// Like Linear, but with 10% minimum Activation
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveLinearLeaky input: [input]")
+	# endif
+
+	if(isnull(input))
+		return null
+
+	var/leakified = clamp(input, 0.1 * ACTIVATION_FULL, ACTIVATION_FULL)
+	return leakified
+
+
+/proc/curve_antilinear_leaky(var/input) // float -> activation (float)
+	// The same as AntiLinear,Leaky but inverted - as input increases, Activation *decreases*.
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveAntiLinearLeaky input: [input]")
+	# endif
+	if(isnull(input))
+		return null
+
+	var/result = clamp(ACTIVATION_FULL - input, 0.1 * ACTIVATION_FULL, ACTIVATION_FULL)
 	return result
 
 
@@ -39,6 +67,9 @@
 	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("CurveBinary input: [input]")
 	# endif
+
+	if(isnull(input))
+		return null
 
 	var/activation = ACTIVATION_NONE
 
@@ -55,6 +86,9 @@
 	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("CurveAntiBinary input: [input]")
 	# endif
+
+	if(isnull(input))
+		return null
 
 	var/activation = ACTIVATION_FULL
 
@@ -73,6 +107,9 @@
 	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("CurveSquare input: [input]")
 	# endif
+
+	if(isnull(input))
+		return null
 
 	return input ** 2
 
@@ -103,6 +140,9 @@
 	UTILITYBRAIN_DEBUG_LOG("CurveFakeGauss36 input: [input]")
 	# endif
 
+	if(isnull(input))
+		return null
+
 	// replace '0.5' with another constant float in <0;1> to center at that value
 	var/dist = (input - 0.5) ** 2
 
@@ -128,6 +168,9 @@
 	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("CurveAntiFakeGauss36 input: [input]")
 	# endif
+
+	if(isnull(input))
+		return null
 
 	var/dist = (input - 0.5) ** 2
 

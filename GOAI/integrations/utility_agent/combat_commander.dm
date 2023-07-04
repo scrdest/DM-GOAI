@@ -39,13 +39,13 @@
 			sleep(COMBATAI_SENSE_TICK_DELAY)
 	*/
 
-	/*
+
 	// Movement updates
 	spawn(0)
 		while(src.life)
 			src.MovementSystem()
 			sleep(COMBATAI_MOVE_TICK_DELAY)
-	*/
+
 
 	// AI
 	spawn(0)

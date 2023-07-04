@@ -146,7 +146,9 @@
 					var/utility = action_template.ScoreAction(ctx, requester)
 
 					# ifdef UTILITYBRAIN_LOG_UTILITIES
-					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name] ctx #[ctxidx++]: [utility]")
+					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name] ctx #[ctxidx++]: [utility] (priority: [action_template?.priority_class])")
+					UTILITYBRAIN_DEBUG_LOG("=========================")
+					UTILITYBRAIN_DEBUG_LOG(" ")
 					# endif
 
 					if(utility <= 0)
@@ -163,6 +165,11 @@
 
 				if(utility <= 0)
 					// To prevent impossible actions from being considered!
+
+					# ifdef UTILITYBRAIN_LOG_UTILITIES
+					UTILITYBRAIN_DEBUG_LOG("REJECTED [action_template?.name] due to zero Utility score [utility]")
+					# endif
+
 					continue
 
 				var/datum/Triple/scored_action = new(utility, action_template, null) // ...and here, as a triple!
