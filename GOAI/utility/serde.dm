@@ -32,6 +32,7 @@
 # define JSON_KEY_ACT_CTXPROC "context_procs"
 # define JSON_KEY_ACT_CTXARGS "context_args"
 # define JSON_KEY_ACT_HANDLER "handler"
+# define JSON_KEY_ACT_HARDARGS "args"  // hardcoded args, to avoid code duplication for nearly identical Actions
 # define JSON_KEY_ACT_PRIORITY "priority"
 # define JSON_KEY_ACT_CHARGES "charges"
 # define JSON_KEY_ACT_ISINSTANT "instant"
@@ -129,6 +130,8 @@
 	var/raw_handler = json_data[JSON_KEY_ACT_HANDLER]
 	var/handler = STR_TO_PROC(raw_handler)
 
+	var/list/hard_args = json_data[JSON_KEY_ACT_HARDARGS]
+
 	var/priority = json_data[JSON_KEY_ACT_PRIORITY]
 	var/charges = json_data[JSON_KEY_ACT_CHARGES]
 	var/instant = json_data[JSON_KEY_ACT_ISINSTANT]
@@ -146,6 +149,7 @@
 		priority,
 		charges,
 		instant,
+		hard_args,
 		act_name,
 		act_description,
 		active
@@ -218,3 +222,41 @@
 
 	var/datum/action_set/new_actionset = ActionSetFromData(json_data)
 	return new_actionset
+
+
+#ifdef UTILITY_SMARTOBJECT_SENSES
+// Only compile if the senses are included too...
+
+/*
+// UtilitySenseFetcher SerDe
+*/
+
+# define JSON_KEY_SO_FETCHER_IDX_KEY "sense_index_key"
+# define JSON_KEY_SO_FETCHER_ENABLED "enabled"
+# define JSON_KEY_SO_FETCHER_INP_MEM_KEY "in_memory_key"
+# define JSON_KEY_SO_FETCHER_OUT_MEM_KEY "out_memory_key"
+# define JSON_KEY_SO_FETCHER_RETENTION_TIME "retention_time_dseconds"
+
+/proc/UtilitySenseFetcherFromJsonFile(var/json_filepath) // str -> ActionTemplate
+	ASSERT(json_filepath)
+
+	var/list/json_data = READ_JSON_FILE(json_filepath)
+	ASSERT(json_data)
+
+	var/datum/action_set/new_actionset = UtilitySenseFetcherFromData(json_data)
+	return new_actionset
+
+
+/proc/UtilitySenseFetcherFromData(var/list/json_data) // list -> ActionTemplate
+	ASSERT(json_data)
+
+	var/key = json_data[JSON_KEY_SO_FETCHER_IDX_KEY]
+	var/enabled = json_data[JSON_KEY_SO_FETCHER_ENABLED]
+	var/in_memory_key = json_data[JSON_KEY_SO_FETCHER_INP_MEM_KEY]
+	var/out_memory_key = json_data[JSON_KEY_SO_FETCHER_OUT_MEM_KEY]
+	var/retention_time_dseconds = json_data[JSON_KEY_SO_FETCHER_RETENTION_TIME]
+
+	var/sense/utility_sense_fetcher/new_sense = new(key, enabled, in_memory_key, out_memory_key, retention_time_dseconds)
+	return new_sense
+
+# endif

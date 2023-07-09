@@ -297,6 +297,12 @@
 	return cost
 
 
+/proc/fDistanceUnifiedFuzzed(var/atom/start, var/atom/T)
+	var/eps = (rand() / 20)
+	var/cost = fDistanceUnified(start, T) + eps
+	return cost
+
+
 /proc/fTestObstacleDist(var/atom/start, var/atom/T)
 	if(!start)
 		return PLUS_INF

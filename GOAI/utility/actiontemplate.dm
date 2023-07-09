@@ -17,6 +17,9 @@
 	var/list/context_fetchers = null // a list of procs that generate candidate context for the action
 	var/list/context_args = null // a list of lists of arguments argslisted into the context_fetchers; index should correspond to the ContextFetcher to route args to; optional
 
+	// Hard Args let us parametrize functions with stuff that doesn't vary with Context (hence hard - hardcoded)
+	var/list/hard_args = null // a list of arguments argslisted into the handler with the Context; optional
+
 	var/handler = null // a proc to run if the action is actually taken
 
 	var/instant = FALSE
@@ -29,7 +32,7 @@
 	var/list/considerations
 
 
-/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetchers = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/name_override = null, var/description_override = null, var/active = null)
+/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetchers = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/list/hard_args = null, var/name_override = null, var/description_override = null, var/active = null)
 	SET_IF_NOT_NULL(bound_considerations, src.considerations)
 	SET_IF_NOT_NULL(context_fetchers, src.context_fetchers)
 	SET_IF_NOT_NULL(context_args, src.context_args)
@@ -37,6 +40,7 @@
 	SET_IF_NOT_NULL(priority, src.priority_class)
 	SET_IF_NOT_NULL(charges, src.charges)
 	SET_IF_NOT_NULL(instant, src.instant)
+	SET_IF_NOT_NULL(hard_args, src.hard_args)
 	SET_IF_NOT_NULL(name_override, src.name)
 	SET_IF_NOT_NULL(description_override, src.description)
 	SET_IF_NOT_NULL(active, src.active)
@@ -95,13 +99,24 @@
 	return utility
 
 
-/datum/utility_action_template/proc/ToAction(var/list/bound_context, var/handler_override = null, var/charges_override = null, var/instant_override = null) // Optional<assoc> -> UtilityAction
+/datum/utility_action_template/proc/ToAction(var/list/bound_context, var/handler_override = null, var/charges_override = null, var/instant_override = null, var/list/hard_args_override) // (Optional<assoc>, Optional<proc_ref>, Optional<num>, Optional<bool>, Optional<assoc>) -> UtilityAction
 	// Turns a template into a concrete Action for the Agent to run; effectively an Action factory.
 	var/action_name = src.name // todo bind args here too
 	var/handler = DEFAULT_IF_NULL(handler_override, src.handler)
 	var/charges = DEFAULT_IF_NULL(charges_override, src.charges)
 	var/instant = DEFAULT_IF_NULL(instant_override, src.instant)
-	var/list/action_args = bound_context
+	var/list/hard_args = DEFAULT_IF_NULL(hard_args_override, src.hard_args)
+
+	var/list/action_args = (hard_args?.Copy() || list())
+
+	for(var/key in bound_context)
+		if(isnull(key))
+			continue
+
+		var/ctx_val = bound_context[key]
+		if(!isnull(ctx_val))
+			// Overwrite on conflict - context is more dynamic
+			action_args[key] = ctx_val
 
 	var/datum/utility_action/new_action = new(action_name, handler, charges, instant, action_args)
 	return new_action

@@ -47,7 +47,7 @@
 
 
 
-/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise(var/datum/ActionTracker/tracker, var/atom/position)
+/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise(var/datum/ActionTracker/tracker, var/atom/position, var/max_node_depth = null, var/min_target_dist = null, var/path_ttl = null)
 	/*
 	// Movement-planning Action; persist a rough Astar path to avoid getting stuck and use it in other Actions.
 	*/
@@ -77,21 +77,25 @@
 	var/list/path = tracker.BBGet("path")
 
 	if(isnull(path))
+		var/_max_node_depth = DEFAULT_IF_NULL(max_node_depth, 60)
+		var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, 1)
+		var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 100)
+
 		path = GoaiAStar(
 			start = get_turf(pawn.loc),
 			end = get_turf(position),
 			adjacent = /proc/fCardinalTurfsNoblocks,
 			dist = DEFAULT_GOAI_DISTANCE_PROC,
 			max_nodes = 0,
-			max_node_depth = 60,
-			min_target_dist = 1,
+			max_node_depth = _max_node_depth,
+			min_target_dist = _min_target_dist,
 			min_node_dist = null,
 			adj_args = null,
 			exclude = null
 		)
 		world.log << "Path to [position] is [path] | [__FILE__] -> L[__LINE__]"
 		tracker.BBSet("path", path)
-		src.brain.SetMemory(MEM_PATH_TO_POS("aitarget"), path, 200)
+		src.brain.SetMemory(MEM_PATH_TO_POS("aitarget"), path, _path_ttl)
 
 	var/memory = src.brain.GetMemoryValue(MEM_PATH_TO_POS("aitarget"))
 	world.log << "Memory is [memory] | [__FILE__] -> L[__LINE__]"

@@ -6,6 +6,9 @@
 	var/list/actionslist
 	var/list/actionlookup
 
+	var/list/senses // array, primary DS for senses
+	var/list/senses_index // assoc, used for quick lookups/access only
+
 	// Private-ish, generally only debug procs should touch these
 	var/ai_tick_delay = UTILITYAI_AI_TICK_DELAY
 	var/registry_index
@@ -30,6 +33,10 @@
 /datum/utility_ai/proc/InitActionsList()
 	var/list/new_actionslist = list()
 	return new_actionslist
+
+
+/datum/utility_ai/proc/PreSetupHook()
+	return
 
 
 /datum/utility_ai/New(var/active = null)
@@ -57,7 +64,7 @@
 	//src.InitStates()
 	src.UpdateBrain()
 	//src.InitRelations()
-	//src.InitSenses()
+	src.InitSenses()
 
 	//src.PostSetupHook()
 

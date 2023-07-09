@@ -187,29 +187,80 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 	return result
 
 
+/proc/_cihelper_get_requester_brain(var/requester, var/caller = null)
+	var/atom/pawn_requester = requester
+
+	if(isnull(pawn_requester))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("[caller] PawnRequester is null ([requester || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/datum/utility_ai/controller = null
+	FetchAiControllerForObjIntoVar(pawn_requester, controller)
+
+	if(isnull(controller))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("[caller] Controller is null ([controller || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/datum/brain/requesting_brain = controller.brain
+
+	return requesting_brain
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_memory)
+	// This is not a 'proper' Consideration, but it has the same interface as one; it's a way of DRYing
+	// the code to fetch a Memory-ized path for various ACTUAL Considerations (e.g. 'Path Exists' or 'Path Length Is...')
+	// These proper Considerations should just forward their callsig to this Helper.
+
+	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_memory")
+
+	if(isnull(requesting_brain))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_memory Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	var/input_key = "input"
+
+	if(!isnull(consideration_args))
+		input_key = consideration_args["memory_key"] || input_key
+
+	if(isnull(input_key))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_memory Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/memory = requesting_brain.GetMemoryValue(input_key)
+	return memory
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_has_memory)
+	var/memory = _cihelper_get_memory(context, requester, consideration_args)
+	return !isnull(memory)
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_memory)
+	var/from_ctx = consideration_args["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/pos_key = consideration_args["input_key"] || "position"
+
+	var/candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_candidate_in_memory Candidate is null ([candidate || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/memory = _cihelper_get_memory(context, requester, consideration_args)
+	var/result = memory == candidate
+	return result
+
 
 CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_planned_path)
 	// This is not a 'proper' Consideration, but it has the same interface as one; it's a way of DRYing
 	// the code to fetch a Memory-ized path for various ACTUAL Considerations (e.g. 'Path Exists' or 'Path Length Is...')
 	// These proper Considerations should just forward their callsig to this Helper.
 
-	var/atom/pawn_requester = requester
-
-	if(isnull(pawn_requester))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path PawnRequester is null ([requester || "null"]) @ L[__LINE__] in [__FILE__]")
-		return FALSE
-
-	var/datum/utility_ai/controller = null
-	FetchAiControllerForObjIntoVar(pawn_requester, controller)
-
-	if(isnull(controller))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path Controller is null ([controller || "null"]) @ L[__LINE__] in [__FILE__]")
-		return FALSE
-
-	var/datum/brain/requesting_brain = controller.brain
+	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_planned_path")
 
 	if(isnull(requesting_brain))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path Brain is null ([controller || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
 	var/from_ctx = consideration_args["from_context"]

@@ -31,6 +31,7 @@
 		tracker.BBSet("failed_steps", ++bb_failures)
 
 		if(bb_failures > 3)
+			src.brain?.SetMemory("UnreachableTile", position)
 			tracker.SetFailed()
 
 	return

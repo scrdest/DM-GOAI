@@ -14,6 +14,13 @@
 	var/is_repathing = 0
 	var/is_moving = 0
 
+	#ifdef UTILITY_SMARTOBJECT_SENSES
+	// Semicolon-separated string (to imitate the PATH envvar);
+	// Will be split and parsed to a list at runtime.#
+	// We're doing it this weird way to avoid dealing with list defaults
+	var/sense_filepaths = "dev_sense.json"
+	#endif
+
 
 /datum/utility_ai/mob_commander/proc/GetPawn()
 	var/atom/movable/mypawn = null
@@ -32,12 +39,13 @@
 /datum/utility_ai/mob_commander/Life()
 	. = ..()
 
+	#ifdef UTILITY_SMARTOBJECT_SENSES
 	// Perception updates
-	/*spawn(0)
+	spawn(0)
 		while(src.life)
 			src.SensesSystem()
 			sleep(COMBATAI_SENSE_TICK_DELAY)
-	*/
+	#endif
 
 
 	// Movement updates
