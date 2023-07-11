@@ -1,0 +1,69 @@
+{
+	"active": 1, 
+	"actions": [
+		{
+			"name": "Open Autodoor", 
+			"description": "Opens a nearby autodoor", 
+			"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor", 
+			"context_procs": ["/proc/ctxfetcher_adjacent_turfs"], 
+			"context_args": [
+				{
+					"if_contains_type": "/obj/cover/autodoor"
+				}
+			],
+			"priority": 3, 
+			"considerations": [
+				{
+					"name": "Closed Door Nearby",
+					"lo_mark": 0.1, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_is_passable", 
+					"input_args": {
+						"locate_type_as_target": "/obj/cover/autodoor"
+					},
+					"curve_proc": "/proc/curve_antibinary"
+				},
+				{
+					"name": "Door Nearby",
+					"lo_mark": 1, 
+					"hi_mark": 10, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"curve_proc": "/proc/curve_antisquare"
+				}
+			]
+		},
+		{
+			"name": "Open Door", 
+			"description": "Opens a nearby door", 
+			"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor", 
+			"context_procs": ["/proc/ctxfetcher_adjacent_turfs"], 
+			"context_args": [
+				{
+					"if_contains_type": "/obj/cover/door"
+				}
+			],
+			"priority": 3, 
+			"considerations": [
+				{
+					"name": "Closed Door Nearby",
+					"lo_mark": 0.1, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_is_passable", 
+					"input_args": {
+						"locate_type_as_target": "/obj/cover/door"
+					},
+					"curve_proc": "/proc/curve_antibinary"
+				},
+				{
+					"name": "Door Nearby",
+					"lo_mark": 1, 
+					"hi_mark": 10, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"curve_proc": "/proc/curve_antisquare"
+				}
+			]
+		}
+	]
+}

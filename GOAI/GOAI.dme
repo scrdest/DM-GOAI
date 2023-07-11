@@ -117,6 +117,7 @@
 #include "integrations\cover_definitions\machinery.dm"
 #include "integrations\cover_definitions\mecha.dm"
 #include "integrations\cover_definitions\structures.dm"
+#include "integrations\smartobject_definitions\doors.dm"
 #include "integrations\spawners\_base.dm"
 #include "integrations\spawners\cover.dm"
 #include "integrations\spawners\factions.dm"

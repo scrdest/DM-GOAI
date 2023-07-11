@@ -214,6 +214,19 @@
 	var/datum/action_set/file_actionset = src.GetActionSetFromFile("mock_actionset.json")
 	actionsets.Add(file_actionset)
 
+	var/list/smartobjects = src.GetMemoryValue("SmartObjects", null)
+
+	if(!isnull(smartobjects))
+		var/requester = src.GetRequester()
+
+		for(var/datum/SO in smartobjects)
+			world.log << "Found SO [SO]"
+			var/list/SO_actionsets = SO.GetUtilityActions(requester)
+
+			if(!isnull(SO_actionsets))
+				world.log << "Found Actionsets for [SO] - len=[SO_actionsets.len]"
+				actionsets.Add(SO_actionsets)
+
 	/*
 	if(src.smart_objects)
 		if(isnull(src.smartobject_last_fetched))

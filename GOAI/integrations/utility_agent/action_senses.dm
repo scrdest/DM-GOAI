@@ -59,12 +59,19 @@
 	var/list/candidates = owner_brain?.perceptions[in_mem_key]
 	var/list/smartobjects = list()
 
-	for(var/cand in candidates)
-		// Later on this might do some filtering, for now pass through...
+	for(var/datum/cand in candidates).
+		var/has_actions = cand.HasUtilityActions(owner.GetPawn())
+
+		if(!has_actions)
+			//to_world_log("[cand] has no actions!")
+			continue
+
+		to_world_log("[cand] has actions!")
 		smartobjects.Add(cand)
 
 	if(smartobjects?.len)
 		var/retention_time = (src.retention_time_dseconds || owner.ai_tick_delay*60)
+		world.log << "SmartObject sensor setting memory [out_mem_key] for [smartobjects.len] objects!"
 		owner_brain.SetMemory(out_mem_key, smartobjects, retention_time)
 
 	return smartobjects
@@ -81,7 +88,7 @@
 	src.FetchSmartObjects(owner)
 
 	spawn(src.GetOwnerAiTickrate(owner) * 3)
-		// Sense-side delay to avoid spamming view() scans too much
+		// Sense-side delay
 		processing = FALSE
 
 	return

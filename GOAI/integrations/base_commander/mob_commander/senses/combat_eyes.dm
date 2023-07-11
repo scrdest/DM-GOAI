@@ -158,7 +158,7 @@
 
 	UpdatePerceptions(owner)
 	SpotThreats(owner)
-	SpotWaypoint(owner)
+	//SpotWaypoint(owner)
 
 	spawn(src.GetOwnerAiTickrate(owner) * 3)
 		// Sense-side delay to avoid spamming view() scans too much

@@ -1,4 +1,4 @@
-
+/*
 /datum/utility_ai/proc/AddAction(var/name, var/handler, var/charges = PLUS_INF, var/instant = FALSE, var/list/action_args = null)
 	if(charges < 1)
 		return
@@ -24,7 +24,7 @@
 		actionlookup[name] = handler
 
 	return Action
-
+*/
 
 
 /datum/utility_ai/proc/HandleAction(var/datum/utility_action/action, var/datum/ActionTracker/tracker)

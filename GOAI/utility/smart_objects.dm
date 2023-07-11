@@ -25,7 +25,27 @@
 
 
 /datum/proc/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
-	return
+	return null
+
+
+/datum/proc/HasUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> bool
+	/*
+	// Like GetUtilityActions(), but returns a boolean that indicates
+	// IF the SmartObject is in fact Smart, or is it just clutter
+	// (i.e. environmental object with no attached AI logic).
+	//
+	// Note that this is *relative to the Requester* - some Requesters might have access to objects
+	// other AIs would regard as purely decorative.
+	//
+	// This is a convenience method to avoid having to store the (potentially large) outputs of GetUtilityActions().
+	//
+	// As such, a critical invariant is that HasUtilityActions(rq, args)
+	// should ALWAYS return True if GetUtilityActions(rq, args) would return a nonempty list
+	// and should ALWAYS return False if GetUtilityActions(rq, args) would return a null.
+	//
+	// Don't lie to your API users.
+	*/
+	return FALSE
 
 
 /datum/brain/utility

@@ -24,6 +24,25 @@
 	if(isnull(src.senses_index))
 		src.senses_index = list()
 
+	// Basic init done; actual senses go below:
+	// NOTE: ORDER MATTERS!!!
+	//       Senses are processed in the order of insertion!
+	//
+	//       If two Senses have a dependency relationship and you put the dependent
+	//       before the dependee, there will be a 1-tick lag in the dependent Sense!
+	//       Now, this *might* be desirable for some things, but keep it in mind.
+
+
+	var/sense/combatant_commander_eyes/eyes = new()
+
+	/* Register each Sense: */
+	src.senses.Add(eyes)
+
+	/* Register lookup by key for quick access (optional) */
+	src.senses_index[SENSE_SIGHT] = eyes
+
+	// The logic below is similar, but we need to loop over filepaths.
+
 	if(src.sense_filepaths)
 		// Initialize SmartObject senses from files
 
@@ -44,4 +63,4 @@
 			src.senses.Add(new_fetcher)
 			src.senses_index[new_fetcher.sense_idx_key] = new_fetcher
 
-	return
+	return src.senses
