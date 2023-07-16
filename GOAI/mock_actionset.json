@@ -18,142 +18,6 @@
 			]
 		},
 		{
-			"name": "Coverleap", 
-			"description": "foos the bar", 
-			"handler": "/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog", 
-			"priority": 4,
-			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
-			"context_args": [
-				{
-					"key": "Enemies",
-					"output_context_key": "threat"
-				}
-			],
-			"considerations": [
-				{
-					"name": "IsFoe",
-					"lo_mark": -100, 
-					"hi_mark": 0, 
-					"noise_scale": 10,
-					"input_proc": "/proc/consideration_input_relationship_score", 
-					"input_args": {
-						"input_key": "threat",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_antilinear"
-				},
-				{
-					"name": "ClThreatInView",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_candidate_in_brain_list", 
-					"input_args": {
-						"input_key": "threat",
-						"memory_key": "SightCurr",
-						"memory_source": "perceptions",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "ClDistanceToThreat",
-					"lo_mark": 1, 
-					"hi_mark": 5, 
-					"noise_scale": 30,
-					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
-					"input_args": {
-						"input_key": "threat",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_antilinear"
-				},
-				{
-					"name": "ClThreatInLOS",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_in_line_of_sight", 
-					"input_args": {
-						"input_key": "threat",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_linear"
-				}
-			]
-		},
-		{
-			"name": "PlanRouteToAiTarget", 
-			"description": "Pathfinds an optimal route to a target stored in a Memory (see context_args). Following the path is handled by separate Actions.", 
-			"handler": "/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise", 
-			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
-			"context_args": [
-				{
-					"key": "ai_target",
-					"output_context_key": "position",
-					"type_to_fetch": "/atom"
-				}
-			],
-			"args": {
-				"min_target_dist": 0
-			},
-			"priority": 4, 
-			"considerations": [
-				{
-					"name": "HasTarget",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_arg_not_null", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "HasPlan",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_has_planned_path", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1,
-						"default": 0
-					},
-					"curve_proc": "/proc/curve_antilinear"
-				}
-			]
-		}, 
-		{
-			"name": "RePlanRouteToAiTarget", 
-			"description": "Like PlanRouteToAiTarget, but triggered by a Memory event (see ReplanRequested's memory_key).", 
-			"handler": "/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise", 
-			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
-			"context_args": [
-				{
-					"key": "ai_target",
-					"output_context_key": "position",
-					"type_to_fetch": "/atom"
-				}
-			],
-			"args": {
-				"min_target_dist": 0
-			},
-			"priority": 2.1, 
-			"considerations": [
-				{
-					"name": "ReplanRequested",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_get_memory_value", 
-					"input_args": {
-						"memory_key": "ReplanRouteToTargetRequested"
-					},
-					"curve_proc": "/proc/curve_linear"
-				}
-			]
-		}, 
-		{
 			"name": "FollowRouteToAiTarget", 
 			"description": "foos the bar", 
 			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
@@ -161,7 +25,7 @@
 			"priority": 2, 
 			"considerations": [
 				{
-					"name": "Has Plan",
+					"name": "HasPlan",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_input_has_planned_path", 
@@ -216,19 +80,71 @@
 						"minimum_distance_to_path_tile": 1
 					},
 					"curve_proc": "/proc/curve_antilinear"
+				}
+			]
+		},
+		{
+			"name": "Coverleap", 
+			"description": "foos the bar", 
+			"handler": "/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog", 
+			"priority": 4,
+			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
+			"context_args": [
+				{
+					"key": "Enemies",
+					"output_context_key": "threat"
+				}
+			],
+			"considerations": [
+				{
+					"name": "IsFoe",
+					"lo_mark": -100, 
+					"hi_mark": -5, 
+					"noise_scale": 10,
+					"input_proc": "/proc/consideration_input_relationship_score", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
 				},
 				{
-					"name": "IsOnPathSmol",
-					"lo_mark": 2, 
-					"hi_mark": 6, 
-					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_is_on_path_gradient", 
+					"name": "ClDistanceToThreat",
+					"lo_mark": 1, 
+					"hi_mark": 5, 
+					"noise_scale": 30,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
 					"input_args": {
-						"input_key": "position",
-						"from_context": 1,
-						"minimum_distance_to_path_tile": 1
+						"input_key": "threat",
+						"from_context": 1
 					},
-					"curve_proc": "/proc/curve_antilinear_leaky"
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "ClThreatInView",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_candidate_in_brain_list", 
+					"input_args": {
+						"input_key": "threat",
+						"memory_key": "SightCurr",
+						"memory_source": "perceptions",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "ClThreatInLOS",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_in_line_of_sight", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_linear"
 				}
 			]
 		}

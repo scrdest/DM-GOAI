@@ -141,7 +141,7 @@
 	if(actions)
 		src.actionslist = actions.Copy()
 
-	if(init_action && init_action in actionslist)
+	if(init_action && (init_action in actionslist))
 		src.running_action_tracker = DoAction(init_action)
 
 	src.InitNeeds()

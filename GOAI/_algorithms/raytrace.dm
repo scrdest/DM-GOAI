@@ -52,6 +52,7 @@
 
 	while(n --> 0)
 		RAYTRACE_DEBUG_LOG("([currX], [currY]) @ [n], [error]")
+		sleep(-1)
 
 		if(!isnull(CheckBlock))
 			blocker = call(CheckBlock)(currX, currY, From.z, ignore)

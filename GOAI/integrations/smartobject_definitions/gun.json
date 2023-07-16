@@ -27,20 +27,6 @@
 					"curve_proc": "/proc/curve_antibinary"
 				},
 				{
-					"name": "ThreatInView",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_candidate_in_brain_list", 
-					"input_args": {
-						"input_key": "threat",
-						"memory_key": "SightCurr",
-						"memory_source": "perceptions",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
 					"name": "IsFoe",
 					"lo_mark": -100, 
 					"hi_mark": 0, 
@@ -71,6 +57,20 @@
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_fakegauss_a"
+				},
+				{
+					"name": "ThreatInView",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_candidate_in_brain_list", 
+					"input_args": {
+						"input_key": "threat",
+						"memory_key": "SightCurr",
+						"memory_source": "perceptions",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_linear"
 				},
 				{
 					"name": "ThreatInLOS",
