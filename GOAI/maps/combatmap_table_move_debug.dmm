@@ -1,8 +1,8 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
-"c" = (/mob/living/simple_animal/aitester{faction = "ANTAG"; name = "ANTAG"; real_name = "ANTAG"; spawn_commander = 0},/turf/ground,/area)
+"c" = (/mob/living/simple_animal/aitester/utility,/turf/ground,/area)
 "d" = (/obj/cover/autodoor,/turf/ground,/area)
-"e" = (/mob/living/simple_animal/aitester{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist"; real_name = "Skrellorist"},/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester/utility{faction = "enemy"; name = "Enemy"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
 "h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)
@@ -19,7 +19,7 @@ abbbabbabbba
 abaaabbbbbba
 abbbgbbbbbfa
 abbbabbabbba
-abebabbabcba
+abcbabbabeba
 abbbaababbba
 aaaaaaaaaaaa
 "}

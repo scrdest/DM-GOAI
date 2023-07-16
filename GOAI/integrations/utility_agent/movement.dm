@@ -273,12 +273,18 @@
 			if(!(L?.stat == CONSCIOUS))
 				return FALSE
 
-	var/movedir = get_dir(get_turf(true_pawn), get_turf(trg))
+	var/atom/curr_pos = get_turf(true_pawn)
+
+	var/movedir = get_dir(curr_pos, get_turf(trg))
 
 	if(flee)
 		movedir = dir2opposite(movedir)
 
 	step_result = true_pawn.DoMove(movedir, true_pawn, FALSE)
+
+	if(step_result)
+		src.brain?.SetMemory("MyPrevLocation", curr_pos)
+
 	return step_result
 
 
@@ -354,7 +360,6 @@
 		if(src.active_path.frustration > 2)
 			//brain?.SetMemory("UnreachableTile", active_path.target)
 			src.brain?.SetMemory("UnreachableTile", next_step)
-			src.brain?.SetMemory("LastTile", curr_pos)
 			randMove()
 			return
 

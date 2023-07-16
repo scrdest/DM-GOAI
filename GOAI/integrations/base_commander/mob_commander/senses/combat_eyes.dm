@@ -47,6 +47,7 @@
 		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
+	var/list/enemies = list()
 
 	// TODO: Refactor to accept objects/structures as threats (turrets, grenades...).
 	for(var/mob/enemy in true_searchspace)
@@ -61,9 +62,11 @@
 		if (enemy_dist <= 0)
 			continue
 
+		enemies.Add(enemy)
 		var/datum/Tuple/enemy_tup = new(-enemy_dist, enemy)
 		target_queue.Enqueue(enemy_tup)
 
+	owner_brain.SetMemory("Enemies", enemies, owner.ai_tick_delay*20)
 
 	var/tries = 0
 	var/maxtries = 3

@@ -46,7 +46,12 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_arg_not_null)
 		from_ctx = TRUE
 
 	var/inp_key = consideration_args["input_key"] || "input"
-	var/candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
+
+	var/candidate = null
+	try
+		candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
+	catch(var/exception/e)
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <inp_key='[inp_key]'>")
 
 	if(isnull(candidate))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_arg_not_null Candidate is null @ L[__LINE__] in [__FILE__]")
@@ -63,48 +68,114 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_mobhealth_abs)
 	// for any mob, regardless of their default Health pool, as long as we set the Consideration params right.
 	// This is more suitable for queries like 'this enemy deals 50 dmg, should I run?' than 'is my health low?'.
 	// If you want a variant that will do the latter and not break on varedits, use `health/maxHealth` input instead.
-	var/mob/pawn = requester
+
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requester is not an AI (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/mob/pawn = requester_ai?.GetPawn()
 
 	if(isnull(pawn))
 		return null
 
-	return mob.health
+	return pawn.health
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_mobhealth_rel)
 	// Returns the mob's health as a fraction of their maxHealth.
 	// This is suitable for queries like 'is my health low?'.
-	var/mob/pawn = requester
+
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requester is not an AI (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/mob/pawn = requester_ai?.GetPawn()
 
 	if(isnull(pawn))
 		return null
 
-	if(!(mob?.maxHealth))
+	if(!(pawn?.maxHealth))
 		return PLUS_INF
 
-	return (mob.health / mob.maxHealth)
+	return (pawn.health / pawn.maxHealth)
 
 # endif
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_manhattan_distance_to_requester)
 	//
-	var/atom/requester_entity = requester
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requester is not an AI (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/atom/requester_entity = requester_ai?.GetPawn()
 
 	if(isnull(requester_entity))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requesting identity is null (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/raw_qry_target = context[CTX_KEY_POSITION]
-	//DEBUGLOG_UTILITY_INPUT_FETCHERS("Raw query target is [raw_qry_target || "null"] @ L[__LINE__] in [__FILE__]")
+	var/from_ctx = consideration_args?["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/pos_key = consideration_args?["input_key"] || "position"
+
+	var/raw_qry_target = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+	if(isnull(raw_qry_target))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_manhattan_distance_to_requester raw_qry_target is null ([raw_qry_target || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
 
 	var/atom/query_target = raw_qry_target
 	//DEBUGLOG_UTILITY_INPUT_FETCHERS("Query target is [query_target || "null"] @ L[__LINE__] in [__FILE__]")
 
 	if(isnull(query_target))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_manhattan_distance_to_requester query_target is null ([query_target || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/result = ManhattanDistance(requester_entity, query_target)
+	//DEBUGLOG_UTILITY_INPUT_FETCHERS("ManhattanDistance input is [result || "null"] @ L[__LINE__] in [__FILE__]")
+	return result
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_chebyshev_distance_to_requester)
+	//
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requester is not an AI (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/atom/requester_entity = requester_ai?.GetPawn()
+
+	if(isnull(requester_entity))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requesting identity is null (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/from_ctx = consideration_args?["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/pos_key = consideration_args?["input_key"] || "position"
+
+	var/raw_qry_target = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+	if(isnull(raw_qry_target))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_chebyshev_distance_to_requester raw_qry_target is null ([raw_qry_target || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/atom/query_target = raw_qry_target
+	//DEBUGLOG_UTILITY_INPUT_FETCHERS("Query target is [query_target || "null"] @ L[__LINE__] in [__FILE__]")
+
+	if(isnull(query_target))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_chebyshev_distance_to_requester query_target is null ([query_target || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/result = ChebyshevDistance(requester_entity, query_target)
 	//DEBUGLOG_UTILITY_INPUT_FETCHERS("ManhattanDistance input is [result || "null"] @ L[__LINE__] in [__FILE__]")
 	return result
 
@@ -176,7 +247,13 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 	// Basic implementation not using colliders yet!!!
 	var/blocked = queried_turf.IsBlocked(TRUE, FALSE)
 
-	var/atom/requester_atom = requester
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requester is not an AI (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/atom/requester_atom = requester_ai?.GetPawn()
 
 	if(!isnull(requester_atom) && ChebyshevDistance(requester_atom, queried_turf) == 1)
 		var/entry_dir = get_dir(requester_atom, queried_turf)
@@ -188,14 +265,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 
 
 /proc/_cihelper_get_requester_brain(var/requester, var/caller = null)
-	var/atom/pawn_requester = requester
-
-	if(isnull(pawn_requester))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("[caller] PawnRequester is null ([requester || "null"]) @ L[__LINE__] in [__FILE__]")
-		return null
-
-	var/datum/utility_ai/controller = null
-	FetchAiControllerForObjIntoVar(pawn_requester, controller)
+	var/datum/utility_ai/mob_commander/controller = requester
 
 	if(isnull(controller))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("[caller] Controller is null ([controller || "null"]) @ L[__LINE__] in [__FILE__]")
@@ -206,15 +276,15 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 	return requesting_brain
 
 
-CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_memory)
+CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 	// This is not a 'proper' Consideration, but it has the same interface as one; it's a way of DRYing
 	// the code to fetch a Memory-ized path for various ACTUAL Considerations (e.g. 'Path Exists' or 'Path Length Is...')
 	// These proper Considerations should just forward their callsig to this Helper.
 
-	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_memory")
+	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_brain_data")
 
 	if(isnull(requesting_brain))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_memory Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_brain_data Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
 	var/input_key = "input"
@@ -223,19 +293,85 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_memory)
 		input_key = consideration_args["memory_key"] || input_key
 
 	if(isnull(input_key))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_memory Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_brain_data Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/memory = requesting_brain.GetMemoryValue(input_key)
+	var/source_key = "memory"
+
+	if(!isnull(consideration_args))
+		source_key = consideration_args["memory_source"] || source_key
+
+	if(!isnull(source_key))
+		source_key = lowertext(source_key)
+
+	var/memory = null
+
+	switch(source_key)
+		if("perception", "perceptions")
+			to_world_log("Fetching [input_key] from Peceptions")
+			memory = requesting_brain.perceptions.Get(input_key)
+
+		if("need", "needs")
+			to_world_log("Fetching [input_key] from Needs")
+			memory = requesting_brain?.needs[input_key]
+
+		else
+			to_world_log("Fetching [input_key] from Memories")
+			memory = requesting_brain.GetMemoryValue(input_key)
+
 	return memory
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_has_memory)
-	var/memory = _cihelper_get_memory(context, requester, consideration_args)
+	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
 	return !isnull(memory)
 
 
-CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_memory)
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_memory_value)
+	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	return memory
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_memory_ghost_turf)
+	/*
+	// Like consideration_input_get_memory_value(), but specialized to 'ghosts' in memory
+	// (i.e. stuff like last known position of something as opposed to its actual location).
+	*/
+	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/dict/position_ghost = memory
+
+	if(isnull(position_ghost))
+		return null
+
+	var/pos_x = position_ghost[KEY_GHOST_X]
+	var/pos_y = position_ghost[KEY_GHOST_Y]
+	var/pos_z = position_ghost[KEY_GHOST_Z]
+
+	var/turf/ghost_turf = locate(pos_x, pos_y, pos_z)
+
+	var/raw_loc_type = consideration_args["type_to_fetch"]
+
+	if(isnull(raw_loc_type))
+		return ghost_turf
+
+	var/loc_type = text2path(raw_loc_type)
+	if(isnull(loc_type))
+		return null
+
+	var/found_type = locate(loc_type) in ghost_turf.contents
+	return found_type
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_requester_distance_to_memory_value)
+	var/atom/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+
+	if(isnull(memory))
+		return PLUS_INF
+
+	return ManhattanDistance(memory, requester)
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain)
 	var/from_ctx = consideration_args["from_context"]
 	if(isnull(from_ctx))
 		from_ctx = TRUE
@@ -244,11 +380,65 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_memory)
 
 	var/candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
 	if(isnull(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_candidate_in_memory Candidate is null ([candidate || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_candidate_in_brain Candidate is null ([candidate || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/memory = _cihelper_get_memory(context, requester, consideration_args)
+	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
 	var/result = memory == candidate
+	return result
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain_list)
+	var/from_ctx = DEFAULT_IF_NULL(consideration_args["from_context"], TRUE)
+
+	var/pos_key = consideration_args["input_key"] || "position"
+	var/candidate = null
+
+	try
+		candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+	catch(var/exception/e)
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <pos_key='[pos_key]'>")
+
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_candidate_in_brain_list Candidate is null ([candidate || "null"]) <from_ctx=[from_ctx] | pos_key=[pos_key]> @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/raw_memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/list/memory = raw_memory
+
+	if(!isnull(raw_memory))
+		// Throw an error if the memory is not a list
+		ASSERT(!isnull(memory))
+
+	for(var/item in memory)
+		if (item == candidate)
+			return TRUE
+
+	return FALSE
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_relationship_score)
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_relationship_score requester_ai is null ([requester_ai || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/from_ctx = DEFAULT_IF_NULL(consideration_args?["from_context"], TRUE)
+
+	var/inp_key = consideration_args?["input_key"] || "target"
+	var/candidate = null
+
+	try
+		candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
+	catch(var/exception/e)
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <inp_key='[inp_key]'>")
+
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_relationship_score Candidate is null ([candidate || "null"]) <from_ctx=[from_ctx] | inp_key=[inp_key]> @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/result = requester_ai.CheckRelationsTo(candidate)
 	return result
 
 
@@ -263,7 +453,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_planned_path)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
-	var/from_ctx = consideration_args["from_context"]
+	var/from_ctx = consideration_args?["from_context"]
 	DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path from_ctx is [from_ctx] @ L[__LINE__] in [__FILE__]")
 	if(isnull(from_ctx))
 		from_ctx = TRUE
@@ -417,3 +607,32 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path_gradient)
 			return path.len - path_idx
 
 	return path.len
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_in_line_of_sight)
+	var/datum/utility_ai/mob_commander/requester_ai = requester
+
+	if(isnull(requester_ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_in_line_of_sight requester_ai is null ([requester_ai || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/mob/pawn = requester_ai?.GetPawn()
+
+	if(isnull(pawn))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_in_line_of_sight Pawn is null @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/from_ctx = consideration_args["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/pos_key = consideration_args["input_key"] || "position"
+	var/candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_in_line_of_sight Candidate is null @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	var/forecasted_impactee = AtomDensityRaytrace(pawn, candidate, list(pawn))
+
+	return ( (forecasted_impactee == candidate) )//|| (get_dist(forecasted_impactee, candidate) == 0) )

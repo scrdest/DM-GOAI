@@ -9,6 +9,8 @@
 		return
 
 	var/datum/memory/created_mem = M.brain.SetMemory("ai_target", Trg, PLUS_INF)
+	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
+
 	var/atom/waypoint = created_mem?.val
 
 	to_chat(usr, (waypoint ? "[M] now tracking [waypoint]" : "[M] not tracking waypoints"))
@@ -27,10 +29,11 @@
 
 	var/turf/position = locate(trueX, trueY, trueZ)
 	if(!position)
-		to_chat(usr, "Target position does not exist!")
+		to_chat(usr, "Target position ([trueX], [trueY], [trueZ]) does not exist!")
 		return
 
 	var/datum/memory/created_mem = M.brain.SetMemory("ai_target", position, PLUS_INF)
+	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
 	var/atom/waypoint = created_mem?.val
 
 	to_chat(usr, (waypoint ? "[M] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[M] not tracking waypoints"))
@@ -45,7 +48,48 @@
 		return
 
 	M.brain.DropMemory("ai_target")
+	M.brain.DropMemory("ReplanRouteToTargetRequested")
 
 	//to_chat(usr, (waypoint ? "[M] tracking [waypoint]" : "[M] no longer tracking waypoints"))
 
 	return TRUE
+
+
+/mob/verb/CommanderSetForcedFriendTag(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
+	set category = "Commander Orders"
+
+	if(!M)
+		return
+
+	if(!tag)
+		return
+
+	M.SetRelationshipTag(tag, GOAI_REL_LUDICROUS_VALUE, GOAI_REL_LUDICROUS_WEIGHT)
+	return
+
+
+/mob/verb/CommanderSetForcedFoeTag(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
+	set category = "Commander Orders"
+
+	if(!M)
+		return
+
+	if(!tag)
+		return
+
+	M.SetRelationshipTag(tag, -GOAI_REL_LUDICROUS_VALUE, GOAI_REL_LUDICROUS_WEIGHT)
+	return
+
+
+/mob/verb/CommanderDropRelationshipTag(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
+	set category = "Commander Orders"
+
+	if(!M)
+		return
+
+	if(!tag)
+		return
+
+	var/result = M.DropRelationshipTag(tag)
+	to_chat(usr, "[M] - Tag [tag] [result ? "dropped successfully" : "failed to drop"]!")
+	return

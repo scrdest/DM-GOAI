@@ -63,15 +63,12 @@
 		var/has_actions = cand.HasUtilityActions(owner.GetPawn())
 
 		if(!has_actions)
-			//to_world_log("[cand] has no actions!")
 			continue
 
-		to_world_log("[cand] has actions!")
 		smartobjects.Add(cand)
 
 	if(smartobjects?.len)
 		var/retention_time = (src.retention_time_dseconds || owner.ai_tick_delay*60)
-		world.log << "SmartObject sensor setting memory [out_mem_key] for [smartobjects.len] objects!"
 		owner_brain.SetMemory(out_mem_key, smartobjects, retention_time)
 
 	return smartobjects

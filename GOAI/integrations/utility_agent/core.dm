@@ -2,6 +2,8 @@
 	var/name = "utility AI"
 	var/life = TRUE
 
+	var/list/needs
+
 	var/datum/brain/utility/brain
 	var/list/actionslist
 	var/list/actionlookup
@@ -35,6 +37,23 @@
 	return new_actionslist
 
 
+/datum/utility_ai/proc/InitNeeds()
+	src.needs = list()
+	return src.needs
+
+
+/datum/utility_ai/proc/InitRelations()
+	if(!(src.brain))
+		return
+
+	var/datum/relationships/relations = src.brain.relations
+	if(isnull(relations) || !istype(relations))
+		relations = new()
+
+	src.brain.relations = relations
+	return relations
+
+
 /datum/utility_ai/proc/PreSetupHook()
 	return
 
@@ -60,10 +79,10 @@
 	//src.PreSetupHook()
 
 	src.brain = src.CreateBrain()
-	//src.InitNeeds()
+	src.InitNeeds()
 	//src.InitStates()
 	src.UpdateBrain()
-	//src.InitRelations()
+	src.InitRelations()
 	src.InitSenses()
 
 	//src.PostSetupHook()

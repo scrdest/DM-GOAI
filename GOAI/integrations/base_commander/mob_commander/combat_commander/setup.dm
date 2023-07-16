@@ -206,6 +206,7 @@
 	if(pawn)
 		new /obj/item/weapon/gun(pawn)
 
+
 /datum/goai/mob_commander/combat_commander/InitRelations()
 	// NOTE: this is a near-override, practically speaking!
 

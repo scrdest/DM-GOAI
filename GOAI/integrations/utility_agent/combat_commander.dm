@@ -107,3 +107,46 @@
 
 
 /datum/utility_ai/mob_commander/combat_commander
+
+
+/datum/utility_ai/mob_commander/combat_commander/InitRelations()
+	// NOTE: this is a near-override, practically speaking!
+
+	if(!(src.brain))
+		return
+
+	var/atom/movable/pawn = src.GetPawn()
+
+	var/datum/relationships/relations = ..()
+
+	if(isnull(relations) || !istype(relations))
+		relations = new()
+
+	// Same faction should not be attacked by default, same as vanilla
+	var/mob/living/L = pawn
+	if(L && istype(L))
+		var/my_faction = L.faction
+
+		if(my_faction)
+			var/datum/relation_data/my_faction_rel = new(5, 1) // slightly positive
+			relations.Insert(my_faction, my_faction_rel)
+
+	# ifdef GOAI_SS13_SUPPORT
+
+	// For hostile SAs, consider hidden faction too
+	var/mob/living/simple_animal/hostile/SAH = pawn
+	if(SAH && istype(SAH))
+		var/my_hiddenfaction = SAH.hiddenfaction?.factionid
+
+		if(my_hiddenfaction)
+			// NOTE: This means that Hostiles will have *very slightly* higher threshold
+			//       for getting mad at other Hostiles in the same faction & hiddenfaction.
+			//       as opposed to the ones in the same faction but DIFFERENT hiddenfaction.
+
+			var/datum/relation_data/my_hiddenfaction_rel = new(1, 1) // minimally positive
+			relations.Insert(my_hiddenfaction, my_hiddenfaction_rel)
+
+	# endif
+
+	src.brain.relations = relations
+	return relations

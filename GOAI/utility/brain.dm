@@ -101,8 +101,9 @@
 
 /datum/brain/utility/proc/GetRequester() // () -> Any
 	var/datum/utility_ai/mob_commander/controller = src.GetAiController()
-	var/pawn = controller?.GetPawn()
-	return pawn
+	//var/pawn = controller?.GetPawn()
+	//return pawn
+	return controller
 
 
 /datum/brain/utility/proc/ScoreActions(var/list/actionsets)

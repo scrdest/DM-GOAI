@@ -29,10 +29,6 @@
 					"hi_mark": 10, 
 					"noise_scale": 0,
 					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1
-					},
 					"curve_proc": "/proc/curve_antisquare"
 				}
 			]
@@ -65,10 +61,6 @@
 					"hi_mark": 10, 
 					"noise_scale": 0,
 					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1
-					},
 					"curve_proc": "/proc/curve_antisquare"
 				}
 			]

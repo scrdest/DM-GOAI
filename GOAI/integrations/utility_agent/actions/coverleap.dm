@@ -277,7 +277,7 @@
 	return
 
 
-/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog(var/datum/ActionTracker/tracker)
+/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog(var/datum/ActionTracker/tracker, var/atom/threat = null)
 	var/atom/pawn = src.GetPawn()
 	if(!pawn)
 		ACTION_RUNTIME_DEBUG_LOG("[src] does not have an owned mob!")
@@ -299,8 +299,9 @@
 	// Main threat:
 	var/dict/primary_threat_ghost = GetActiveThreatDict()
 	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
-	var/atom/primary_threat = null
-	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
+	var/atom/primary_threat = threat
+
+	if(isnull(primary_threat) && !(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
 		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, pawn.z)
 
 	if(primary_threat_ghost)

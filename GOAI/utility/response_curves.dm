@@ -63,6 +63,7 @@
 	// Equivalent to an If-statement - bound action will have Utility
 	//   if and only if the condition is True.
 	// Useful for Actions like Attack(enemy), where if there's no enemy, there's no point whatsoever.
+	// Note that if the input is already a boolean, Linear might be a slightly faster equivalent!
 
 	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("CurveBinary input: [input]")
@@ -82,6 +83,7 @@
 
 /proc/curve_antibinary(var/input)
 	// Like Binary, but with inverted logic; acts like a NOT gate.
+	// Note that if the input is already a boolean, AntiLinear might be a slightly faster equivalent!
 
 	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("CurveAntiBinary input: [input]")

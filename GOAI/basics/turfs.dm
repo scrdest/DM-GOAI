@@ -298,7 +298,7 @@
 
 
 /proc/fDistanceUnifiedFuzzed(var/atom/start, var/atom/T)
-	var/eps = (rand() / 20)
+	var/eps = (rand() / 2)
 	var/cost = fDistanceUnified(start, T) + eps
 	return cost
 
