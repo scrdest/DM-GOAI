@@ -13,10 +13,6 @@
 */
 
 
-// Assoc list that will store
-//var/list/global/smartobject_cache = null
-
-
 /datum
 	// To speed up queries, we'll cache the ActionSets for Smart Objects
 	// If an object instance has custom actions, set its cache key to something
@@ -53,22 +49,38 @@
 	var/list/smartobject_last_fetched = null
 
 
-/datum/brain/utility/proc/GetActionSetFromSmartObject(var/datum/smartobj, var/list/args = null)
+/datum/brain/utility/proc/GetActionSetsFromSmartObject(var/datum/smartobj, var/list/args = null)
 	if(isnull(smartobj))
 		return null
-
-	var/cache_key = (smartobj.smartobject_cache_key || smartobj.type)
 
 	if(isnull(src.smart_objects))
 		src.smart_objects = list()
 
-	var/datum/action_set/so_actions = src.smart_objects[cache_key]
+	if(isnull(smartobject_cache))
+		smartobject_cache = list()
 
-	if(so_actions)
-		so_actions.Refresh()
+	var/cache_key = (smartobj.smartobject_cache_key || smartobj.type)
+
+	var/list/so_actions = null
+	so_actions = smartobject_cache[cache_key]
+
+	if(!isnull(so_actions))
+		//for(var/so_actionset in so_actions)
+		//	so_actions.Refresh()
+
+		src.smart_objects[cache_key] = so_actions
 		return so_actions
 
-	so_actions = smartobj.GetUtilityActions(src, args)
+	so_actions = src.smart_objects[cache_key]
+
+	if(so_actions)
+		//so_actions.Refresh()
+		return so_actions
+
+	var/datum/action_set/subactions = smartobj.GetUtilityActions(src, args)
+
+	so_actions = list(); so_actions[subactions.name] = subactions
+	smartobject_cache[cache_key] = so_actions
 	src.smart_objects[cache_key] = so_actions
 
 	return so_actions

@@ -136,6 +136,46 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_chunkpath_gradient)
 
 
 
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path)
+	// Like consideration_input_is_on_chunkpath, but works on precise (turf-level) paths instead.
+
+	// The higher this is, the more permissive we are;
+	// At 0, only turfs EXACTLY on the path are allowed to terminate.
+	// At 1, we can be on the path or adjacent
+	// At 2+, it's effectively chunking but with dynamic tile positions (so not cacheable)
+
+	var/from_ctx = DEFAULT_IF_NULL(consideration_args?["from_context"], TRUE)
+
+	var/min_dist_to_path = consideration_args?["minimum_distance_to_path_tile"]
+	if(isnull(min_dist_to_path))
+		min_dist_to_path = 0
+
+	var/pos_key = consideration_args?["input_key"] || "position"
+	var/candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_on_path Candidate is null @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	var/list/path = _cihelper_get_planned_path(context, requester, consideration_args)
+
+	if(isnull(path))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_on_path Path is null @ L[__LINE__] in [__FILE__]")
+
+		var/default_on_null = DEFAULT_IF_NULL(consideration_args?["default_on_null"], FALSE)
+
+		return default_on_null
+
+	for(var/path_idx = path.len + 0, path_idx > 0, path_idx--)
+		var/turf/T = path[path_idx]
+
+		if(get_dist(T, candidate) <= min_dist_to_path)
+			return TRUE
+
+	return FALSE
+
+
+
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path_gradient)
 	// Like consideration_input_is_on_chunkpath_gradient, but works on precise (turf-level) paths instead.
 
@@ -144,15 +184,15 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path_gradient)
 	// At 1, we can be on the path or adjacent
 	// At 2+, it's effectively chunking but with dynamic tile positions (so not cacheable)
 
-	var/from_ctx = consideration_args["from_context"]
+	var/from_ctx = consideration_args?["from_context"]
 	if(isnull(from_ctx))
 		from_ctx = TRUE
 
-	var/min_dist_to_path = consideration_args["minimum_distance_to_path_tile"]
+	var/min_dist_to_path = consideration_args?["minimum_distance_to_path_tile"]
 	if(isnull(min_dist_to_path))
 		min_dist_to_path = 0
 
-	var/pos_key = consideration_args["input_key"] || "position"
+	var/pos_key = consideration_args?["input_key"] || "position"
 	var/candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
 
 	if(isnull(candidate))
@@ -163,12 +203,17 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path_gradient)
 
 	if(isnull(path))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_on_path_gradient Path is null @ L[__LINE__] in [__FILE__]")
-		return FALSE
+
+		var/default_on_null = consideration_args?["default_on_null"]
+		if(isnull(default_on_null))
+			default_on_null = 0
+
+		return default_on_null
 
 	for(var/path_idx = path.len + 0, path_idx > 0, path_idx--)
 		var/turf/T = path[path_idx]
 
 		if(get_dist(T, candidate) <= min_dist_to_path)
-			return path.len - path_idx
+			return 1 + (path_idx / path.len)
 
-	return path.len
+	return 0

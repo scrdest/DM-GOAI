@@ -20,11 +20,13 @@
 		RUN_ACTION_DEBUG_LOG("Pawn is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
 
+	var/succeeded = MovePawn(position)
+
 	if(pawn.x == position.x && pawn.y == position.y && pawn.z == position.z)
 		tracker.SetDone()
-		return
 
-	var/succeeded = MovePawn(position)
+	if(tracker.IsStopped())
+		return
 
 	if(!succeeded)
 		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)

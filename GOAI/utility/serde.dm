@@ -41,6 +41,7 @@
 # define JSON_KEY_ACT_ACTIVE "active"
 
 // ActionSet schema:
+# define JSON_KEY_ACTSET_NAME "name"
 # define JSON_KEY_ACTSET_ACTIVE "active"
 # define JSON_KEY_ACTSET_ACTIONS "actions"
 
@@ -179,6 +180,7 @@
 /proc/ActionSetFromData(var/list/json_data) // list -> ActionTemplate
 	ASSERT(json_data)
 
+	var/name = json_data[JSON_KEY_ACTSET_NAME]
 	var/active = json_data[JSON_KEY_ACTSET_ACTIVE]
 	var/list/action_data = json_data[JSON_KEY_ACTSET_ACTIONS]
 
@@ -210,7 +212,7 @@
 		actions.Add(new_action_template)
 
 	// origin left null, to be set by the caller
-	var/datum/action_set/new_actionset = new(actions, active, ttl_remove, ttl_deactivate, time_retrieved, null, true_freshness_proc, freshness_proc_args)
+	var/datum/action_set/new_actionset = new(name, actions, active, ttl_remove, ttl_deactivate, time_retrieved, null, true_freshness_proc, freshness_proc_args)
 	return new_actionset
 
 

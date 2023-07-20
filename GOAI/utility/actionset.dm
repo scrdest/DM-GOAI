@@ -38,8 +38,11 @@ var/list/global/actionset_file_cache = null
 	var/freshness_proc = null  // optional proc to check if this is still valid (for reasons other than TTL)
 	var/list/freshness_proc_args = null  // args to pass to freshness_proc, duh
 
+	var/name = null
 
-/datum/action_set/New(var/list/included_actions, var/active = null, var/ttl_remove = null, var/ttl_deactivate = null, var/time_retrieved = null, var/origin = null, var/freshness_proc = null, var/list/freshness_proc_args = null)
+
+/datum/action_set/New(var/name, var/list/included_actions, var/active = null, var/ttl_remove = null, var/ttl_deactivate = null, var/time_retrieved = null, var/origin = null, var/freshness_proc = null, var/list/freshness_proc_args = null)
+	SET_IF_NOT_NULL(name, src.name)
 	SET_IF_NOT_NULL(included_actions, src.actions)
 	SET_IF_NOT_NULL(active, src.active)
 	SET_IF_NOT_NULL(ttl_remove, src.ttl_remove)
@@ -51,6 +54,7 @@ var/list/global/actionset_file_cache = null
 	SET_IF_NOT_NULL(freshness_proc, src.freshness_proc)
 	SET_IF_NOT_NULL(freshness_proc_args, src.freshness_proc_args)
 
+	ASSERT(src.name)
 	ASSERT(src.actions)
 
 

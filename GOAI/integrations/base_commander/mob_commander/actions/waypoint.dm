@@ -103,7 +103,7 @@
 							continue
 
 						var/dirDelta = get_dir(previous, potential_obstruction_curr)
-						var/blocks = blocker.Blocks(dirDelta, src)
+						var/blocks = blocker.BlocksEntry(dirDelta, src)
 
 						if(blocks)
 							obstruction = potential_obstruction_curr
@@ -119,7 +119,7 @@
 							continue
 
 						var/dirDeltaPrev = get_dir(path[path_pos-2], potential_obstruction_prev)
-						var/blocksPrev = blocker.Blocks(dirDeltaPrev, src)
+						var/blocksPrev = blocker.BlocksEntry(dirDeltaPrev, src)
 
 						if(blocksPrev)
 							obstruction = potential_obstruction_prev

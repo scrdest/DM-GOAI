@@ -1,4 +1,4 @@
-/datum/utility_ai/mob_commander/proc/OpenDoor(var/datum/ActionTracker/tracker, var/turf/position, var/if_contains_type)
+/datum/utility_ai/mob_commander/proc/OpenDoor(var/datum/ActionTracker/tracker, var/turf/position, var/location)
 	if(isnull(tracker))
 		RUN_ACTION_DEBUG_LOG("Tracker position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
@@ -9,14 +9,15 @@
 	if(isnull(position))
 		RUN_ACTION_DEBUG_LOG("Target position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 
+
 	# ifdef GOAI_SS13_SUPPORT
-	var/obj/machinery/door/D = if_contains_type
-	var/obj/machinery/door/AD = if_contains_type // just to have it defined consistently
+	var/obj/machinery/door/D = location
+	var/obj/machinery/door/AD = location // just to have it defined consistently
 	# endif
 
 	# ifdef GOAI_LIBRARY_FEATURES
-	var/obj/cover/door/D = if_contains_type
-	var/obj/cover/autodoor/AD = if_contains_type
+	var/obj/cover/door/D = location
+	var/obj/cover/autodoor/AD = location
 	# endif
 
 	var/list/available_doors = tracker.BBGet("available_doors")
@@ -63,7 +64,7 @@
 		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)
 		tracker.BBSet("failed_steps", ++bb_failures)
 
-		if(bb_failures > 1)
+		if(bb_failures > 3)
 			tracker.SetFailed()
 
 	return

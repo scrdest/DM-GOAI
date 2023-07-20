@@ -43,7 +43,7 @@
 /mob/living/simple_animal/aitester/New()
 	. = ..()
 
-	//src.directional_blocker = new(null, TRUE, TRUE)
+	//src.directional_blocker = new(null, null, TRUE, TRUE)
 	src.cover_data = new(TRUE, TRUE)
 
 	if(isnull(src.faction))

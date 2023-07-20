@@ -147,10 +147,18 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 		return null
 
 	var/atom/requester_atom = requester_ai?.GetPawn()
+	to_world_log("consideration_input_is_passable blocked is [blocked] @ L[__LINE__] in [__FILE__]")
 
-	if(!isnull(requester_atom) && ChebyshevDistance(requester_atom, queried_turf) == 1)
-		var/entry_dir = get_dir(requester_atom, queried_turf)
-		blocked = blocked || GoaiDirBlocked(queried_turf, entry_dir)
+	if(!isnull(requester_atom))
+		if(get_dist(requester_atom, queried_turf) <= 1)
+			var/turf/requester_turf = get_turf(requester_atom)
+			var/entry_dir = get_dir(requester_turf, queried_turf)
+
+			// Can we exit the current pos in that direction?
+			blocked = blocked || GoaiDirBlocked(requester_turf, null, entry_dir)
+
+			// Can we enter the target pos from that direction?
+			blocked = blocked || GoaiDirBlocked(queried_turf, entry_dir, null)
 
 	var/result = (!blocked)
 	to_world_log("consideration_input_is_passable result is [result] @ L[__LINE__] in [__FILE__]")

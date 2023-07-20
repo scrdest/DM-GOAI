@@ -4,7 +4,7 @@
 	"actions": [
 		{
 			"name": "Idle", 
-			"description": "foos the bar", 
+			"description": "Does literally nothing. Fallback behavior.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/Idle", 
 			"priority": 0.001,
 			"context_procs": ["/proc/ctxfetcher_null"], 
@@ -20,7 +20,7 @@
 		},
 		{
 			"name": "FollowRouteToAiTarget", 
-			"description": "foos the bar", 
+			"description": "Does a single step towards a target destination. Slower (bottlenecked by AI tickrate) but trivially interruptible.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
 			"context_procs": ["/proc/ctxfetcher_cardinal_turfs"], 
 			"priority": 2, 
@@ -63,6 +63,7 @@
 					"name": "DidntFailMoveToTarget",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
+					"noise_scale": 10,
 					"input_proc": "/proc/consideration_input_candidate_in_brain", 
 					"input_args": {
 						"memory_key": "UnreachableTile"
@@ -87,7 +88,7 @@
 		},
 		{
 			"name": "Coverleap", 
-			"description": "foos the bar", 
+			"description": "Plans for and makes a tacticool run to a cover location. Faster movement, but trivially uninterruptible.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog", 
 			"priority": 5,
 			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
@@ -145,77 +146,6 @@
 					"input_args": {
 						"input_key": "threat",
 						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_linear"
-				}
-			]
-		},
-		{
-			"name": "PlanRouteToAiTarget", 
-			"description": "Pathfinds an optimal route to a target stored in a Memory (see context_args). Following the path is handled by separate Actions.", 
-			"handler": "/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise", 
-			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
-			"context_args": [
-				{
-					"key": "ai_target",
-					"output_context_key": "position",
-					"type_to_fetch": "/atom"
-				}
-			],
-			"args": {
-				"min_target_dist": 0
-			},
-			"priority": 0, 
-			"considerations": [
-				{
-					"name": "HasTarget",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_arg_not_null", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "HasPlan",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_has_planned_path", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1,
-						"default": 0
-					},
-					"curve_proc": "/proc/curve_antilinear"
-				}
-			]
-		}, 
-		{
-			"name": "RePlanRouteToAiTarget", 
-			"description": "Like PlanRouteToAiTarget, but triggered by a Memory event (see ReplanRequested's memory_key).", 
-			"handler": "/datum/utility_ai/mob_commander/proc/DraftMoveToPrecise", 
-			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
-			"context_args": [
-				{
-					"key": "ai_target",
-					"output_context_key": "position",
-					"type_to_fetch": "/atom"
-				}
-			],
-			"args": {
-				"min_target_dist": 0
-			},
-			"priority": 0, 
-			"considerations": [
-				{
-					"name": "ReplanRequested",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"input_proc": "/proc/consideration_input_get_memory_value", 
-					"input_args": {
-						"memory_key": "ReplanRouteToTargetRequested"
 					},
 					"curve_proc": "/proc/curve_linear"
 				}

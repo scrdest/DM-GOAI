@@ -5,6 +5,7 @@
 # define AUTODOOR_ACTIONSET_PATH "integrations/smartobject_definitions/autodoor.json"
 
 /obj/cover/door/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
+
 	var/list/my_action_sets = list()
 
 	ASSERT(fexists(DOOR_ACTIONSET_PATH))
@@ -32,7 +33,7 @@
 	var/list/my_action_sets = list()
 
 	ASSERT(fexists(DOOR_ACTIONSET_PATH))
-	var/datum/action_set/myset = ActionSetFromJsonFile(DOOR_ACTIONSET_PATH)
+	var/datum/action_set/myset = ActionSetFromJsonFile(AUTODOOR_ACTIONSET_PATH)
 
 	myset.origin = src
 

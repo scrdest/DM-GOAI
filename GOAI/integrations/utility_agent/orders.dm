@@ -25,7 +25,7 @@
 
 	var/trueX = posX % world.maxx
 	var/trueY = posY % world.maxy
-	var/trueZ = src.z
+	var/trueZ = max(1, src.z)
 
 	var/turf/position = locate(trueX, trueY, trueZ)
 	if(!position)

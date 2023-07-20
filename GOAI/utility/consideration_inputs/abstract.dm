@@ -38,3 +38,38 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_arg_not_null)
 		return FALSE
 
 	return TRUE
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_read_var)
+	// Retrieves an arbitrary variable from the target object.
+
+	var/from_ctx = consideration_args["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/inp_key = consideration_args["input_key"] || "input"
+
+	var/candidate = null
+	try
+		candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
+	catch(var/exception/e)
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <inp_key='[inp_key]'>")
+
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_read_var Candidate is null @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/var_key = consideration_args?["variable"]
+
+	if(isnull(var_key))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_read_var VarKey is null @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(isnull(var_key))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_read_var cand_obj is null @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/result = candidate:vars[var_key]
+	DEBUGLOG_UTILITY_INPUT_FETCHERS("Value for var [var_key] in [candidate] is [result] @ L[__LINE__] in [__FILE__]")
+	return result
+

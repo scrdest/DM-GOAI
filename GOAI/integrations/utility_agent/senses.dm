@@ -34,12 +34,15 @@
 
 
 	var/sense/combatant_commander_eyes/eyes = new()
+	var/sense/combatant_commander_utility_wayfinder/wayfinder = new()
 
 	/* Register each Sense: */
 	src.senses.Add(eyes)
+	src.senses.Add(wayfinder)
 
 	/* Register lookup by key for quick access (optional) */
 	src.senses_index[SENSE_SIGHT] = eyes
+	src.senses_index["sense_wayfinder"] = wayfinder
 
 	// The logic below is similar, but we need to loop over filepaths.
 

@@ -177,21 +177,29 @@
 	return FALSE
 
 
-/proc/GoaiDirBlocked(var/atom/trg, var/dir)
+/proc/GoaiDirBlocked(var/atom/trg, var/in_dir = null, var/out_dir = null)
 	for(var/atom/D in trg)
 		var/datum/directional_blocker/dirblocker = D.GetBlockerData(TRUE, TRUE)
 
 		if(isnull(dirblocker))
 			continue
 
-		if(dirblocker.Blocks(dir))
+		if((!isnull(in_dir)) && dirblocker.BlocksEntry(in_dir))
+			// Can we enter from this direction
 			return TRUE
+
+		if((!isnull(out_dir)) && dirblocker.BlocksExit(out_dir))
+			// Can we exit in this direction
+			return TRUE
+
+		// If both in & out dirs are not null, this is a 'tunnel' query
+		// (i.e. 'can you (not) pass through this tile in this manner)
 
 	return FALSE
 
 
 /turf/proc/IsBlocked(var/check_objects = FALSE, var/check_objects_permissive = FALSE)
-	if(density)
+	if(src.density)
 		return TRUE
 
 	if(check_objects && src.GoaiObjectBlocked(check_objects_permissive))

@@ -7,6 +7,7 @@
 # define UTILITYBRAIN_LOG_UTILITIES 0
 //# define UTILITYBRAIN_LOG_CONTEXTS 0
 //# define UTILITYBRAIN_LOG_CONTROLLER_LOOKUP 0
+//# define UTILITYBRAIN_LOG_ACTIONCOUNT 0
 
 
 /datum/brain/utility
@@ -110,6 +111,10 @@
 	var/PriorityQueue/utility_ranking = new /PriorityQueue(/datum/Triple/proc/FirstTwoCompare)
 	var/requester = src.GetRequester()
 
+	# ifdef UTILITYBRAIN_LOG_ACTIONCOUNT
+	var/template_count = 0
+	# endif
+
 	for(var/datum/action_set/actionset in actionsets)
 		if(!(actionset?.active))
 			continue
@@ -119,6 +124,10 @@
 			continue
 
 		for(var/datum/utility_action_template/action_template in actions)
+			# ifdef UTILITYBRAIN_LOG_ACTIONCOUNT
+			template_count++
+			# endif
+
 			var/list/contexts = action_template.GetCandidateContexts(requester)
 
 			if(contexts)
@@ -141,7 +150,11 @@
 					var/subctx_idx = 0
 					for(var/subctx in ctx)
 						subctx_idx++
-						to_world_log("ScoreAction subcontext: [subctx] @ [subctx_idx]")
+						try
+							to_world_log("ScoreAction subcontext: [subctx] [ctx[subctx]] @ [subctx_idx]")
+						catch(var/exception/e)
+							to_world_log("[e]")
+							to_world_log("ScoreAction subcontext: [subctx] @ [subctx_idx]")
 						DEBUG_LOG_LIST_ASSOC(subctx, to_world_log)
 
 					var/utility = action_template.ScoreAction(ctx, requester)
@@ -175,6 +188,13 @@
 
 				var/datum/Triple/scored_action = new(utility, action_template, null) // ...and here, as a triple!
 				utility_ranking.Enqueue(scored_action)
+
+
+	# ifdef UTILITYBRAIN_LOG_ACTIONCOUNT
+	UTILITYBRAIN_DEBUG_LOG(" ")
+	UTILITYBRAIN_DEBUG_LOG("INFO: Processed [template_count] ActionTemplates")
+	UTILITYBRAIN_DEBUG_LOG(" ")
+	#endif
 
 	return utility_ranking
 
@@ -212,16 +232,24 @@
 /datum/brain/utility/GetAvailableActions()
 	var/list/actionsets = list()
 
-	var/datum/action_set/file_actionset = src.GetActionSetFromFile("mock_actionset.json")
-	actionsets.Add(file_actionset)
-
 	var/list/smartobjects = src.GetMemoryValue("SmartObjects", null)
 
+	if(isnull(smartobjects))
+		smartobjects = list()
+
+	var/requester = src.GetRequester()
+	ASSERT(!isnull(requester))
+
+	var/datum/utility_ai/mob_commander/mob_controller = requester
+
+	if(!isnull(mob_controller))
+		// For Mob Controllers, the Pawn is a SmartObject too!
+		var/datum/pawn = mob_controller.GetPawn()
+		smartobjects.Add(pawn)
+
 	if(!isnull(smartobjects))
-		var/requester = src.GetRequester()
 
 		for(var/datum/SO in smartobjects)
-			world.log << "Found SO [SO]"
 			var/list/SO_actionsets = SO.GetUtilityActions(requester)
 
 			if(!isnull(SO_actionsets))
@@ -409,17 +437,16 @@
 
 
 /datum/brain/utility/DoAction(Act as anything in src.GetAvailableActions())
-	RUN_ACTION_DEBUG_LOG("Running DoAction: [Act] | <@[src]> | L[__LINE__] in [__FILE__]")
+	RUN_ACTION_DEBUG_LOG("INFO: Running DoAction: [Act] | <@[src]> | L[__LINE__] in [__FILE__]")
 
 	var/datum/utility_action/utility_act = Act
 
 	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(utility_act)
 
 	if(!new_actiontracker)
-		RUN_ACTION_DEBUG_LOG("[src]: Failed to create a tracker for [utility_act]!")
+		RUN_ACTION_DEBUG_LOG("ERROR: Failed to create a tracker for [utility_act]! | <@[src]> | L[__LINE__] in [__FILE__]")
 		return null
 
-	//to_world_log("New Tracker: [new_actiontracker] [new_actiontracker.tracked_action] @ [new_actiontracker.creation_time]")
 	running_action_tracker = new_actiontracker
 
 	return new_actiontracker

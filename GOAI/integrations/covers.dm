@@ -59,8 +59,11 @@
 
 /obj/cover/table/Setup()
 	directional_blocker = new()
+	directional_blocker.attached_to = src  // REMOVE ME!
+
 	if(flipped)
-		directional_blocker.blocks = src.dir
+		directional_blocker.blocks_entry = src.dir
+		directional_blocker.blocks_exit = src.dir
 
 
 /obj/cover/table/UpdateIcon()
@@ -91,7 +94,9 @@
 		directional_blocker = new()
 
 	density = FALSE
-	directional_blocker.blocks = flip_dir
+
+	directional_blocker.blocks_entry = flip_dir
+	directional_blocker.blocks_exit = flip_dir
 
 	UpdateIcon()
 	return flipped
@@ -165,7 +170,7 @@
 /obj/cover/door/Setup()
 	..()
 	name = "[name] @ [COORDS_TUPLE(src)]"
-	directional_blocker = new(null, TRUE, TRUE)
+	directional_blocker = new(null, null, TRUE, TRUE)
 	UpdateOpen()
 
 
@@ -234,7 +239,7 @@
 /obj/cover/autodoor/Setup()
 	..()
 	name = "[name] @ [COORDS_TUPLE(src)]"
-	directional_blocker = new(null, TRUE, TRUE)
+	directional_blocker = new(null, null, TRUE, TRUE)
 	UpdateOpen()
 
 	spawn(0)

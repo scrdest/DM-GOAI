@@ -65,10 +65,16 @@
 
 	#endif
 
-	var/datum/goai/goai_commander/commander = owner
+	var/datum/goai/commander = owner
 
 	if(commander)
 		tickrate = commander.ai_tick_delay
+		return tickrate
+
+	var/datum/utility_ai/utility_commander = owner
+
+	if(utility_commander)
+		tickrate = utility_commander.ai_tick_delay
 		return tickrate
 
 	return tickrate
