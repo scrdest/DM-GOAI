@@ -304,24 +304,6 @@
 	return
 
 
-/datum/brain/IsActionValid(var/action_key)
-	/* Brain-side Action validation.
-	//
-	// An Action is considered invalid if it doesn't make sense to run it.
-	// For instance, if the target of the Action has been deleted, we might
-	// as well not even start it.
-	//
-	// Preconditions violation at run-time DOES NOT *ALWAYS* make the Action
-	// invalid - Preconds are primarily constraints for _planning_ and can be
-	// fudged sometimes to generate specific behaviours.
-	//
-	// For that matter, INVALID =/= FAILED!
-	// INVALID *roughly* maps to 'failed before we even started' or 'not in a runnable state'
-	// Failed Actions have started, but for whatever reason we're cancelling them before completion.
-	*/
-	return TRUE
-
-
 /datum/brain/utility/LifeTick()
 	var/run_count = 0
 	var/target_run_count = 1
@@ -350,20 +332,8 @@
 		/* STATE: Ready */
 		else if(selected_action) // ready to go
 			RUN_ACTION_DEBUG_LOG("SELECTED ACTION: [selected_action]([selected_action?:arguments && json_encode(selected_action:arguments)]) | <@[src]>")
-
-			var/is_valid = src.IsActionValid(selected_action)
-
-			RUN_ACTION_DEBUG_LOG("SELECTED ACTION [selected_action]([selected_action?:arguments && json_encode(selected_action:arguments)]) VALID: [is_valid ? "TRUE" : "FALSE"]")
-
-			if(is_valid)
-				running_action_tracker = src.DoAction(selected_action)
-				target_run_count++
-
-			else
-				var/should_rerun = src.OnInvalidAction(selected_action)
-				if(should_rerun)
-					target_run_count++
-
+			running_action_tracker = src.DoAction(selected_action)
+			target_run_count++
 			selected_action = null
 
 

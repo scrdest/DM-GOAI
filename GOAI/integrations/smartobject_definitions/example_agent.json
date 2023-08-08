@@ -87,8 +87,118 @@
 			]
 		},
 		{
+			"name": "FollowRouteToAiTargetRUN", 
+			"description": "Does a run towards a target destination. Faster movement, but uninterruptible.", 
+			"handler": "/datum/utility_ai/mob_commander/proc/RunTo", 
+			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
+			"context_args": [
+				{
+					"key": "ai_active_path",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 0, 
+			"considerations": [
+				{
+					"name": "NotTooClose",
+					"lo_mark": 0, 
+					"hi_mark": 3, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "NotTooFar",
+					"lo_mark": 3, 
+					"hi_mark": 10, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_fakegauss_a"
+				},
+				{
+					"name": "DidntFailToTrackThis",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 10,
+					"input_proc": "/proc/consideration_input_candidate_in_brain", 
+					"input_args": {
+						"memory_key": "UnreachableRunMovePath"
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "DidntJustComeFromHere",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 30,
+					"input_proc": "/proc/consideration_input_candidate_in_brain", 
+					"input_args": {
+						"memory_key": "MyPrevLocation"
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "DidntFailMoveToTarget",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 10,
+					"input_proc": "/proc/consideration_input_candidate_in_brain", 
+					"input_args": {
+						"memory_key": "UnreachableTile"
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "IsOnPath",
+					"lo_mark": 1.1, 
+					"hi_mark": 2.0, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_is_on_path_gradient", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1,
+						"default_on_null": 0,
+						"minimum_distance_to_path_tile": 0
+					},
+					"curve_proc": "/proc/curve_fakegauss_a"
+				},
+				{
+					"name": "DestinationInView",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_candidate_in_brain_list", 
+					"input_args": {
+						"input_key": "position",
+						"memory_key": "SightCurr",
+						"memory_source": "perceptions",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "CanEnterMoveToTarget",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_is_passable", 
+					"input_args": {
+						"default": 1
+					},
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
 			"name": "Coverleap", 
-			"description": "Plans for and makes a tacticool run to a cover location. Faster movement, but trivially uninterruptible.", 
+			"description": "Plans for and makes a tacticool run to a cover location. Faster movement, but uninterruptible.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog", 
 			"priority": 5,
 			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 

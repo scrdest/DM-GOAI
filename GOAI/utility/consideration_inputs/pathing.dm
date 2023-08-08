@@ -35,7 +35,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_planned_path)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path Target Pos is null ([pos || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/path = requesting_brain.GetMemoryValue(MEM_PATH_TO_POS("aitarget"))
+	var/path = requesting_brain.GetMemoryValue(MEM_PATH_ACTIVE)
 
 	return path
 

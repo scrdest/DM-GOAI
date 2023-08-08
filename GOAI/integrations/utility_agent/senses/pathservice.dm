@@ -49,6 +49,7 @@
 		return
 
 	owner_brain.SetMemory(MEM_PATH_TO_POS("aitarget"), path, _path_ttl)
+	owner_brain.SetMemory(MEM_PATH_ACTIVE, path, _path_ttl)
 
 	return path
 

@@ -48,6 +48,7 @@
 # define MEM_BESTPOS_PANIC "BestPosPanic"
 # define MEM_TRUST_BESTPOS "TrustFirstBestpos"
 # define MEM_PATH_TO_POS(Pos) "path_to_[Pos]"
+# define MEM_PATH_ACTIVE "ai_active_path" // we can have multiple paths stored, but only one active
 
 # define MEM_DIRLEAP_BESTPOS "DirectionalCoverleapBestpos"
 # define MEM_CHARGE_BESTPOS "ChargeBestpos"

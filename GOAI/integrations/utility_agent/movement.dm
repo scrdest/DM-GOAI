@@ -357,12 +357,6 @@
 	if(next_step)
 		var/curr_pos = get_turf(pawn)
 
-		if(src.active_path.frustration > 2)
-			//brain?.SetMemory("UnreachableTile", active_path.target)
-			src.brain?.SetMemory("UnreachableTile", next_step)
-			randMove()
-			return
-
 		if(get_dist(pawn, next_step) > 1)
 			// If we somehow wind up away from the core path, move back towards it first
 			WalkPawnTowards(next_step, FALSE, TRUE)
@@ -379,10 +373,6 @@
 
 		if(success)
 			src.brain?.SetMemory("LastTile", curr_pos)
-			src.active_path.frustration = 0
-
-		else
-			src.active_path.frustration++
 
 	else
 		src.active_path.SetDone()

@@ -39,7 +39,7 @@
 	return
 
 
-/datum/utility_ai/mob_commander/proc/RunTo(var/datum/ActionTracker/tracker, var/atom/position)
+/datum/utility_ai/mob_commander/proc/RunTo(var/datum/ActionTracker/tracker, var/atom/position, var/timeout = null)
 	/*
 	// Fancier movement; will *keep* walking to the target. Also a fair bit faster, for Reasons (TM).
 	//
@@ -75,15 +75,17 @@
 	var/min_dist = 0
 
 	if((!src.active_path || src.active_path.target != position))
-		StartNavigateTo(position, min_dist, null)
-
-	var/succeeded = TRUE
-
-	if(!succeeded)
-		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)
-		tracker.BBSet("failed_steps", ++bb_failures)
-
-		if(bb_failures > 3)
+		var/stored_path = StartNavigateTo(position, min_dist, null)
+		if(isnull(stored_path))
 			tracker.SetFailed()
+			src.brain?.SetMemory("UnreachableRunMovePath", position, 500)
+			return
+
+	var/pathing_timeout = DEFAULT_IF_NULL(timeout, 100)
+	var/timedelta = (world.time - tracker.creation_time)
+
+	if(timedelta > pathing_timeout)
+		tracker.SetFailed()
+		return
 
 	return

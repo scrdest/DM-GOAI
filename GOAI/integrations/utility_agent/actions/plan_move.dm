@@ -33,6 +33,7 @@
 		chunkypath = ChunkyAStar(pawn, position)
 		tracker.BBSet("path", chunkypath)
 		src.brain.SetMemory(MEM_PATH_TO_POS("aitarget"), chunkypath, 100)
+		src.brain.SetMemory(MEM_PATH_ACTIVE, chunkypath, 100)
 
 	var/memory = src.brain.GetMemoryValue(MEM_PATH_TO_POS("aitarget"))
 	world.log << "Memory is [memory] | [__FILE__] -> L[__LINE__]"
@@ -96,6 +97,7 @@
 		world.log << "Path to [position] is [path] | [__FILE__] -> L[__LINE__]"
 		tracker.BBSet("path", path)
 		src.brain.SetMemory(MEM_PATH_TO_POS("aitarget"), path, _path_ttl)
+		src.brain.SetMemory(MEM_PATH_ACTIVE, path, _path_ttl)
 
 	var/memory = src.brain.GetMemoryValue(MEM_PATH_TO_POS("aitarget"))
 	world.log << "Memory is [memory] | [__FILE__] -> L[__LINE__]"
