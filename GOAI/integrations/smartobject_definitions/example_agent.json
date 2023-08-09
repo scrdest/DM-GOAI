@@ -23,7 +23,7 @@
 			"description": "Does a single step towards a target destination. Slower (bottlenecked by AI tickrate) but trivially interruptible.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
 			"context_procs": ["/proc/ctxfetcher_cardinal_turfs"], 
-			"priority": 2, 
+			"priority": 1, 
 			"considerations": [
 				{
 					"name": "HasPlan",
@@ -97,8 +97,20 @@
 					"output_context_key": "position"
 				}
 			],
-			"priority": 0, 
+			"priority": 2, 
 			"considerations": [
+				{
+					"name": "NotDense",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_read_var", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
 				{
 					"name": "NotTooClose",
 					"lo_mark": 0, 

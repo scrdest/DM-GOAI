@@ -91,15 +91,22 @@
 	ASSERT(json_data)
 
 	var/list/considerations = list()
+
+	# ifdef DEBUG_SERDE_LOADS
 	var/idx = 0
+	# endif
 
 	for(var/list/consideration_json_data in json_data)
+		# ifdef DEBUG_SERDE_LOADS
 		idx++
+		# endif
+
 		var/datum/consideration/new_consideration = UtilityConsiderationFromData(consideration_json_data)
 
 		if(isnull(new_consideration))
-			//log
+			# ifdef DEBUG_SERDE_LOADS
 			UTILITYBRAIN_DEBUG_LOG("Failed to load Consideration at idx [idx]")
+			# endif
 			continue
 
 		# ifdef DEBUG_SERDE_LOADS

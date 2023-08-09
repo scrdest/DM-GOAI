@@ -45,12 +45,15 @@
 	SET_IF_NOT_NULL(description_override, src.description)
 	SET_IF_NOT_NULL(active, src.active)
 
+	# ifdef UTILITYBRAIN_DEBUG_LOGGING
 	if(!src.considerations)
 		UTILITYBRAIN_DEBUG_LOG("WARNING: no Considerations bound to Action [src.name] @ L[__LINE__]!")
+	# endif
 
+	# ifdef UTILITYBRAIN_DEBUG_LOGGING
 	if(!src.handler)
 		UTILITYBRAIN_DEBUG_LOG("WARNING: no Handler bound to Action [src.name] @ L[__LINE__]!")
-
+	# endif
 
 /datum/utility_action_template/proc/GetCandidateContexts(var/requester) // Optional<Any> -> Optional<array<assoc>>
 	/*

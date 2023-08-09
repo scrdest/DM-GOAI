@@ -9,13 +9,16 @@
 // This file is currently just provides top-level shared bits, it MAY get deleted later on.
 */
 
-# define DEBUG_UTILITY_INPUT_FETCHERS 1
+//# define DEBUG_UTILITY_INPUT_FETCHERS 1
 
 # ifdef DEBUG_UTILITY_INPUT_FETCHERS
 # define DEBUGLOG_UTILITY_INPUT_FETCHERS(X) to_world_log(X)
+# define DEBUGLOG_UTILITY_INPUT_CATCH(X) catch(X)
 # else
 # define DEBUGLOG_UTILITY_INPUT_FETCHERS(X)
+# define DEBUGLOG_UTILITY_INPUT_CATCH(X) catch()
 # endif
+
 
 
 // Macro-ized callsig to make it easy/mandatory to use the proper API conventions

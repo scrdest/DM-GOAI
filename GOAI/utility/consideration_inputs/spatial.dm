@@ -118,23 +118,23 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 
 	var/raw_find_type = consideration_args?["locate_type_as_target"]
 	var/find_type = text2path(raw_find_type)
-	to_world_log("consideration_input_is_passable find_type is [find_type || "null"] ([raw_find_type || "null"]) @ L[__LINE__] in [__FILE__]")
+	DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_passable find_type is [find_type || "null"] ([raw_find_type || "null"]) @ L[__LINE__] in [__FILE__]")
 
 	if(!isnull(find_type))
 		var/atom/found_instance = (locate(find_type) in queried_turf.contents)
 
 		if(isnull(found_instance))
-			to_world_log("consideration_input_is_passable found_instance is null @ L[__LINE__] in [__FILE__]")
+			DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_passable found_instance is null @ L[__LINE__] in [__FILE__]")
 			return default
 
 		var/datum/directional_blocker/dirblocker = found_instance.GetBlockerData(TRUE, TRUE)
 
 		if(isnull(dirblocker))
-			to_world_log("consideration_input_is_passable DirBlocker is null @ L[__LINE__] in [__FILE__]")
+			DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_passable DirBlocker is null @ L[__LINE__] in [__FILE__]")
 			return TRUE
 
 		var/instance_result = !(dirblocker.is_active && dirblocker.block_all)
-		to_world_log("consideration_input_is_passable instance_result is [instance_result] @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_passable instance_result is [instance_result] @ L[__LINE__] in [__FILE__]")
 		return instance_result
 
 	// Basic implementation not using colliders yet!!!
@@ -147,7 +147,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 		return null
 
 	var/atom/requester_atom = requester_ai?.GetPawn()
-	to_world_log("consideration_input_is_passable blocked is [blocked] @ L[__LINE__] in [__FILE__]")
+	DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_passable blocked is [blocked] @ L[__LINE__] in [__FILE__]")
 
 	if(!isnull(requester_atom))
 		if(get_dist(requester_atom, queried_turf) <= 1)
@@ -161,7 +161,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_passable)
 			blocked = blocked || GoaiDirBlocked(queried_turf, entry_dir, null)
 
 	var/result = (!blocked)
-	to_world_log("consideration_input_is_passable result is [result] @ L[__LINE__] in [__FILE__]")
+	DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_passable result is [result] @ L[__LINE__] in [__FILE__]")
 	return result
 
 

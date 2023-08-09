@@ -4,10 +4,6 @@
 // The underscore in the filename is just to trick DM into sorting this correctly.
 */
 
-# define UTILITYBRAIN_LOG_UTILITIES 0
-//# define UTILITYBRAIN_LOG_CONTEXTS 0
-//# define UTILITYBRAIN_LOG_CONTROLLER_LOOKUP 0
-//# define UTILITYBRAIN_LOG_ACTIONCOUNT 0
 
 
 /datum/brain/utility
@@ -135,11 +131,12 @@
 				UTILITYBRAIN_DEBUG_LOG("Found contexts ([contexts.len])")
 				# endif
 
-				# ifdef UTILITYBRAIN_LOG_UTILITIES
+				# ifdef UTILITYBRAIN_LOG_CONTEXTS
 				var/ctxidx = 0
 				# endif
 
 				for(var/ctx in contexts)
+					# ifdef UTILITYBRAIN_LOG_CONTEXTS
 					// Yes, this is a triple-nested for-loop, and that's fine since we're looping
 					// over different categories. In particular, the first two loops are effectively
 					// one loop with a top-level optimization (skip all disabled actions in a set).
@@ -156,11 +153,12 @@
 							to_world_log("[e]")
 							to_world_log("ScoreAction subcontext: [subctx] @ [subctx_idx]")
 						DEBUG_LOG_LIST_ASSOC(subctx, to_world_log)
+					# endif
 
 					var/utility = action_template.ScoreAction(ctx, requester)
 
 					# ifdef UTILITYBRAIN_LOG_UTILITIES
-					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name] ctx #[ctxidx++]: [utility] (priority: [action_template?.priority_class])")
+					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name]: [utility] (priority: [action_template?.priority_class])")
 					UTILITYBRAIN_DEBUG_LOG("=========================")
 					UTILITYBRAIN_DEBUG_LOG(" ")
 					# endif
@@ -274,9 +272,14 @@
 	// selects a high-utility action.
 	*/
 
+	set waitfor = FALSE
+
 	// selection left intentionally vague; will probably do deterministic as PoC and weighted sampling later
 
 	if(!is_planning)
+		is_planning = TRUE
+		sleep(0)
+
 		var/list/actionsets = GetAvailableActions()
 
 		var/PriorityQueue/utility_ranking = src.ScoreActions(actionsets)
@@ -301,6 +304,7 @@
 	else //satisfied, can be lazy
 		Idle()
 
+	is_planning = FALSE
 	return
 
 
@@ -313,7 +317,7 @@
 
 	while(run_count++ < target_run_count)
 		/* STATE: Running */
-		if(running_action_tracker) // processing action
+		if(running_action_tracker?.process) // processing action
 			RUN_ACTION_DEBUG_LOG("ACTIVE ACTION: [running_action_tracker.tracked_action] @ [running_action_tracker.IsRunning()] | <@[src]>")
 
 			if(running_action_tracker.replan)
@@ -332,8 +336,10 @@
 		/* STATE: Ready */
 		else if(selected_action) // ready to go
 			RUN_ACTION_DEBUG_LOG("SELECTED ACTION: [selected_action]([selected_action?:arguments && json_encode(selected_action:arguments)]) | <@[src]>")
+
 			running_action_tracker = src.DoAction(selected_action)
 			target_run_count++
+
 			selected_action = null
 
 
@@ -385,7 +391,8 @@
 
 
 /datum/brain/utility/proc/NextPlanStep()
-	src.running_action_tracker = null
+	if(src.running_action_tracker)
+		src.running_action_tracker.process = FALSE
 	return TRUE
 
 
@@ -396,7 +403,8 @@
 		src.running_action_tracker?.SetFailed()
 
 	// Cancel current tracker, if any is running
-	src.running_action_tracker = null
+	if(src.running_action_tracker)
+		src.running_action_tracker.process = FALSE
 
 	// Cancel all instant and regular Actions
 	PUT_EMPTY_LIST_IN(src.pending_instant_actions)
@@ -411,7 +419,14 @@
 
 	var/datum/utility_action/utility_act = Act
 
-	var/datum/ActionTracker/new_actiontracker = new /datum/ActionTracker(utility_act)
+	var/datum/ActionTracker/new_actiontracker = src.running_action_tracker
+
+	if(isnull(new_actiontracker))
+		new_actiontracker = new /datum/ActionTracker(utility_act)
+	else
+		// Object pooling
+		var/should_run = new_actiontracker.IsStopped()  // if already running, no need to spin up a thread
+		new_actiontracker.Initialize(utility_act, run=should_run)
 
 	if(!new_actiontracker)
 		RUN_ACTION_DEBUG_LOG("ERROR: Failed to create a tracker for [utility_act]! | <@[src]> | L[__LINE__] in [__FILE__]")

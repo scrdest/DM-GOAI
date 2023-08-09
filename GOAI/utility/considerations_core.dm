@@ -1,6 +1,3 @@
-# define UTILITYBRAIN_LOG_CONSIDERATION_INPUTS 0
-# define UTILITYBRAIN_LOG_AXIS_SCORES 0
-
 
 /datum/consideration
 	/* This datum is designed to be a 'persistent' representation of a Consideration,

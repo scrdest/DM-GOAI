@@ -1,4 +1,12 @@
 
+//# define DEBUG_UTILITY_MEMORY_QUERIES 1
+
+# ifdef DEBUG_UTILITY_MEMORY_QUERIES
+# define DEBUGLOG_UTILITY_MEMORY_FETCH(X) to_world_log(X)
+# else
+# define DEBUGLOG_UTILITY_MEMORY_FETCH(X)
+# endif
+
 
 CTXFETCHER_CALL_SIGNATURE(/proc/__ctxfetcher_get_memory_value_helper)
 	// Returns a stored Memory
@@ -39,15 +47,15 @@ CTXFETCHER_CALL_SIGNATURE(/proc/__ctxfetcher_get_memory_value_helper)
 
 	switch(source_key)
 		if("perception", "perceptions")
-			to_world_log("Fetching [input_key] from Peceptions")
+			DEBUGLOG_UTILITY_MEMORY_FETCH("Fetching [input_key] from Peceptions")
 			memory_val = requesting_brain.perceptions.Get(input_key)
 
 		if("need", "needs")
-			to_world_log("Fetching [input_key] from Needs")
+			DEBUGLOG_UTILITY_MEMORY_FETCH("Fetching [input_key] from Needs")
 			memory_val = requesting_brain?.needs[input_key]
 
 		else
-			to_world_log("Fetching [input_key] from Memories")
+			DEBUGLOG_UTILITY_MEMORY_FETCH("Fetching [input_key] from Memories")
 			memory_val = requesting_brain.GetMemoryValue(input_key)
 
 	return memory_val

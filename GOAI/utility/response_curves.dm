@@ -5,7 +5,6 @@
 // We want to be able to call() these, so we cannot inline them with macros.
 */
 
-// # define UTILITYBRAIN_LOG_CURVE_INPUTS 0
 
 
 /proc/curve_linear(var/input) // float -> activation (float)

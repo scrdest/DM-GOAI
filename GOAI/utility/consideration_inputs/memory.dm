@@ -2,6 +2,15 @@
 // Consideration procs that deal with AI Brain data: Memories, Perceptions, Needs, etc.
 */
 
+//# define DEBUG_MEMORY_QUERIES 1
+
+# ifdef DEBUG_MEMORY_QUERIES
+# define DEBUGLOG_MEMORY_FETCH(X) to_world_log(X)
+# define DEBUGLOG_MEMORY_ERRCATCH(X) catch(X)
+# else
+# define DEBUGLOG_MEMORY_FETCH(X)
+# define DEBUGLOG_MEMORY_ERRCATCH(X) catch()
+# endif
 
 CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 	// This is not a 'proper' Consideration, but it has the same interface as one; it's a way of DRYing
@@ -11,7 +20,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_brain_data")
 
 	if(isnull(requesting_brain))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_brain_data Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_MEMORY_FETCH("_cihelper_get_brain_data Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
 	var/input_key = "input"
@@ -20,7 +29,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 		input_key = consideration_args["memory_key"] || input_key
 
 	if(isnull(input_key))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_brain_data Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_MEMORY_FETCH("_cihelper_get_brain_data Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/source_key = "memory"
@@ -35,15 +44,15 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 
 	switch(source_key)
 		if("perception", "perceptions")
-			to_world_log("Fetching [input_key] from Peceptions")
+			DEBUGLOG_MEMORY_FETCH("Fetching [input_key] from Peceptions")
 			memory = requesting_brain.perceptions.Get(input_key)
 
 		if("need", "needs")
-			to_world_log("Fetching [input_key] from Needs")
+			DEBUGLOG_MEMORY_FETCH("Fetching [input_key] from Needs")
 			memory = requesting_brain?.needs[input_key]
 
 		else
-			to_world_log("Fetching [input_key] from Memories")
+			DEBUGLOG_MEMORY_FETCH("Fetching [input_key] from Memories")
 			memory = requesting_brain.GetMemoryValue(input_key)
 
 	return memory
@@ -107,7 +116,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain)
 
 	var/candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
 	if(isnull(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_candidate_in_brain Candidate is null ([candidate || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_MEMORY_FETCH("consideration_input_candidate_in_brain Candidate is null ([candidate || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
@@ -123,11 +132,11 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain_list)
 
 	try
 		candidate = (from_ctx ? context[pos_key] : consideration_args[pos_key])
-	catch(var/exception/e)
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <pos_key='[pos_key]'>")
+	DEBUGLOG_MEMORY_ERRCATCH(var/exception/e)
+		DEBUGLOG_MEMORY_FETCH("ERROR: [e] on [e.file]:[e.line]. <pos_key='[pos_key]'>")
 
 	if(isnull(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_candidate_in_brain_list Candidate is null ([candidate || "null"]) <from_ctx=[from_ctx] | pos_key=[pos_key]> @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_MEMORY_FETCH("consideration_input_candidate_in_brain_list Candidate is null ([candidate || "null"]) <from_ctx=[from_ctx] | pos_key=[pos_key]> @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/raw_memory = _cihelper_get_brain_data(context, requester, consideration_args)

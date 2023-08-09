@@ -11,9 +11,12 @@
 	var/list/tracker_blackboard
 	var/sleep_time = ACTION_TICK_DELAY
 
+	var/is_rebuilding = FALSE
 	var/is_done = FALSE
 	var/is_failed = FALSE
 	var/is_aborted = FALSE
+
+	var/process = TRUE
 
 	// Special flag; when TRUE, plan is invalid but not failed (typically, a dependency popped up)
 	// The value might be a key - this indicates the reason for replan (i.e. OBSTACLE might have an obstacle-specific replanner)
@@ -25,18 +28,38 @@
 	var/last_check_time = null
 
 
-/datum/ActionTracker/New(var/datum/goai_action/action, var/timeout = null, var/tick_delay = null)
+/datum/ActionTracker/proc/Initialize(var/datum/goai_action/action, var/timeout = null, var/tick_delay = null, var/run = TRUE)
+	if(src.is_rebuilding)
+		return
+
+	src.is_rebuilding = TRUE
+	world << "Reinitializing ActionTracker"
+
+	src.is_done = FALSE
+	src.is_failed = FALSE
+	src.is_aborted = FALSE
+
+	src.process = TRUE
+
 	tracked_action = action || tracked_action
 	timeout_ds = timeout
-	tracker_blackboard = list()
+
+	src.tracker_blackboard = list()
+
 	sleep_time = (isnull(tick_delay) ? (sleep_time || ACTION_TICK_DELAY) : tick_delay)
 
 	var/curr_time = world.time
 	creation_time = curr_time
 	last_check_time = curr_time
 
-	spawn(0)
+	if(run)
 		Run()
+
+	src.is_rebuilding = FALSE
+
+
+/datum/ActionTracker/New(var/datum/goai_action/action, var/timeout = null, var/tick_delay = null)
+	src.Initialize(action, timeout, tick_delay, TRUE)
 
 
 /* == Blackboard (hence 'BB') management == */
@@ -207,6 +230,10 @@
 
 /* Core loop */
 /datum/ActionTracker/proc/Run()
+	set waitfor = FALSE
+
+	src.is_rebuilding = FALSE
+
 	while (IsRunning())
 		CheckAbandoned()
 

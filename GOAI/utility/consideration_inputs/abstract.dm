@@ -30,7 +30,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_arg_not_null)
 	var/candidate = null
 	try
 		candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
-	catch(var/exception/e)
+	DEBUGLOG_UTILITY_INPUT_CATCH(var/exception/e)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <inp_key='[inp_key]'>")
 
 	if(isnull(candidate))
@@ -52,7 +52,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_read_var)
 	var/candidate = null
 	try
 		candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
-	catch(var/exception/e)
+	DEBUGLOG_UTILITY_INPUT_CATCH(var/exception/e)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <inp_key='[inp_key]'>")
 
 	if(isnull(candidate))
