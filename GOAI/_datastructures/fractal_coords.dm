@@ -121,7 +121,7 @@
 
 
 /proc/fractal_children_str(var/dimstring, var/sf = 3)
-	ASSERT(!(isnull(sf)))
+	//ASSERT(!(isnull(sf)))
 	ASSERT(!(sf == 0))
 
 	if(isnull(dimstring))

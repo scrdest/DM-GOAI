@@ -15,6 +15,8 @@
 # define GOAI_LIBBED_GLOB_PREFIX(operator)
 # define GOAI_LIBBED_GLOB_ATTR(globject) globject
 
+# define qdel_from_weakref(x) del(x)
+
 # else
 
 
@@ -26,10 +28,11 @@
 
 // Use actual weakrefs
 # define GOAI_LIBBED_WEAKREF(X) weakref(X)
-# define GOAI_LIBBED_WEAKREF_TYPE weakref
+# define GOAI_LIBBED_WEAKREF_TYPE datum/weakref
 
 // We 'SS13-ify' globals using a prefix + access op (`.` / `?.`)
 # define GOAI_LIBBED_GLOB_PREFIX(operator) GLOB.
 # define GOAI_LIBBED_GLOB_ATTR(globject) GLOB.globject
 
+# define qdel_from_weakref(x) qdel(x:resolve())
 # endif
