@@ -396,24 +396,3 @@
 
 	return FALSE
 
-
-/proc/ChangeTurf(var/turf/trg, var/new_type)
-	if(isnull(new_type))
-		return
-
-	if(!ispath(new_type))
-		return
-
-	if(!ispath(new_type, /turf))
-		return
-
-	if(!isnull(trg?.associated_wfc_overwritables))
-		for(var/overwritten in trg.associated_wfc_overwritables)
-			qdel_from_weakref(overwritten)
-
-	var/turf/new_turf = new new_type(trg)
-	return new_turf
-
-
-/turf/proc/ChangeThisTurf(var/new_type)
-	return ChangeTurf(src, new_type)

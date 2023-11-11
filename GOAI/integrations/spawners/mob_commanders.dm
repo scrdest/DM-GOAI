@@ -223,8 +223,8 @@
 	# endif
 
 	# ifdef GOAI_LIBRARY_FEATURES
-	icon = 'icons/obj/gun.dmi'
-	icon_state = "laser"
+	icon = 'icons/obj/guns/pulse_pistol.dmi'
+	icon_state = "pulse_pistol"
 	# endif
 
 	script = /proc/spawn_commanded_object

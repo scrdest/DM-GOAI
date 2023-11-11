@@ -2,21 +2,21 @@
 	set category = "SerDe"
 
 	var/data = json_decode(file2text(fp))
-	usr << " "
-	usr << "loaded [data]"
+	to_chat(usr, " ")
+	to_chat(usr, "loaded [data]")
 
 	var/list/considerations = UtilityConsiderationArrayFromData(data)
 
 	if(isnull(considerations))
-		usr << "Failed to load Considerations"
+		to_chat(usr, "Failed to load Considerations")
 		return
 
 	for(var/datum/cons in considerations)
-		usr << "Consideration: [cons]"
-		usr << "---------------------"
+		to_chat(usr, "Consideration: [cons]")
+		to_chat(usr, "---------------------")
 
 		for(var/ConsVar in cons.vars)
-			usr << "o [ConsVar] => [cons.vars[ConsVar]]"
+			to_chat(usr, "o [ConsVar] => [cons.vars[ConsVar]]")
 
 	return
 
@@ -25,16 +25,16 @@
 	set category = "SerDe"
 
 	var/data = json_decode(file2text(fp))
-	usr << " "
+	to_chat(usr, " ")
 
 	var/datum/utility_action_template/loaded_action_template = ActionTemplateFromData(data)
 
 	if(isnull(loaded_action_template))
-		usr << "Failed to load an ActionTemplate"
+		to_chat(usr, "Failed to load an ActionTemplate")
 		return
 
 	for(var/AtVar in loaded_action_template.vars)
-		usr << "o [AtVar] => [loaded_action_template.vars[AtVar]]"
+		to_chat(usr, "o [AtVar] => [loaded_action_template.vars[AtVar]]")
 
 	return
 
@@ -44,7 +44,7 @@
 	set category = "SerDe"
 
 	var/data = json_decode(file2text(fp))
-	usr << " "
+	to_chat(usr, " ")
 
 	var/datum/action_set/new_actionset = ActionSetFromData(data)
 
