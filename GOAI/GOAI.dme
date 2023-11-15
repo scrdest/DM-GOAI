@@ -146,7 +146,7 @@
 #include "integrations\utility_agent\actions\shoot.dm"
 #include "integrations\utility_agent\actions\tables.dm"
 #include "integrations\utility_agent\senses\pathservice.dm"
-#include "maps\combatmap_doorland_abstractai.dmm"
+#include "maps\combatmap_table_move_debug.dmm"
 #include "utility\actions.dm"
 #include "utility\actionset.dm"
 #include "utility\actiontemplate.dm"

@@ -202,6 +202,11 @@
 
 	var/list/actions = list()
 
+	// Origin left null, to be set by the caller.
+	// Actions ALSO null, we sadly need to set their origin to this object AFTER we create it
+	//   and it's cleaner to iterate just once (right here) than to add a second loop in New().
+	var/datum/action_set/new_actionset = new(name, null, active, ttl_remove, ttl_deactivate, time_retrieved, null, true_freshness_proc, freshness_proc_args)
+
 	for(var/action_definition in action_data)
 		if(isnull(action_definition))
 			continue
@@ -218,8 +223,10 @@
 
 		actions.Add(new_action_template)
 
-	// origin left null, to be set by the caller
-	var/datum/action_set/new_actionset = new(name, actions, active, ttl_remove, ttl_deactivate, time_retrieved, null, true_freshness_proc, freshness_proc_args)
+		// I don't exactly love this, but we do need to track origin somehow
+		new_action_template.origin = new_actionset
+
+	new_actionset.actions = actions
 	return new_actionset
 
 

@@ -12,6 +12,8 @@
 	var/name = "Action"
 	var/description = null
 
+	var/origin = null  // who gave us this ActionTemplate (most likely an ActionSet)
+
 	var/active = TRUE  // meant to granularly disable options (e.g. for cooldowns) without affecting the whole ActionSet.
 
 	var/list/context_fetchers = null // a list of procs that generate candidate context for the action

@@ -59,7 +59,7 @@
 	var/list/candidates = owner_brain?.perceptions[in_mem_key]
 	var/list/smartobjects = list()
 
-	for(var/datum/cand in candidates).
+	for(var/datum/cand in candidates)
 		var/has_actions = cand.HasUtilityActions(owner.GetPawn())
 
 		if(!has_actions)

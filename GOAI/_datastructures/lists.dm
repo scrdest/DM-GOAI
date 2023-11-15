@@ -119,3 +119,22 @@
 			disjoint[i] = assoc_needles[i]
 	return disjoint
 
+
+/proc/reverse_list_clone(var/list/srclist)
+	if(isnull(srclist) || !islist(srclist))
+		return null
+
+	var/src_len = srclist.len
+
+	if(src_len <= 1)
+		return srclist.Copy()
+
+	var/reversed[src_len]
+	var/helper_len = src_len + 1
+	var/temp_len = 1
+
+	while(temp_len <= src_len)
+		reversed[temp_len] = srclist[helper_len - temp_len]
+		temp_len++
+
+	return reversed

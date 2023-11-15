@@ -78,7 +78,7 @@
 	var/datum/utility_ai/mob_commander/combat_commander/new_commander = new()
 	#ifdef UTILITY_SMARTOBJECT_SENSES
 	// Spec for Dev senses!
-	new_commander.sense_filepaths = "dev_sense.json"
+	new_commander.sense_filepaths = DEFAULT_UTILITY_AI_SENSES
 	#endif
 	AttachUtilityCommanderTo(src, new_commander)
 	src.commander_id = new_commander.registry_index

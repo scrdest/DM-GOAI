@@ -55,7 +55,8 @@ var/list/global/actionset_file_cache = null
 	SET_IF_NOT_NULL(freshness_proc_args, src.freshness_proc_args)
 
 	ASSERT(src.name)
-	ASSERT(src.actions)
+	//disabling that since we need to defer adding actions sometimes -_-
+	//ASSERT(src.actions)
 
 
 /datum/action_set/proc/Deactivate()

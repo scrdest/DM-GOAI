@@ -85,3 +85,5 @@
 
 // Kinda black magic; looks up an AI reference and puts it into the variable PATH specified in the second argument.
 # define FetchAiControllerForObjIntoVar(gameobj, VarPath) var/__commander_backref = gameobj?.attachments?.Get(ATTACHMENT_CONTROLLER_BACKREF); VarPath = IS_REGISTERED_AI(__commander_backref) && GOAI_LIBBED_GLOB_ATTR(global_goai_registry[__commander_backref])
+
+# define DEFAULT_UTILITY_AI_SENSES "dev_sense.json"

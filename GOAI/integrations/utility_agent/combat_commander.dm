@@ -18,7 +18,7 @@
 	// Semicolon-separated string (to imitate the PATH envvar);
 	// Will be split and parsed to a list at runtime.#
 	// We're doing it this weird way to avoid dealing with list defaults
-	var/sense_filepaths = "dev_sense.json"
+	var/sense_filepaths = DEFAULT_UTILITY_AI_SENSES
 	#endif
 
 

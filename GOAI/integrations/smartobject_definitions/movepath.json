@@ -1,0 +1,81 @@
+{
+	"name": "MovePathActions", 
+	"active": 1, 
+	"actions": [
+		{
+			"name": "FollowRouteToAiTargetSMARTIFIED", 
+			"description": "Does a single step towards a target destination. Slower (bottlenecked by AI tickrate) but trivially interruptible.", 
+			"handler": "/datum/utility_ai/mob_commander/proc/StepTo", 
+			"context_procs": ["/proc/ctxfetcher_read_origin_var"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_pop": "1",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 3, 
+			"considerations": [
+				{
+					"name": "HasPathStep",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_arg_not_null", 
+					"input_args": {
+						"input_key": "position",
+						"default": 1
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "CanEnterMoveToTarget",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_input_is_passable", 
+					"input_args": {
+						"default": 1
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "DidntJustComeFromHere",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 30,
+					"input_proc": "/proc/consideration_input_candidate_in_brain", 
+					"input_args": {
+						"memory_key": "MyPrevLocation"
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "DidntFailMoveToTarget",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 10,
+					"input_proc": "/proc/consideration_input_candidate_in_brain", 
+					"input_args": {
+						"memory_key": "UnreachableTile"
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				}
+			]
+		},
+		{
+			"name": "PathTestSMARTIFIED", 
+			"description": "Useless action meant to prove this works", 
+			"handler": "/datum/utility_ai/mob_commander/proc/Idle", 
+			"priority": 0, 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"considerations": [
+				{
+					"name": "Got nothing better to do",
+					"input_proc": "/proc/consideration_input_always",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_binary"
+				}
+			]
+		}
+	]
+}

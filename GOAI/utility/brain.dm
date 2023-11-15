@@ -231,24 +231,38 @@
 	var/list/actionsets = list()
 
 	var/list/smartobjects = src.GetMemoryValue("SmartObjects", null)
+	var/list/smart_paths = src.GetMemoryValue("AbstractSmartPaths", null)
 
 	if(isnull(smartobjects))
 		smartobjects = list()
 
+	if(!isnull(smart_paths))
+		for(var/path_key in smart_paths)
+			var/datum/path_smartobject/path_so = smart_paths[path_key]
+			if(istype(path_so))
+				smartobjects.Add(path_so)
+
 	var/requester = src.GetRequester()
 	ASSERT(!isnull(requester))
 
-	var/datum/utility_ai/mob_commander/mob_controller = requester
+	/*
+	// currently implicit since we always can see ourselves
+	// should prolly do a 'if X not in list already', but BYOOOOND
+
+	//var/datum/utility_ai/mob_commander/mob_controller = requester
 
 	if(!isnull(mob_controller))
 		// For Mob Controllers, the Pawn is a SmartObject too!
 		var/datum/pawn = mob_controller.GetPawn()
 		smartobjects.Add(pawn)
+	*/
 
 	if(!isnull(smartobjects))
 
 		for(var/datum/SO in smartobjects)
 			var/list/SO_actionsets = SO.GetUtilityActions(requester)
+			// prolly should be this instead, but had a weird bug:
+			//var/list/SO_actionsets = src.GetActionSetsFromSmartObject(SO)
 
 			if(!isnull(SO_actionsets))
 				world.log << "Found Actionsets for [SO] - len=[SO_actionsets.len]"

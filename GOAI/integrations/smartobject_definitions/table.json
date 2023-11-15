@@ -14,7 +14,7 @@
 					"filter_output_key": "target"
 				}
 			],
-			"priority": 3, 
+			"priority": 2, 
 			"considerations": [
 				{
 					"name": "TableIsFlipped",
@@ -89,7 +89,7 @@
 					"filter_output_key": "target"
 				}
 			],
-			"priority": 3, 
+			"priority": 2, 
 			"considerations": [
 				{
 					"name": "TableIsFlipped",
@@ -193,7 +193,7 @@
 						"input_key": "location",
 						"from_context": 1,
 						"default_on_null": 0,
-						"minimum_distance_to_path_tile": 1
+						"minimum_distance_to_path_tile": 0
 					},
 					"curve_proc": "/proc/curve_square"
 				}
