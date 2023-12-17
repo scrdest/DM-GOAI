@@ -311,6 +311,7 @@
 	return cost
 
 
+
 /proc/fTestObstacleDist(var/atom/start, var/atom/T)
 	if(!start)
 		return PLUS_INF
@@ -336,8 +337,14 @@
 			# endif
 
 			// unhandled blocking junk gets a penalty
-			cost += 30
+			cost += O.pathing_obstacle_penalty
 
+	return cost
+
+
+/proc/fTestObstacleDistFuzzed(var/atom/start, var/atom/T)
+	var/eps = (rand() / 2)
+	var/cost = fTestObstacleDist(start, T) + eps
 	return cost
 
 

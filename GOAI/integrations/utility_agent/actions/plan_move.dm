@@ -82,7 +82,7 @@
 		var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, 1)
 		var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 100)
 
-		path = GoaiAStar(
+		path = src.AiAStar(
 			start = get_turf(pawn.loc),
 			end = get_turf(position),
 			adjacent = /proc/fCardinalTurfsNoblocks,

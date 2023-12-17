@@ -36,7 +36,7 @@
 	var/proc/true_adjproc = (isnull(adjproc) ? /proc/fCardinalTurfs : adjproc)
 	var/proc/true_distproc = (isnull(distanceproc) ? DEFAULT_GOAI_DISTANCE_PROC : distanceproc)
 
-	var/list/path = GoaiAStar(
+	var/list/path = src.AiAStar(
 		start = get_turf(pawn.loc),
 		end = get_turf(trg),
 		adjacent = true_adjproc,
@@ -187,36 +187,92 @@
 		distanceproc = cost_function
 	)
 
-	if(!path)
-		path = FindPathTo(
-			trg,
-			min_dist + 1,
-			avoid,
-			//adjproc = /proc/mCombatantAdjacents,
-			//adjargs = adjacency_args,
-			distanceproc = cost_function,
-		)
-
 	if(path)
 		pathtracker = new /datum/ActivePathTracker(trg, path, min_dist, inh_frustration)
 
 	return pathtracker
 
 
-/datum/utility_ai/mob_commander/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/proc/costproc = null)
+/datum/utility_ai/mob_commander/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/proc/costproc = null, var/max_mindist = 1)
 	src.is_repathing = 1
 
 	var/atom/pawn = src.GetPawn()
 
-	var/datum/ActivePathTracker/pathtracker = BuildPathTrackerTo(trg, min_dist, avoid, inh_frustration, costproc)
+	var/used_min_dist = min_dist - 1
+	var/datum/ActivePathTracker/pathtracker = null
+
+	while(isnull(pathtracker))
+		if(++used_min_dist > max_mindist)
+			break
+
+		pathtracker = BuildPathTrackerTo(trg, used_min_dist, avoid, inh_frustration, costproc)
 
 	if(pathtracker)
 		src.active_path = pathtracker
 
 	else
-		var/atom/curr_loc = get_turf(pawn)
+		var/turf/curr_loc = get_turf(pawn)
 		to_world_log("[src]: Could not build a pathtracker to [trg] @ [COORDS_TUPLE(curr_loc)]")
-		var/atom/potential_step = get_step_towards(pawn, trg)
+
+		if(isnull(curr_loc))
+			to_world_log("[src]: Pawn [pawn] not in turf? @ [COORDS_TUPLE(curr_loc)]")
+			return
+
+		var/turf/trgturf = get_turf(trg)
+
+		if(isnull(curr_loc))
+			to_world_log("[src]: Target [trg] not in turf?")
+			return
+
+		// rely on steering instead
+		var/list/cardinals = curr_loc.CardinalTurfs()
+
+		if(isnull(cardinals))
+			return
+
+		var/bestscore = null
+		var/turf/bestcand = null
+
+		var/list/curr_path = src.brain.GetMemoryValue(MEM_PATH_ACTIVE)
+
+		// score of the next position in the path
+		var/path_score = PLUS_INF
+
+		for(var/turf/cardturf in cardinals)
+			// score should be a float between 0 and 1, ultimately
+			// it's effectively a less-flexible, mini-Utility-AI
+			if(cardturf.density)
+				continue
+
+			var/dirscore = PLUS_INF
+			var/next_score = PLUS_INF
+			//var/next_score = MANHATTAN_DISTANCE(cardturf, refturf)
+			//var/dest_score = MANHATTAN_DISTANCE(cardturf, trgturf)
+
+			if(curr_path)
+				for(var/turf/pathstep in curr_path)
+					// find the best reference path position
+					var/curr_score = (MANHATTAN_DISTANCE(cardturf, curr_loc) + MANHATTAN_DISTANCE(cardturf, pathstep)) / 2
+
+					if(curr_score < next_score)
+						// update candidate
+						next_score = curr_score
+					else
+						break
+
+			dirscore = next_score
+			//dirscore = isnull(next_score) ? dest_score : next_score
+			//dirscore = min(next_score, dest_score * 3)
+			//dirscore += rand() * 0.01
+			//dirscore += src.active_path.frustration * (0.5 + rand())
+
+			to_world_log("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
+
+			if(isnull(bestscore) || dirscore < bestscore)
+				bestscore = dirscore
+				bestcand = cardturf
+
+		var/atom/potential_step = bestcand
 		if(potential_step)
 			src.MovePawn(potential_step)
 
@@ -321,6 +377,7 @@
 			var/step_result = src.MovePawn(trg, flee, true_pawn)
 
 			if(!step_result)
+				to_world_log("ABORTING WALK CYCLE DUE TO FAILED STEP")
 				break
 
 			sleep(COMBATAI_MOVE_TICK_DELAY)
@@ -340,47 +397,6 @@
 	// so broadly equivalent to the stock walk_away() proc
 	*/
 	return src.WalkPawn(trg, TRUE, stop_on_path, stop_on_moving, override_pawn)
-
-
-/datum/utility_ai/mob_commander/proc/MovementSystem()
-	var/atom/movable/pawn = src.GetPawn()
-
-	if(!(src?.active_path) || src.active_path.IsDone() || src.is_moving || isnull(pawn))
-		return
-
-	if(!(pawn.MayMove()))
-		return
-
-	var/success = FALSE
-	var/atom/next_step = ((src.active_path.path && src.active_path.path.len) ? src.active_path.path[1] : null)
-
-	if(next_step)
-		var/curr_pos = get_turf(pawn)
-
-		if(get_dist(pawn, next_step) > 1)
-			// If we somehow wind up away from the core path, move back towards it first
-			WalkPawnTowards(next_step, FALSE, TRUE)
-			src.brain?.SetMemory("LastTile", curr_pos)
-			return
-
-		var/step_result = MovePawn(next_step)
-
-		success = (
-			step_result || (
-				(pawn.x == next_step.x) && (pawn.y == next_step.y)
-			)
-		)
-
-		if(success)
-			src.brain?.SetMemory("LastTile", curr_pos)
-
-	else
-		src.active_path.SetDone()
-
-	if(success)
-		lpop(src.active_path.path)
-
-	return
 
 
 /datum/utility_ai/mob_commander/proc/randMove()

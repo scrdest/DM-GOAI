@@ -89,3 +89,46 @@
 		return
 
 	return
+
+
+/datum/utility_ai/mob_commander/proc/SteerTo(var/datum/ActionTracker/tracker, var/atom/position, var/timeout = null)
+	/*
+	// Fancier movement; will *keep* walking to the target. Also a fair bit faster, for Reasons (TM).
+	//
+	// Unlike RunTo, this uses a separate Movement subsystem, so it's NOT blocking.
+	*/
+	if(isnull(tracker))
+		RUN_ACTION_DEBUG_LOG("Tracker position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		return
+
+	if(tracker.IsStopped())
+		return
+
+	if(isnull(position))
+		RUN_ACTION_DEBUG_LOG("Target position is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		tracker.SetFailed()
+		return
+
+	var/atom/pawn = src.GetPawn()
+
+	if(isnull(pawn))
+		RUN_ACTION_DEBUG_LOG("Pawn is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		return
+
+	if(pawn.x == position.x && pawn.y == position.y && pawn.z == position.z)
+		tracker.SetDone()
+		return
+
+	var/min_dist = 0
+
+	if((!src.active_path || src.active_path.target != position))
+		var/stored_path = StartNavigateTo(position, min_dist, null)
+		if(isnull(stored_path))
+			tracker.SetFailed()
+			src.brain?.SetMemory("UnreachableRunMovePath", position, 500)
+			return
+
+	tracker.SetDone()
+
+	return
+

@@ -95,6 +95,7 @@
 
 	density = FALSE
 
+	directional_blocker.is_active = TRUE
 	directional_blocker.blocks_entry = flip_dir
 	directional_blocker.blocks_exit = flip_dir
 

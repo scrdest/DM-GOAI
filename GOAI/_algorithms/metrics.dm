@@ -1,3 +1,5 @@
+# define MANHATTAN_DISTANCE(from_atom, to_atom) ((isnull(from_atom) || isnull(to_atom)) ? PLUS_INF : (abs(to_atom.x - from_atom.x) + abs(to_atom.y - from_atom.y)))
+
 /proc/EuclidDistance(var/atom/from_pos, var/atom/to_pos)
 	if(isnull(from_pos) || isnull(to_pos))
 		return PLUS_INF
@@ -10,11 +12,7 @@
 
 
 /proc/ManhattanDistance(var/atom/from_pos, var/atom/to_pos)
-	if(isnull(from_pos) || isnull(to_pos))
-		return PLUS_INF
-
-	var/dist = (abs(to_pos.x - from_pos.x) + abs(to_pos.y - from_pos.y))
-	return dist
+	return MANHATTAN_DISTANCE(from_pos, to_pos)
 
 
 /proc/ChebyshevDistance(var/atom/from_pos, var/atom/to_pos)

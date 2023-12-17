@@ -4,6 +4,7 @@
 	var/min_dist = 0
 	var/frustration = 0
 	var/done = 0
+	var/curr_offset = 2 // 1 is current position and ofc 0 is invalid because DM
 
 	var/creation_time
 

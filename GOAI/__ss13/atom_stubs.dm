@@ -1,6 +1,16 @@
 # ifdef GOAI_LIBRARY_FEATURES
 
 /atom/movable/proc/DoMove(var/dir, var/mover, var/external = FALSE)
+	var/turf/new_loc = get_step(src, dir)
+
+	if(!istype(new_loc))
+		return FALSE
+
+	var/enterable = src.MayEnterTurf(new_loc)
+
+	if(!enterable)
+		return FALSE
+
 	. = step(src, dir)
 	return .
 

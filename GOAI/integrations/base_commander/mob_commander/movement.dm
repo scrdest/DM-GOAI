@@ -276,12 +276,17 @@
 			if(!(L?.stat == CONSCIOUS))
 				return FALSE
 
-	var/movedir = get_dir(get_turf(true_pawn), get_turf(trg))
+	var/turf/pawn_turf = get_turf(true_pawn)
+	var/turf/targ_turf = get_turf(trg)
+
+	var/movedir = get_dir(pawn_turf, targ_turf)
 
 	if(flee)
 		movedir = dir2opposite(movedir)
 
+	trg.pDrawVectorbeam(pawn_turf, targ_turf, "p_beam")
 	step_result = true_pawn.DoMove(movedir, true_pawn, FALSE)
+
 	return step_result
 
 

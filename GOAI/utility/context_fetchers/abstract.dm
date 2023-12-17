@@ -23,7 +23,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_read_origin_var)
 		UTILITYBRAIN_DEBUG_LOG("ctxfetcher_read_origin_var VarKey is null @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/candidate = parent.origin
+	var/datum/candidate = parent.origin
 
 	var/datum/action_set/parent_actionset = candidate
 
@@ -34,7 +34,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_read_origin_var)
 		UTILITYBRAIN_DEBUG_LOG("ActionTemplate [parent] has no parent (direct or ActionSet). Cannot infer origin! @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/raw_result = candidate:vars[var_key]
+	var/raw_result = candidate.vars[var_key]
 	if(isnull(raw_result))
 		return null
 
@@ -61,8 +61,9 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_read_origin_var)
 
 		else
 			// Array list
-			if(listey_raw_result.len >= numidx)
-				result = listey_raw_result[numidx]
+			var/nonnegative_numidx = ((numidx <= 0) ? (numidx + listey_raw_result.len) : numidx)
+			if(listey_raw_result.len && listey_raw_result.len >= nonnegative_numidx)
+				result = listey_raw_result[nonnegative_numidx]
 			else
 				UTILITYBRAIN_DEBUG_LOG("WARNING: index [optional_list_idx] not in candidate list [listey_raw_result], returning null @ L[__LINE__] in [__FILE__]")
 				return null
