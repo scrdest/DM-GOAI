@@ -169,6 +169,10 @@
 			if(AD && istype(AD))
 				continue
 
+			var/obj/cover/table/T = object
+			if(T && istype(T))
+				continue
+
 			# endif
 
 		if(object.density)

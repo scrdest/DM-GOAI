@@ -1,0 +1,24 @@
+"a" = (/turf/wall,/area)
+"b" = (/turf/ground,/area)
+"c" = (/mob/living/simple_animal/aitester/utility{name = "Alpha"},/turf/ground,/area)
+"d" = (/obj/cover/autodoor,/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester/utility{faction = "enemy"; name = "Enemy"; real_name = "Enemy"; spawn_commander = 0},/turf/ground,/area)
+"f" = (/obj/cover/barricade,/turf/ground,/area)
+"g" = (/obj/cover/table,/turf/ground,/area)
+"i" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
+"j" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
+
+(1,1,1) = {"
+aaaaaaaaaaaa
+abbbabbbabba
+abbbjbbbibba
+abbbaaaaadaa
+abbbgbbabgba
+abbbabbabbba
+abaaabbbbbba
+abbbgbbbbbfa
+abbbabbabbba
+abcbabbabeba
+abbbaababbba
+aaaaaaaaaaaa
+"}

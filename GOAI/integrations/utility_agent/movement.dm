@@ -193,7 +193,7 @@
 	return pathtracker
 
 
-/datum/utility_ai/mob_commander/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/proc/costproc = null, var/max_mindist = 1)
+/datum/utility_ai/mob_commander/proc/StartNavigateTo(var/trg, var/min_dist = 0, var/avoid = null, var/inh_frustration = 0, var/proc/costproc = null, var/max_mindist = 2)
 	src.is_repathing = 1
 
 	var/atom/pawn = src.GetPawn()
@@ -213,68 +213,8 @@
 	else
 		var/turf/curr_loc = get_turf(pawn)
 		to_world_log("[src]: Could not build a pathtracker to [trg] @ [COORDS_TUPLE(curr_loc)]")
-
-		if(isnull(curr_loc))
-			to_world_log("[src]: Pawn [pawn] not in turf? @ [COORDS_TUPLE(curr_loc)]")
-			return
-
-		var/turf/trgturf = get_turf(trg)
-
-		if(isnull(curr_loc))
-			to_world_log("[src]: Target [trg] not in turf?")
-			return
-
-		// rely on steering instead
-		var/list/cardinals = curr_loc.CardinalTurfs()
-
-		if(isnull(cardinals))
-			return
-
-		var/bestscore = null
-		var/turf/bestcand = null
-
-		var/list/curr_path = src.brain.GetMemoryValue(MEM_PATH_ACTIVE)
-
-		// score of the next position in the path
-		var/path_score = PLUS_INF
-
-		for(var/turf/cardturf in cardinals)
-			// score should be a float between 0 and 1, ultimately
-			// it's effectively a less-flexible, mini-Utility-AI
-			if(cardturf.density)
-				continue
-
-			var/dirscore = PLUS_INF
-			var/next_score = PLUS_INF
-			//var/next_score = MANHATTAN_DISTANCE(cardturf, refturf)
-			//var/dest_score = MANHATTAN_DISTANCE(cardturf, trgturf)
-
-			if(curr_path)
-				for(var/turf/pathstep in curr_path)
-					// find the best reference path position
-					var/curr_score = (MANHATTAN_DISTANCE(cardturf, curr_loc) + MANHATTAN_DISTANCE(cardturf, pathstep)) / 2
-
-					if(curr_score < next_score)
-						// update candidate
-						next_score = curr_score
-					else
-						break
-
-			dirscore = next_score
-			//dirscore = isnull(next_score) ? dest_score : next_score
-			//dirscore = min(next_score, dest_score * 3)
-			//dirscore += rand() * 0.01
-			//dirscore += src.active_path.frustration * (0.5 + rand())
-
-			to_world_log("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
-
-			if(isnull(bestscore) || dirscore < bestscore)
-				bestscore = dirscore
-				bestcand = cardturf
-
-		var/atom/potential_step = bestcand
-		if(potential_step)
-			src.MovePawn(potential_step)
+		src.brain.SetMemory("PendingMovementTarget", trg, 100)
+		return
 
 	var/turf/trg_turf = trg
 

@@ -44,7 +44,7 @@
 
 		if(min_node_dist && max_node_depth)
 			var/current_to_end_min_dist = call(min_node_dist)(current.position, end)
-			current_to_end_min_dist += INTRISIC_COST_QUERY(current.position, end)
+			//current_to_end_min_dist += INTRISIC_COST_QUERY(current.position, end)
 
 			if(current_to_end_min_dist + current.nodes_traversed >= max_node_depth)
 				continue

@@ -34,10 +34,14 @@
 	return deltaT
 
 
-/datum/memory/proc/Update(var/new_val)
+/datum/memory/proc/Update(var/new_val, var/new_ttl = null)
 	var/right_now = world.time
-	val = new_val
-	updated_time = right_now
+	src.val = new_val
+	src.updated_time = right_now
+
+	if(!isnull(new_ttl))
+		src.ttl = new_ttl
+
 	return src
 
 

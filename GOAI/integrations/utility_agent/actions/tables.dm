@@ -95,25 +95,37 @@
 		RUN_ACTION_DEBUG_LOG("Pawn is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
 
+	var/turf/pawnturf = get_turf(pawn)
+
+	if(isnull(pawnturf))
+		RUN_ACTION_DEBUG_LOG("Pawnturf is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		return
+
 	var/succeeded = TRUE
 
-	if(get_dist(pawn, location) <= 1)
-		pawn.loc = (location)
+	if(MANHATTAN_DISTANCE(pawnturf, location) == 1)
+		pawn.managed_movement = TRUE
+		pawn.loc = location
+	else
+		pawn.managed_movement = FALSE
 
 	if(pawn.x == location.x && pawn.y == location.y && pawn.z == location.z)
 		tracker.SetDone()
 
 	if(tracker.IsStopped())
+		pawn.managed_movement = FALSE
 		return
 
 	if(succeeded)
 		tracker.SetDone()
+		pawn.managed_movement = FALSE
 	else
 		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)
 		tracker.BBSet("failed_steps", ++bb_failures)
 
 		if(bb_failures > 1)
 			tracker.SetFailed()
+			pawn.managed_movement = FALSE
 
 	return
 

@@ -1,5 +1,9 @@
 # ifdef GOAI_LIBRARY_FEATURES
 
+/atom/movable
+	var/managed_movement = FALSE
+
+
 /atom/movable/proc/DoMove(var/dir, var/mover, var/external = FALSE)
 	var/turf/new_loc = get_step(src, dir)
 
@@ -16,7 +20,7 @@
 
 
 /atom/movable/proc/MayMove()
-	. = TRUE
+	. = (!src.managed_movement)
 	return .
 
 

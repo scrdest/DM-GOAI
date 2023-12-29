@@ -14,3 +14,7 @@
 /obj/cover/autodoor
 	pathing_obstacle_penalty = 20
 
+
+/obj/cover/table
+	pathing_obstacle_penalty = 3
+

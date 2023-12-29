@@ -98,6 +98,7 @@
 		tracker.BBSet("path", path)
 		src.brain.SetMemory(MEM_PATH_TO_POS("aitarget"), path, _path_ttl)
 		src.brain.SetMemory(MEM_PATH_ACTIVE, path, _path_ttl)
+		src.brain.SetMemory("last_pathing_target", position)
 
 	var/memory = src.brain.GetMemoryValue(MEM_PATH_TO_POS("aitarget"))
 	world.log << "Memory is [memory] | [__FILE__] -> L[__LINE__]"

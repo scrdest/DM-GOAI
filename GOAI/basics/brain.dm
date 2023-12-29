@@ -397,7 +397,7 @@
 		memories.Set(mem_key, retrieved_mem)
 
 	else
-		retrieved_mem.Update(mem_val)
+		retrieved_mem.Update(mem_val, mem_ttl)
 
 	return retrieved_mem
 

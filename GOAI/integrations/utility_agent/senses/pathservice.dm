@@ -169,6 +169,8 @@
 	var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 100)
 	var/_path_name = MEM_PATH_TO_POS("aitarget")
 
+	owner_brain.SetMemory("last_pathing_target", target, _path_ttl)
+
 	var/list/stored_paths = owner_brain.GetMemoryValue("AbstractSmartPaths")
 	var/datum/path_smartobject/stored_path_so = null
 
@@ -198,16 +200,22 @@
 
 	if(isnull(path))
 		RUN_ACTION_DEBUG_LOG("Path is null | <@[src]> | [__FILE__] -> L[__LINE__]")
-		return
 
-	var/turf/prev_draw_pos = null
+		path = owner.AiAStar(
+			start = get_turf(pawn),
+			end = target,
+			adjacent = /proc/fCardinalTurfsNoblocksObjpermissive,
+			dist = DEFAULT_GOAI_DISTANCE_PROC,
+			max_nodes = 0,
+			max_node_depth = _max_node_depth,
+			min_target_dist = _min_target_dist + 1,
+			min_node_dist = null,
+			adj_args = null,
+			exclude = null
+		)
 
-	for(var/turf/drawpos in path)
-		// debug path drawing
-		if(!isnull(prev_draw_pos))
-			drawpos.pDrawVectorbeam(prev_draw_pos, drawpos, "b_beam")
-
-		prev_draw_pos = drawpos
+		if(isnull(path))
+			return
 	/*
 	owner_brain.SetMemory(MEM_PATH_TO_POS("aitarget"), path, _path_ttl)
 	owner_brain.SetMemory(MEM_PATH_ACTIVE, path, _path_ttl)
@@ -227,6 +235,17 @@
 
 	owner_brain.SetMemory("AbstractSmartPaths", paths, _path_ttl)
 	owner_brain.SetMemory(MEM_PATH_ACTIVE, path, _path_ttl)
+
+	if(path)
+		var/turf/prev_draw_pos = null
+
+		for(var/turf/drawpos in path)
+			// debug path drawing
+			if(!isnull(prev_draw_pos))
+				drawpos.pDrawVectorbeam(prev_draw_pos, drawpos, "b_beam")
+
+			prev_draw_pos = drawpos
+
 	return path
 
 
@@ -240,7 +259,7 @@
 
 	src.DraftMoveToPrecise(owner)
 
-	spawn(src.GetOwnerAiTickrate(owner) * 10)
+	spawn(src.GetOwnerAiTickrate(owner) * 20)
 		// Sense-side delay to avoid spamming view() scans too much
 		processing = FALSE
 	return
