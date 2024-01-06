@@ -39,6 +39,8 @@
 # define JSON_KEY_ACT_NAME "name"
 # define JSON_KEY_ACT_DESCRIPTION "description"
 # define JSON_KEY_ACT_ACTIVE "active"
+# define JSON_KEY_ACT_PRECONDS "preconditions"
+# define JSON_KEY_ACT_EFFECTS "effects"
 
 // ActionSet schema:
 # define JSON_KEY_ACTSET_NAME "name"
@@ -146,6 +148,9 @@
 	var/act_name = json_data[JSON_KEY_ACT_NAME]
 	var/act_description = json_data[JSON_KEY_ACT_DESCRIPTION]
 	var/active = json_data[JSON_KEY_ACT_ACTIVE]
+	// GOAP stuff
+	var/list/preconds = json_data[JSON_KEY_ACT_PRECONDS]
+	var/list/effects = json_data[JSON_KEY_ACT_EFFECTS]
 
 	var/list/considerations = UtilityConsiderationArrayFromData(considerations_data)
 
@@ -160,7 +165,10 @@
 		hard_args,
 		act_name,
 		act_description,
-		active
+		active,
+		// GOAP stuff
+		preconds,
+		effects
 	)
 
 	# ifdef DEBUG_SERDE_LOADS

@@ -23,7 +23,7 @@
 
 // Macro-ized callsig to make it easy/mandatory to use the proper API conventions
 // For those less familiar with macros, pretend this is a normal proc definition with context/requester/consideration_args as params.
-# define CONSIDERATION_CALL_SIGNATURE(procpath) ##procpath(var/list/context = null, var/requester = null, var/list/consideration_args = null)
+# define CONSIDERATION_CALL_SIGNATURE(procpath) ##procpath(var/datum/utility_action_template/action_template, var/list/context = null, var/requester = null, var/list/consideration_args = null)
 
 
 /proc/_cihelper_get_requester_brain(var/requester, var/caller = null)

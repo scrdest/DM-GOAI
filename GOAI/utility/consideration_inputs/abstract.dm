@@ -49,7 +49,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_read_var)
 
 	var/inp_key = consideration_args["input_key"] || "input"
 
-	var/candidate = null
+	var/datum/candidate = null
 	try
 		candidate = (from_ctx ? context[inp_key] : consideration_args[inp_key])
 	DEBUGLOG_UTILITY_INPUT_CATCH(var/exception/e)
@@ -65,11 +65,27 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_read_var)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_read_var VarKey is null @ L[__LINE__] in [__FILE__]")
 		return null
 
-	if(isnull(var_key))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_read_var cand_obj is null @ L[__LINE__] in [__FILE__]")
+	var/result = candidate.vars[var_key]
+	DEBUGLOG_UTILITY_INPUT_FETCHERS("Value for var [var_key] in [candidate] is [result] @ L[__LINE__] in [__FILE__]")
+	return result
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_read_var)
+	// Retrieves an arbitrary variable from the candidate ActionTemplate object.
+	// In other words, read our own metadata.
+	var/datum/utility_action_template/candidate = action_template
+
+	if(isnull(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_actiontemplate_read_var Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/result = candidate:vars[var_key]
+	var/var_key = consideration_args?["variable"]
+
+	if(isnull(var_key))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_actiontemplate_read_var VarKey is null @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/result = candidate.vars[var_key]
 	DEBUGLOG_UTILITY_INPUT_FETCHERS("Value for var [var_key] in [candidate] is [result] @ L[__LINE__] in [__FILE__]")
 	return result
 

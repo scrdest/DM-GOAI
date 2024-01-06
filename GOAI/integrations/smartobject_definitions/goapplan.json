@@ -1,0 +1,258 @@
+{
+	"name": "DoorHackPlanActions", 
+	"active": 1, 
+	"actions": [
+		{
+			"name": "OpenDoor", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/PrintArg", 
+			"preconditions": {
+				"DoorDebugAllowOpening": 1
+			},
+			"effects": {
+				"DoorOpen": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_args": [
+				{
+					"contextarg_variable": "target",
+					"target": 12345,
+					"output_context_key": "printarg"
+				}
+			],
+			"priority": 15, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "UnweldDoor", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/PrintArg", 
+			"preconditions": {
+				"DoorDebugAllowUnwelding": 1
+			},
+			"effects": {
+				"DoorDebugAllowOpening": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_args": [
+				{
+					"contextarg_variable": "target",
+					"target": 54321,
+					"output_context_key": "printarg"
+				}
+			],
+			"priority": 14, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "GetWelder", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_idx": "0",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 13, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "HackDoor", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_idx": "0",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 14, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "GetMultitool", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_idx": "0",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 13, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "UnscrewDoor", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_idx": "0",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 14, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "ScrewDoor", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_idx": "0",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 14, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "GetScrewdriver", 
+			"description": "Replace Contextproc and Considerations later!!!", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"context_procs": ["/proc/ctxfetcher_null"], 
+			"context_args": [
+				{
+					"variable": "path",
+					"list_idx": "0",
+					"output_context_key": "position"
+				}
+			],
+			"priority": 13, 
+			"considerations": [
+				{
+					"name": "EffectsNotMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PrecondsAllMet",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		}
+	]
+}

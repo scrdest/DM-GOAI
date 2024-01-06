@@ -6,7 +6,6 @@
 */
 
 
-
 /proc/curve_linear(var/input) // float -> activation (float)
 	// The simplest possible curve, just returns normalized input.
 	// So, anything at/below the Lo bookmark will have probability 0%;
@@ -30,6 +29,24 @@
 
 	var/result = ACTIVATION_FULL - input
 	return result
+
+
+/proc/curve_always_on(var/input) // float -> activation (float)
+	// Not a real curve, but a debugging one - always returns TRUE
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveLinear input: [input]")
+	# endif
+
+	return ACTIVATION_FULL
+
+
+/proc/curve_always_off(var/input) // float -> activation (float)
+	// Not a real curve, but a debugging one - always returns FALSE
+	# ifdef UTILITYBRAIN_LOG_CURVE_INPUTS
+	UTILITYBRAIN_DEBUG_LOG("CurveLinear input: [input]")
+	# endif
+
+	return ACTIVATION_NONE
 
 
 /proc/curve_linear_leaky(var/input) // float -> activation (float)

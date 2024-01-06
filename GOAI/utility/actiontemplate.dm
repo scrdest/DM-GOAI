@@ -33,8 +33,12 @@
 	// An arraylist of Considerations to check when deciding.
 	var/list/considerations
 
+	// GOAP data for planning + for Utility to query their status at plan execution
+	var/list/preconditions
+	var/list/effects
 
-/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetchers = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/list/hard_args = null, var/name_override = null, var/description_override = null, var/active = null)
+
+/datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/context_fetchers = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/list/hard_args = null, var/name_override = null, var/description_override = null, var/active = null, var/list/preconditions = null, var/list/effects = null)
 	SET_IF_NOT_NULL(bound_considerations, src.considerations)
 	SET_IF_NOT_NULL(context_fetchers, src.context_fetchers)
 	SET_IF_NOT_NULL(context_args, src.context_args)
@@ -46,6 +50,9 @@
 	SET_IF_NOT_NULL(name_override, src.name)
 	SET_IF_NOT_NULL(description_override, src.description)
 	SET_IF_NOT_NULL(active, src.active)
+	// GOAP
+	SET_IF_NOT_NULL(preconditions, src.preconditions)
+	SET_IF_NOT_NULL(effects, src.effects)
 
 	# ifdef UTILITYBRAIN_DEBUG_LOGGING
 	if(!src.considerations)
@@ -90,15 +97,16 @@
 	return contexts
 
 
-/datum/utility_action_template/proc/ScoreAction(var/list/context, var/requester) // (Optional<assoc>, Optional<Any>) -> float
+/datum/utility_action_template/proc/ScoreAction(var/datum/utility_action_template/action_template, var/list/context, var/requester) // (</datum/utility_action_template>, Optional<assoc>, Optional<Any>) -> float
 	// Evaluates the Utility of a potential Action in the given context.
 	// One Action might have different Utility for different Contexts.
 	// As such, we can check multiple combinations of Template + Context and only turn the best into true Actions.
 	var/score = run_considerations(
 		inputs=src.considerations,
+		action_template=action_template,
 		context=context,
 		cutoff_thresh=null,
-		requester=requester
+		requester=requester,
 	)
 	var/utility = score * src.priority_class
 	return utility

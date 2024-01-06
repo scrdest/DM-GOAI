@@ -17,6 +17,24 @@
 	return waypoint
 
 
+/mob/verb/CommanderGiveFleeOrder(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), mob/Trg in world)
+	set category = "Commander Orders"
+
+	if(!M)
+		return
+
+	if(!(M?.brain))
+		return
+
+	var/datum/memory/created_mem = M.brain.SetMemory("fleethreat", Trg, PLUS_INF)
+	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
+
+	var/atom/waypoint = created_mem?.val
+
+	to_chat(usr, (waypoint ? "[M] now fleeing from [waypoint]" : "[M] not fleeing!"))
+	return waypoint
+
+
 /mob/verb/CommanderGiveMoveOrder(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), posX as num, posY as num)
 	set category = "Commander Orders"
 

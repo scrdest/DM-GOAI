@@ -165,7 +165,7 @@
 		return
 
 	var/_max_node_depth = DEFAULT_IF_NULL(max_node_depth, 60)
-	var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, 1)
+	var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, 0)
 	var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 100)
 	var/_path_name = MEM_PATH_TO_POS("aitarget")
 
@@ -188,7 +188,7 @@
 	path = owner.AiAStar(
 		start = get_turf(pawn),
 		end = target,
-		adjacent = /proc/fCardinalTurfsNoblocks,
+		adjacent = /proc/fCardinalTurfsNoblocksObjpermissive,
 		dist = DEFAULT_GOAI_DISTANCE_PROC,
 		max_nodes = 0,
 		max_node_depth = _max_node_depth,

@@ -81,7 +81,7 @@
 	return activation
 
 
-/datum/consideration/proc/FetchAndRun(var/list/context, var/requester = null) // (Optional<assoclist>, Any) -> float
+/datum/consideration/proc/FetchAndRun(var/datum/utility_action_template/action_template, var/list/context, var/requester = null) // (/datum/utility_action_template, Optional<assoclist>, Any) -> float
 	// Convenience proc; fetches input data from the input proc then calls Run() onnit.
 
 	if(isnull(src.get_input_val_proc))
@@ -95,7 +95,7 @@
 	if(!(src.active))
 		return ACTIVATION_NONE
 
-	var/raw_input = call(src.get_input_val_proc)(context, requester, src.consideration_args)
+	var/raw_input = call(src.get_input_val_proc)(action_template, context, requester, src.consideration_args)
 
 	# ifdef UTILITYBRAIN_LOG_CONSIDERATION_INPUTS
 	UTILITYBRAIN_DEBUG_LOG("INFO: Raw input for Consideration `[src.name]` is [raw_input || "null"] <- [src.get_input_val_proc]; CTX: [context], RQS: [requester] @ L[__LINE__] in [__FILE__]!")
@@ -105,7 +105,7 @@
 	return activation
 
 
-/proc/run_considerations(var/list/inputs, var/list/context = null, var/cutoff_thresh = null, var/requester = null) // ([/datum/consideration], Optional<assoc>, float, Optional<Any>) -> float
+/proc/run_considerations(var/list/inputs, var/datum/utility_action_template/action_template, var/list/context = null, var/cutoff_thresh = null, var/requester = null) // ([/datum/consideration], /datum/utility_action_template, Optional<assoc>, float, Optional<Any>) -> float
 	/* This is the core scoring engine for any Utility decision.
 	// We run through all Consideration Axes for a Decision, ANDing them together. This gives us the Activation score.
 	// Activations turn into Utilities proper after postprocessing - after we multiply Activation by a PriorityWeight.
@@ -136,7 +136,7 @@
 
 		axis_count++
 
-		var/axis_score = axis.FetchAndRun(context, requester)
+		var/axis_score = axis.FetchAndRun(action_template, context, requester)
 
 		# ifdef UTILITYBRAIN_LOG_AXIS_SCORES
 		UTILITYBRAIN_DEBUG_LOG("INFO: Axis score for axis [axis_count] is: [axis_score]")

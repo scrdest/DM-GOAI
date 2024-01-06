@@ -14,6 +14,9 @@
 	var/block_all = FALSE
 	var/is_active = TRUE
 
+	var/pathing_entry_penalty = 5
+	var/pathing_exit_penalty = 5
+
 	var/attached_to = null  // REMOVE ME!
 
 

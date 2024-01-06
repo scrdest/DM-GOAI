@@ -88,6 +88,9 @@
 	var/success = FALSE
 	var/turf/bestcand = null
 
+	// Prevent wandering into special case turfs like forced step-aways
+	var/turf/banturf = src.brain?.GetMemoryValue("DontWanderToTurf")
+
 	if(!isnull(src.active_path) && (src.active_path.path.len >= src.active_path.curr_offset) && !src.active_path.IsDone())
 		// Path-following mode:
 		to_world("-> MOVEMENT SYSTEM: IN PATH-FOLLOWING MODE <-")
@@ -121,6 +124,9 @@
 			if(cardturf.density)
 				continue
 
+			if(cardturf == banturf)
+				return
+
 			var/dirscore = PLUS_INF
 
 			var/next_score = MANHATTAN_DISTANCE(cardturf, next_step)
@@ -136,7 +142,7 @@
 				bestscore = dirscore
 				bestcand = cardturf
 
-	if(isnull(bestcand) && curr_path && prob(100))
+	if(isnull(bestcand) && curr_path)
 		// Path-guided steering:
 		to_world("-> MOVEMENT SYSTEM: IN STEERING MODE <-")
 		var/turf/path_pos = null
@@ -151,6 +157,11 @@
 			var/cand_dist = MANHATTAN_DISTANCE(curr_loc, pathstep)
 
 			if(!cand_dist)
+				if(pathstep == banturf)
+					// if next step is a banturf, just do nothing
+					// and let the special case sort itself out externally
+					return
+
 				// found it
 				path_pos = pathstep
 				break
@@ -176,14 +187,15 @@
 			if(cardturf.density)
 				continue
 
+			if(cardturf == banturf)
+				continue
+
 			var/dirscore = PLUS_INF
 
 			var/next_score = MANHATTAN_DISTANCE(cardturf, curr_loc)
 			var/dest_score = MANHATTAN_DISTANCE(cardturf, safe_trgturf)
 
-			//dirscore = next_score + dest_score
-			dirscore = next_score + rand(0, dest_score * 2) * 0.1
-			//dirscore += rand() * 0.25
+			dirscore = next_score + rand(dest_score / 2, dest_score * 2) * 0.1
 
 			//RUN_ACTION_DEBUG_LOG("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
 

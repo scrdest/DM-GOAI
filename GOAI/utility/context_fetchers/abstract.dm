@@ -97,3 +97,34 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_read_origin_var)
 	contexts[++(contexts.len)] = ctx
 
 	return contexts
+
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_read_another_contextarg)
+	// Retrieves an arbitrary key from the context args.
+	//
+	// This is a very wonky way to allow direct passing of values into a Consideration generically:
+	// Whoever designs the consideration injects a hashmap with an appropriate value to use and
+	// puts its name in the value of another, constant-valued key of 'contextarg_variable'.
+	//
+	// Why? Because that makes it much easier to mass-produce ActionTemplate data programmatically.
+	// This is important for things like GOAP plans getting turned into Utility action templates.
+
+	var/var_key = context_args["contextarg_variable"]
+	var/var_val = context_args[var_key]
+
+	UTILITYBRAIN_DEBUG_LOG("Value for var [var_key] in context_args is [var_val] @ L[__LINE__] in [__FILE__]")
+
+	var/list/contexts = list()
+
+	var/context_key = context_args["output_context_key"]
+
+	if(isnull(context_key))
+		return list() // instead of defaulting, skip?
+		//context_key = "contextarg_val"
+
+	var/list/ctx = list()
+	ctx[context_key] = var_val
+
+	contexts[++(contexts.len)] = ctx
+
+	return contexts

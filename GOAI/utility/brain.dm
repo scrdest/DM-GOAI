@@ -155,7 +155,7 @@
 						DEBUG_LOG_LIST_ASSOC(subctx, to_world_log)
 					# endif
 
-					var/utility = action_template.ScoreAction(ctx, requester)
+					var/utility = action_template.ScoreAction(action_template, ctx, requester)
 
 					# ifdef UTILITYBRAIN_LOG_UTILITIES
 					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name]: [utility] (priority: [action_template?.priority_class])")
@@ -173,7 +173,7 @@
 			else
 				// Some actions could have a 'null' context (i.e. they don't care about the world-state)
 				// We should support this to avoid alloc-ing empty lists for efficiency, at the cost of smol code duplication
-				var/utility = action_template.ScoreAction(null, requester) // null/default context
+				var/utility = action_template.ScoreAction(action_template, null, requester) // null/default context
 
 				if(utility <= 0)
 					// To prevent impossible actions from being considered!
@@ -233,6 +233,12 @@
 	var/list/smartobjects = src.GetMemoryValue("SmartObjects", null)
 	var/list/smart_paths = src.GetMemoryValue("AbstractSmartPaths", null)
 
+	var/list/smart_plans = list()
+
+	// devshit, remove once GOAP integrated properly
+	var/datum/plan_smartobject/demo_plan = new()
+	smart_plans["demo"] = demo_plan
+
 	if(isnull(smartobjects))
 		smartobjects = list()
 
@@ -241,6 +247,12 @@
 			var/datum/path_smartobject/path_so = smart_paths[path_key]
 			if(istype(path_so))
 				smartobjects.Add(path_so)
+
+	if(!isnull(smart_plans))
+		for(var/plan_key in smart_plans)
+			var/datum/plan_smartobject/plan_so = smart_plans[plan_key]
+			if(istype(plan_so))
+				smartobjects.Add(plan_so)
 
 	var/requester = src.GetRequester()
 	ASSERT(!isnull(requester))

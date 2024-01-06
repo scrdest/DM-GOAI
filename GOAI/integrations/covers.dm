@@ -122,6 +122,10 @@
 /obj/cover/table/verb/Flip()
 	set src in view(1)
 
+	var/dist = get_dist(src, usr)
+	if(dist < 1)
+		return FALSE
+
 	dir = get_dir(src, usr)
 	var/result = pFlip(dir)
 	return result
@@ -129,6 +133,11 @@
 
 /obj/cover/table/verb/Unflip()
 	set src in view(1)
+
+	var/dist = get_dist(src, usr)
+	if(dist < 1)
+		return FALSE
+
 	var/result = pUnflip()
 	return result
 
@@ -279,5 +288,5 @@
 
 /obj/cover/autodoor/verb/Open()
 	set src in view(1)
-	var/result = Toggle()
+	var/result = Toggle(TRUE)
 	return result
