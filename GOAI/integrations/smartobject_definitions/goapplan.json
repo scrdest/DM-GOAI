@@ -5,7 +5,7 @@
 		{
 			"name": "OpenDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugUnwelded": 1,
 				"DoorDebugUnscrewed": 1,
@@ -18,8 +18,13 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["DoorDebugUnwelded", "DoorDebugUnscrewed", "DoorDebugUnbolted", "DoorDebugAllowUnwelding", "DoorDebugAllowUnscrewing"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"DoorDebugUnwelded": 0, 
+						"DoorDebugUnscrewed": 1, 
+						"DoorDebugScrewed": 0, 
+						"DoorDebugUnbolted": 0
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
 			"priority": 15, 
@@ -43,10 +48,10 @@
 		{
 			"name": "UnweldDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowUnwelding": 1,
-				"DoorDebugHasWelder": 1
+				"HasWelder": 1
 			},
 			"effects": {
 				"DoorDebugUnwelded": 1
@@ -55,8 +60,10 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["DoorDebugUnwelded"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"DoorDebugUnwelded": 1
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
 			"priority": 14, 
@@ -80,19 +87,21 @@
 		{
 			"name": "GetWelder", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowGetWelder": 1
 			},
 			"effects": {
-				"DoorDebugHasWelder": 1
+				"HasWelder": 1
 			},
 			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["DoorDebugHasWelder"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"HasWelder": 1
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
 			"priority": 10, 
@@ -116,7 +125,7 @@
 		{
 			"name": "HackDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugScrewed": 1,
 				"HasMultitool": 1,
@@ -129,11 +138,13 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["DoorDebugUnbolted", "DoorDebugAllowHacking"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"DoorDebugUnbolted": 1
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 15, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -154,7 +165,7 @@
 		{
 			"name": "GetMultitool", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {},
 			"effects": {
 				"HasMultitool": 1
@@ -163,11 +174,13 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["HasMultitool"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"HasMultitool": 1
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 15, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -188,7 +201,7 @@
 		{
 			"name": "UnscrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowUnscrewing": 1,
 				"HasScrewdriver": 1,
@@ -201,11 +214,14 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["DoorDebugUnscrewed", "DoorDebugScrewed"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"DoorDebugUnscrewed": 1,
+						"DoorDebugScrewed": 0
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 8, 
+			"priority": 5, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -226,7 +242,7 @@
 		{
 			"name": "ScrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowScrewing": 1,
 				"HasScrewdriver": 1,
@@ -239,11 +255,14 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["DoorDebugUnscrewed", "DoorDebugScrewed"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"DoorDebugUnscrewed": 0,
+						"DoorDebugScrewed": 1
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 8, 
+			"priority": 7, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -264,7 +283,7 @@
 		{
 			"name": "GetScrewdriver", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {},
 			"effects": {
 				"HasScrewdriver": 1
@@ -273,11 +292,13 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": ["HasScrewdriver"],
-					"output_context_key": "worldstate_keys"
+					"target": {
+						"HasScrewdriver": 1
+					},
+					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 15, 
+			"priority": 8, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",

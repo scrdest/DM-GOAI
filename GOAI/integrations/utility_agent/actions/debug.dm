@@ -15,6 +15,8 @@
 
 
 /datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean(var/datum/ActionTracker/tracker, var/list/worldstate_keys)
+	// Toggles the values of boolean World State globals to their negation (so FALSE -> TRUE and TRUE -> FALSE)
+
 	if(isnull(tracker))
 		RUN_ACTION_DEBUG_LOG("ActionTracker is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
@@ -25,15 +27,38 @@
 	if(isnull(global.global_worldstate)) { global.global_worldstate = list() }
 
 	for(var/worldstate_key in worldstate_keys)
-		//to_world("Iterating over worldstate key [worldstate_key]")
 		var/current = global.global_worldstate[worldstate_key]
 
 		if(isnull(current))
 			current = FALSE
 
 		var/newval = !current
-		//to_world("Worldstate key [worldstate_key] - current [current], new [newval]")
 		global.global_worldstate[worldstate_key] = newval
+
+	tracker.SetDone()
+	return
+
+
+
+/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap(var/datum/ActionTracker/tracker, var/list/new_worldstate_map)
+	// Sets the values of World State globals to the values provided in the input hashmap.
+	// Stateless and idempotent, some risk of race conditions.
+
+	if(isnull(tracker))
+		RUN_ACTION_DEBUG_LOG("ActionTracker is null | <@[src]> | [__FILE__] -> L[__LINE__]")
+		return
+
+	if(tracker.IsStopped())
+		return
+
+	if(isnull(global.global_worldstate)) { global.global_worldstate = list() }
+
+	if(isnull(new_worldstate_map))
+		return
+
+	for(var/worldstate_key in new_worldstate_map)
+		var/new_worldstate_val = new_worldstate_map[worldstate_key]
+		global.global_worldstate[worldstate_key] = new_worldstate_val
 
 	tracker.SetDone()
 	return
