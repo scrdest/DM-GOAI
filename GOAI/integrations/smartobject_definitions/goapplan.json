@@ -5,9 +5,11 @@
 		{
 			"name": "OpenDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/PrintArg", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
 			"preconditions": {
-				"DoorDebugAllowOpening": 1
+				"DoorDebugUnwelded": 1,
+				"DoorDebugUnscrewed": 1,
+				"DoorDebugUnbolted": 1
 			},
 			"effects": {
 				"DoorOpen": 1
@@ -16,8 +18,8 @@
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": 12345,
-					"output_context_key": "printarg"
+					"target": ["DoorDebugUnwelded", "DoorDebugUnscrewed", "DoorDebugUnbolted", "DoorDebugAllowUnwelding", "DoorDebugAllowUnscrewing"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
 			"priority": 15, 
@@ -41,19 +43,20 @@
 		{
 			"name": "UnweldDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/PrintArg", 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
 			"preconditions": {
-				"DoorDebugAllowUnwelding": 1
+				"DoorDebugAllowUnwelding": 1,
+				"DoorDebugHasWelder": 1
 			},
 			"effects": {
-				"DoorDebugAllowOpening": 1
+				"DoorDebugUnwelded": 1
 			},
 			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
 					"contextarg_variable": "target",
-					"target": 54321,
-					"output_context_key": "printarg"
+					"target": ["DoorDebugUnwelded"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
 			"priority": 14, 
@@ -77,16 +80,22 @@
 		{
 			"name": "GetWelder", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"context_procs": ["/proc/ctxfetcher_null"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"preconditions": {
+				"DoorDebugAllowGetWelder": 1
+			},
+			"effects": {
+				"DoorDebugHasWelder": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
-					"variable": "path",
-					"list_idx": "0",
-					"output_context_key": "position"
+					"contextarg_variable": "target",
+					"target": ["DoorDebugHasWelder"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
-			"priority": 13, 
+			"priority": 10, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -107,16 +116,24 @@
 		{
 			"name": "HackDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"context_procs": ["/proc/ctxfetcher_null"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"preconditions": {
+				"DoorDebugScrewed": 1,
+				"HasMultitool": 1,
+				"DoorDebugAllowHacking": 1
+			},
+			"effects": {
+				"DoorDebugUnbolted": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
-					"variable": "path",
-					"list_idx": "0",
-					"output_context_key": "position"
+					"contextarg_variable": "target",
+					"target": ["DoorDebugUnbolted", "DoorDebugAllowHacking"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
-			"priority": 14, 
+			"priority": 15, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -137,16 +154,20 @@
 		{
 			"name": "GetMultitool", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"context_procs": ["/proc/ctxfetcher_null"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"preconditions": {},
+			"effects": {
+				"HasMultitool": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
-					"variable": "path",
-					"list_idx": "0",
-					"output_context_key": "position"
+					"contextarg_variable": "target",
+					"target": ["HasMultitool"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
-			"priority": 13, 
+			"priority": 15, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -167,16 +188,24 @@
 		{
 			"name": "UnscrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"context_procs": ["/proc/ctxfetcher_null"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"preconditions": {
+				"DoorDebugAllowUnscrewing": 1,
+				"HasScrewdriver": 1,
+				"DoorDebugScrewed": 1
+			},
+			"effects": {
+				"DoorDebugUnscrewed": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
-					"variable": "path",
-					"list_idx": "0",
-					"output_context_key": "position"
+					"contextarg_variable": "target",
+					"target": ["DoorDebugUnscrewed", "DoorDebugScrewed"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
-			"priority": 14, 
+			"priority": 8, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -197,16 +226,24 @@
 		{
 			"name": "ScrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"context_procs": ["/proc/ctxfetcher_null"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"preconditions": {
+				"DoorDebugAllowScrewing": 1,
+				"HasScrewdriver": 1,
+				"DoorDebugUnscrewed": 1
+			},
+			"effects": {
+				"DoorDebugScrewed": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
-					"variable": "path",
-					"list_idx": "0",
-					"output_context_key": "position"
+					"contextarg_variable": "target",
+					"target": ["DoorDebugUnscrewed", "DoorDebugScrewed"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
-			"priority": 14, 
+			"priority": 8, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -227,16 +264,20 @@
 		{
 			"name": "GetScrewdriver", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"context_procs": ["/proc/ctxfetcher_null"], 
+			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateFlipBoolean", 
+			"preconditions": {},
+			"effects": {
+				"HasScrewdriver": 1
+			},
+			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
-					"variable": "path",
-					"list_idx": "0",
-					"output_context_key": "position"
+					"contextarg_variable": "target",
+					"target": ["HasScrewdriver"],
+					"output_context_key": "worldstate_keys"
 				}
 			],
-			"priority": 13, 
+			"priority": 15, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",

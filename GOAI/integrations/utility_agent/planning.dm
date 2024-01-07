@@ -2,11 +2,29 @@
 # define GOAPPLAN_ACTIONSET_PATH "integrations/smartobject_definitions/goapplan.json"
 
 
+var/list/global_worldstate = null
+
+
 /datum/utility_ai/proc/QueryWorldState()
+	if(isnull(global.global_worldstate))
+		global.global_worldstate = list()
+		// Debug worldstate
+		global.global_worldstate["DoorDebugAllowUnwelding"] = 1
+		global.global_worldstate["DoorDebugAllowUnscrewing"] = 1
+		global.global_worldstate["DoorDebugAllowScrewing"] = 1
+		global.global_worldstate["DoorDebugAllowHacking"] = 1
+		global.global_worldstate["DoorDebugAllowGetWelder"] = 1
+		global.global_worldstate["DoorDebugUnscrewed"] = 1
+
+
 	var/list/worldstate = list()
+
+	// dev trick, this global shouldn't exist in final version
+	worldstate = global.global_worldstate.Copy()
+
 	// Debug worldstate
-	worldstate["DoorDebugAllowOpening"] = prob(50)
-	worldstate["DoorDebugAllowUnwelding"] = prob(50)
+	//worldstate["DoorDebugAllowOpening"] = prob(25)
+
 	return worldstate
 
 

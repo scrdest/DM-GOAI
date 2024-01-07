@@ -32,7 +32,7 @@
 		if(success)
 			src.brain?.SetMemory("LastTile", curr_pos)
 		else
-			to_world_log("MOVEMENT SYSTEM: Failed a step from ([pawn.x], [pawn.y]) to ([next_step.x], [next_step.y])")
+			MOVEMENT_DEBUG_LOG("MOVEMENT SYSTEM: Failed a step from ([pawn.x], [pawn.y]) to ([next_step.x], [next_step.y])")
 
 	else
 		src.active_path.SetDone()
@@ -49,20 +49,20 @@
 	var/atom/movable/pawn = src.GetPawn()
 
 	if(src.is_moving)
-		RUN_ACTION_DEBUG_LOG("MovementSystem cannot run; already moving | [__FILE__] -> L[__LINE__]")
+		MOVEMENT_DEBUG_LOG("MovementSystem cannot run; already moving | [__FILE__] -> L[__LINE__]")
 		return
 
 	if(src.is_moving || isnull(pawn))
-		RUN_ACTION_DEBUG_LOG("MovementSystem idle; pawn is null for [src] | [__FILE__] -> L[__LINE__]")
+		MOVEMENT_DEBUG_LOG("MovementSystem idle; pawn is null for [src] | [__FILE__] -> L[__LINE__]")
 		return
 
 	if(!(pawn.MayMove()))
-		RUN_ACTION_DEBUG_LOG("MovementSystem idle; pawn [pawn] cannot move. | [__FILE__] -> L[__LINE__]")
+		MOVEMENT_DEBUG_LOG("MovementSystem idle; pawn [pawn] cannot move. | [__FILE__] -> L[__LINE__]")
 		return
 
 	var/turf/curr_loc = get_turf(pawn)
 	if(isnull(curr_loc))
-		RUN_ACTION_DEBUG_LOG("MovementSystem idle; curr_loc is null! | [__FILE__] -> L[__LINE__]")
+		MOVEMENT_DEBUG_LOG("MovementSystem idle; curr_loc is null! | [__FILE__] -> L[__LINE__]")
 		return
 
 	var/list/curr_path = src.brain.GetMemoryValue(MEM_PATH_ACTIVE)
@@ -73,16 +73,16 @@
 
 	var/safe_trg = trg || src.brain.GetMemoryValue("last_pathing_target") || src.brain.GetMemoryValue("PendingMovementTarget")
 	var/turf/safe_trgturf = !isnull(safe_trg) ? get_turf(safe_trg) : null
-	//RUN_ACTION_DEBUG_LOG("LPT is [src.brain.GetMemoryValue("last_pathing_target", by_age=TRUE) || "null"] | [__FILE__] -> L[__LINE__]")
-	//RUN_ACTION_DEBUG_LOG("PMT is [src.brain.GetMemoryValue("PendingMovementTarget", by_age=TRUE) || "null"] | [__FILE__] -> L[__LINE__]")
+	//MOVEMENT_DEBUG_LOG("LPT is [src.brain.GetMemoryValue("last_pathing_target", by_age=TRUE) || "null"] | [__FILE__] -> L[__LINE__]")
+	//MOVEMENT_DEBUG_LOG("PMT is [src.brain.GetMemoryValue("PendingMovementTarget", by_age=TRUE) || "null"] | [__FILE__] -> L[__LINE__]")
 
 	if(isnull(safe_trgturf))
-		RUN_ACTION_DEBUG_LOG("MovementSystem idle; safe_trgturf is null! | [__FILE__] -> L[__LINE__]")
+		MOVEMENT_DEBUG_LOG("MovementSystem idle; safe_trgturf is null! | [__FILE__] -> L[__LINE__]")
 		return
 
 	var/localdist = MANHATTAN_DISTANCE(trgturf, curr_loc)
 	if(!localdist)
-		RUN_ACTION_DEBUG_LOG("MovementSystem idle; already at target! | [__FILE__] -> L[__LINE__]")
+		MOVEMENT_DEBUG_LOG("MovementSystem idle; already at target! | [__FILE__] -> L[__LINE__]")
 		return
 
 	var/success = FALSE
@@ -93,7 +93,7 @@
 
 	if(!isnull(src.active_path) && (src.active_path.path.len >= src.active_path.curr_offset) && !src.active_path.IsDone())
 		// Path-following mode:
-		to_world("-> MOVEMENT SYSTEM: IN PATH-FOLLOWING MODE <-")
+		MOVEMENT_DEBUG_LOG("-> MOVEMENT SYSTEM: IN PATH-FOLLOWING MODE <-")
 
 		var/atom/next_step = src.active_path.path[src.active_path.curr_offset]
 		var/atom/destination = src.active_path.path[src.active_path.path.len]
@@ -136,7 +136,7 @@
 			dirscore += rand() * 0.1
 			dirscore += src.active_path.frustration * (0.5 + rand())
 
-			//RUN_ACTION_DEBUG_LOG("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
+			//MOVEMENT_DEBUG_LOG("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
 
 			if(isnull(bestscore) || dirscore < bestscore)
 				bestscore = dirscore
@@ -144,7 +144,7 @@
 
 	if(isnull(bestcand) && curr_path)
 		// Path-guided steering:
-		to_world("-> MOVEMENT SYSTEM: IN STEERING MODE <-")
+		MOVEMENT_DEBUG_LOG("-> MOVEMENT SYSTEM: IN STEERING MODE <-")
 		var/turf/path_pos = null
 		var/path_idx = 1
 		var/path_len = curr_path.len
@@ -173,7 +173,7 @@
 
 	if(isnull(bestcand) && prob(20))
 		// Goal-guided steering, lowest quality fallback
-		to_world("-> MOVEMENT SYSTEM: IN NUDGING MODE <-")
+		MOVEMENT_DEBUG_LOG("-> MOVEMENT SYSTEM: IN NUDGING MODE <-")
 		var/list/cardinals = curr_loc.CardinalTurfs()
 
 		if(isnull(cardinals))
@@ -197,7 +197,7 @@
 
 			dirscore = next_score + rand(dest_score / 2, dest_score * 2) * 0.1
 
-			//RUN_ACTION_DEBUG_LOG("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
+			//MOVEMENT_DEBUG_LOG("Score for [cardturf] is [dirscore], best: [bestscore] for [bestcand] | <@[src]> | [__FILE__] -> L[__LINE__]")
 
 			if(isnull(bestscore) || dirscore < bestscore)
 				bestscore = dirscore
@@ -212,7 +212,7 @@
 
 	//bestcand.pDrawVectorbeam(pawn, bestcand, "n_beam")
 	var/step_result = MovePawn(bestcand)
-	RUN_ACTION_DEBUG_LOG("MovePawn step_result is [step_result] | <@[src]> | [__FILE__] -> L[__LINE__]")
+	MOVEMENT_DEBUG_LOG("MovePawn step_result is [step_result] | <@[src]> | [__FILE__] -> L[__LINE__]")
 
 	success = (
 		step_result || (
@@ -223,7 +223,7 @@
 	)
 
 	if(success)
-		to_world_log("MOVEMENT SYSTEM: Completed a step from ([og_xpos], [og_ypos]) to ([bestcand.x], [bestcand.y])")
+		MOVEMENT_DEBUG_LOG("MOVEMENT SYSTEM: Completed a step from ([og_xpos], [og_ypos]) to ([bestcand.x], [bestcand.y])")
 		src.brain?.SetMemory("LastTile", curr_loc)
 
 		if(src.active_path)
@@ -233,7 +233,7 @@
 				src.active_path.SetDone()
 				//src.active_path.path.Cut()
 	else
-		to_world_log("MOVEMENT SYSTEM: !FAILED! a step from ([og_xpos], [og_ypos]) to ([bestcand.x], [bestcand.y])")
+		MOVEMENT_DEBUG_LOG("MOVEMENT SYSTEM: !FAILED! a step from ([og_xpos], [og_ypos]) to ([bestcand.x], [bestcand.y])")
 
 		if(src.active_path)
 			src.active_path.frustration++

@@ -82,5 +82,5 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_effects_not_all_
 			// we could tally all of them up at return the count, but for now - this is cheaper
 			return TRUE
 
-	return TRUE
+	return FALSE
 

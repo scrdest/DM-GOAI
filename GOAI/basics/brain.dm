@@ -17,6 +17,12 @@
 # define RUN_ACTION_DEBUG_LOG(X)
 # endif
 
+# ifdef MOVEMENT_DEBUG_LOGGING
+# define MOVEMENT_DEBUG_LOG(X) to_world(X); to_world_log(X)
+# else
+# define MOVEMENT_DEBUG_LOG(X)
+# endif
+
 # ifdef VALIDATE_ACTION_DEBUG_LOGGING
 # define VALIDATE_ACTION_DEBUG_LOG(X) to_world(X)
 # else
