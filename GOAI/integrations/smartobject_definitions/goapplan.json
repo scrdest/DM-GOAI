@@ -7,9 +7,9 @@
 			"description": "Replace Contextproc and Considerations later!!!", 
 			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
-				"DoorDebugUnwelded": 1,
-				"DoorDebugUnscrewed": 1,
-				"DoorDebugUnbolted": 1
+				"DoorDebugWelded": -1,
+				"DoorDebugScrewed": -1,
+				"DoorDebugBolted": -1
 			},
 			"effects": {
 				"DoorOpen": 1
@@ -19,15 +19,14 @@
 				{
 					"contextarg_variable": "target",
 					"target": {
-						"DoorDebugUnwelded": 0, 
-						"DoorDebugUnscrewed": 1, 
+						"DoorDebugWelded": 1, 
 						"DoorDebugScrewed": 0, 
-						"DoorDebugUnbolted": 0
+						"DoorDebugBolted": 1
 					},
 					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 15, 
+			"priority": 10, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -41,6 +40,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -51,22 +57,23 @@
 			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowUnwelding": 1,
+				"DoorDebugWelded": 1,
 				"HasWelder": 1
 			},
 			"effects": {
-				"DoorDebugUnwelded": 1
+				"DoorDebugWelded": 0
 			},
 			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
 					"contextarg_variable": "target",
 					"target": {
-						"DoorDebugUnwelded": 1
+						"DoorDebugWelded": 0
 					},
 					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 14, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -80,6 +87,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -104,7 +118,7 @@
 					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 10, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -119,6 +133,13 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
 					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
+					"curve_proc": "/proc/curve_linear"
 				}
 			]
 		},
@@ -128,18 +149,19 @@
 			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugScrewed": 1,
+				"DoorDebugBolted": 1,
 				"HasMultitool": 1,
 				"DoorDebugAllowHacking": 1
 			},
 			"effects": {
-				"DoorDebugUnbolted": 1
+				"DoorDebugBolted": 0
 			},
 			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
 					"contextarg_variable": "target",
 					"target": {
-						"DoorDebugUnbolted": 1
+						"DoorDebugBolted": 0
 					},
 					"output_context_key": "new_worldstate_map"
 				}
@@ -158,6 +180,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -195,6 +224,13 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
 					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
+					"curve_proc": "/proc/curve_linear"
 				}
 			]
 		},
@@ -204,24 +240,23 @@
 			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowUnscrewing": 1,
-				"HasScrewdriver": 1,
-				"DoorDebugScrewed": 1
+				"DoorDebugScrewed": 1,
+				"HasScrewdriver": 1
 			},
 			"effects": {
-				"DoorDebugUnscrewed": 1
+				"DoorDebugScrewed": 0
 			},
 			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
 			"context_args": [
 				{
 					"contextarg_variable": "target",
 					"target": {
-						"DoorDebugUnscrewed": 1,
 						"DoorDebugScrewed": 0
 					},
 					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 5, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -235,6 +270,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -245,8 +287,8 @@
 			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
 			"preconditions": {
 				"DoorDebugAllowScrewing": 1,
-				"HasScrewdriver": 1,
-				"DoorDebugUnscrewed": 1
+				"DoorDebugScrewed": -1,
+				"HasScrewdriver": 1
 			},
 			"effects": {
 				"DoorDebugScrewed": 1
@@ -256,13 +298,12 @@
 				{
 					"contextarg_variable": "target",
 					"target": {
-						"DoorDebugUnscrewed": 0,
 						"DoorDebugScrewed": 1
 					},
 					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 7, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -276,6 +317,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -298,7 +346,7 @@
 					"output_context_key": "new_worldstate_map"
 				}
 			],
-			"priority": 8, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
@@ -312,6 +360,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Rand",
+					"lo_mark": -50, 
+					"hi_mark": 100, 
+					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]

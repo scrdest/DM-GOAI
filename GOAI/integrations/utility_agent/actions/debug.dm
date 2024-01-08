@@ -24,16 +24,16 @@
 	if(tracker.IsStopped())
 		return
 
-	if(isnull(global.global_worldstate)) { global.global_worldstate = list() }
+	if(isnull(src.ai_worldstate)) { src.ai_worldstate = list() }
 
 	for(var/worldstate_key in worldstate_keys)
-		var/current = global.global_worldstate[worldstate_key]
+		var/current = src.ai_worldstate[worldstate_key]
 
 		if(isnull(current))
 			current = FALSE
 
 		var/newval = !current
-		global.global_worldstate[worldstate_key] = newval
+		src.ai_worldstate[worldstate_key] = newval
 
 	tracker.SetDone()
 	return
@@ -51,14 +51,14 @@
 	if(tracker.IsStopped())
 		return
 
-	if(isnull(global.global_worldstate)) { global.global_worldstate = list() }
+	if(isnull(src.ai_worldstate)) { src.ai_worldstate = list() }
 
 	if(isnull(new_worldstate_map))
 		return
 
 	for(var/worldstate_key in new_worldstate_map)
 		var/new_worldstate_val = new_worldstate_map[worldstate_key]
-		global.global_worldstate[worldstate_key] = new_worldstate_val
+		src.ai_worldstate[worldstate_key] = new_worldstate_val
 
 	tracker.SetDone()
 	return

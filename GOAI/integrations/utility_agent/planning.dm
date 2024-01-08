@@ -2,25 +2,24 @@
 # define GOAPPLAN_ACTIONSET_PATH "integrations/smartobject_definitions/goapplan.json"
 
 
-var/list/global_worldstate = null
+/datum/utility_ai
+	var/list/ai_worldstate = null
 
 
 /datum/utility_ai/proc/QueryWorldState()
-	if(isnull(global.global_worldstate))
-		global.global_worldstate = list()
-		// Debug worldstate
-		global.global_worldstate["DoorDebugAllowUnwelding"] = 1
-		global.global_worldstate["DoorDebugAllowUnscrewing"] = 1
-		global.global_worldstate["DoorDebugAllowScrewing"] = 1
-		global.global_worldstate["DoorDebugAllowHacking"] = 1
-		global.global_worldstate["DoorDebugAllowGetWelder"] = 1
-		global.global_worldstate["DoorDebugUnscrewed"] = 1
+	if(isnull(src.ai_worldstate))
+		src.ai_worldstate = list()
+		// Debug initial worldstate stuff
+		src.ai_worldstate["DoorDebugAllowUnwelding"] = 1
+		src.ai_worldstate["DoorDebugAllowUnscrewing"] = 1
+		src.ai_worldstate["DoorDebugAllowScrewing"] = 1
+		src.ai_worldstate["DoorDebugAllowHacking"] = 1
+		src.ai_worldstate["DoorDebugAllowGetWelder"] = 1
+		src.ai_worldstate["DoorDebugUnscrewed"] = prob(75)
+		src.ai_worldstate["DoorDebugWelded"] = prob(75)
+		src.ai_worldstate["DoorDebugBolted"] = prob(75)
 
-
-	var/list/worldstate = list()
-
-	// dev trick, this global shouldn't exist in final version
-	worldstate = global.global_worldstate.Copy()
+	var/list/worldstate = src.ai_worldstate.Copy()
 
 	// Debug worldstate
 	//worldstate["DoorDebugAllowOpening"] = prob(25)
