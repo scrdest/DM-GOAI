@@ -150,10 +150,15 @@
 		// Multiply scores to get a probabilistic logical AND on criteria
 		total = total * axis_score
 
-		if(valid_cutoff && (total <= cutoff))
+		// random fuzz to prevent decisions with matching scores always going in deterministic order
+		var/fuzzed_cutoff = cutoff + (rand() / 10)
+
+		if(valid_cutoff && (total < fuzzed_cutoff))
 			// If we already know we have better candidates, we can stop.
 			total = min(total, 0)
 			break
+
+		cutoff = total
 
 	// Rescale to remove downward bias from adding more Considerations
 	var/adjusted_total = CORRECT_UTILITY_SCORE(total, axis_count)

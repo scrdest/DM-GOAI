@@ -5,34 +5,38 @@
 		{
 			"name": "OpenDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor", 
 			"preconditions": {
-				"DoorDebugWelded": -1,
-				"DoorDebugScrewed": -1,
-				"DoorDebugBolted": -1
+				"global": {},
+				"target": {
+					"IsOpen": -1,
+					"welded": -1,
+					"screwed": -1
+				}
 			},
 			"effects": {
-				"DoorOpen": 1
+				"target": {
+					"IsOpen": 1
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"DoorDebugWelded": 1, 
-						"DoorDebugScrewed": 0, 
-						"DoorDebugBolted": 1
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_autodoor",
+					"output_context_key": "location"
 				}
 			],
-			"priority": 10, 
+			"priority": 9, 
 			"considerations": [
 				{
 					"name": "EffectsNotMet",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "location",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -40,13 +44,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "location",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -54,23 +55,32 @@
 		{
 			"name": "UnweldDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
+			"handlertype": 1,
+			"args": {
+				"func_proc": "/proc/WeldUsing"
+			},
 			"preconditions": {
-				"DoorDebugAllowUnwelding": 1,
-				"DoorDebugWelded": 1,
-				"HasWelder": 1
+				"global": {
+					"DoorDebugAllowUnwelding": 1
+				},
+				"pawn": {
+					"HasWelder": 1
+				},
+				"target": {
+					"welded": 1
+				}
 			},
 			"effects": {
-				"DoorDebugWelded": 0
+				"target": {
+					"welded": 0
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"DoorDebugWelded": 0
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_autodoor",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -80,6 +90,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -87,13 +101,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -101,21 +112,22 @@
 		{
 			"name": "GetWelder", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 			"preconditions": {
-				"DoorDebugAllowGetWelder": 1
+				"global": {
+					"DoorDebugAllowGetWelder": 1
+				}
 			},
 			"effects": {
-				"HasWelder": 1
+				"pawn": {
+					"HasWelder": 1
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"HasWelder": 1
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_welder",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -125,6 +137,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -132,13 +148,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -146,24 +159,33 @@
 		{
 			"name": "HackDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
+			"handlertype": 1,
+			"args": {
+				"func_proc": "/proc/HackUsing"
+			},
 			"preconditions": {
-				"DoorDebugScrewed": 1,
-				"DoorDebugBolted": 1,
-				"HasMultitool": 1,
-				"DoorDebugAllowHacking": 1
+				"global": {
+					"DoorDebugAllowHacking": 1
+				},
+				"pawn": {
+					"HasMultitool": 1
+				},
+				"target": {
+					"screwed": 1,
+					"bolted": 1
+				}
 			},
 			"effects": {
-				"DoorDebugBolted": 0
+				"target": {
+					"bolted": 0
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"DoorDebugBolted": 0
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_autodoor",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -173,6 +195,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -180,13 +206,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -194,19 +217,18 @@
 		{
 			"name": "GetMultitool", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 			"preconditions": {},
 			"effects": {
-				"HasMultitool": 1
+				"pawn": {
+					"HasMultitool": 1
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"HasMultitool": 1
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_multitool",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -216,6 +238,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -223,13 +249,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -237,23 +260,33 @@
 		{
 			"name": "UnscrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
+			"handlertype": 1,
+			"args": {
+				"func_proc": "/proc/ScrewUsing"
+			},
 			"preconditions": {
-				"DoorDebugAllowUnscrewing": 1,
-				"DoorDebugScrewed": 1,
-				"HasScrewdriver": 1
+				"global": {
+					"DoorDebugAllowUnscrewing": 1
+				},
+				"pawn": {
+					"HasScrewdriver": 1
+				},
+				"target": {
+					"screwed": 1,
+					"bolted": -1
+				}
 			},
 			"effects": {
-				"DoorDebugScrewed": 0
+				"target": {
+					"screwed": 0
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"DoorDebugScrewed": 0
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_autodoor",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -263,6 +296,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -270,13 +307,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -284,23 +318,33 @@
 		{
 			"name": "ScrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
+			"handlertype": 1,
+			"args": {
+				"func_proc": "/proc/ScrewUsing"
+			},
 			"preconditions": {
-				"DoorDebugAllowScrewing": 1,
-				"DoorDebugScrewed": -1,
-				"HasScrewdriver": 1
+				"global": {
+					"DoorDebugAllowScrewing": 1
+				},
+				"pawn": {
+					"HasScrewdriver": 1
+				},
+				"target": {
+					"screwed": -1,
+					"bolted": 1
+				}
 			},
 			"effects": {
-				"DoorDebugScrewed": 1
+				"target": {
+					"screwed": 1
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"DoorDebugScrewed": 1
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_autodoor",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -310,6 +354,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -317,13 +365,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -331,19 +376,18 @@
 		{
 			"name": "GetScrewdriver", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/GlobalWorldstateSetStateMap", 
+			"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 			"preconditions": {},
 			"effects": {
-				"HasScrewdriver": 1
+				"pawn": {
+					"HasScrewdriver": 1
+				}
 			},
-			"context_procs": ["/proc/ctxfetcher_read_another_contextarg"], 
+			"context_procs": ["/proc/ctxfetcher_get_tagged_target"], 
 			"context_args": [
 				{
-					"contextarg_variable": "target",
-					"target": {
-						"HasScrewdriver": 1
-					},
-					"output_context_key": "new_worldstate_map"
+					"tag": "test_screwdriver",
+					"output_context_key": "target"
 				}
 			],
 			"priority": 9, 
@@ -353,6 +397,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
@@ -360,13 +408,10 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
-					"curve_proc": "/proc/curve_linear"
-				},
-				{
-					"name": "Rand",
-					"lo_mark": -50, 
-					"hi_mark": 100, 
-					"input_proc": "/proc/consideration_input_urand", 
+					"input_args": {
+						"target_key": "target",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_linear"
 				}
 			]

@@ -13,6 +13,15 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_never)
 	return ACTIVATION_NONE
 
 
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_constant)
+	// A dumb Consideration input that always returns a specified activation
+
+	var/raw_value = consideration_args["value"]
+	var/value = clamp(raw_value, ACTIVATION_NONE, ACTIVATION_FULL)
+
+	return value
+
+
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_urand)
 	// A Consideration input that returns an activation that is uniform random between 0% and 100%
 	return rand() * 100

@@ -199,25 +199,135 @@
 /* Automated, self-closing door */
 /obj/cover/autodoor
 	icon = 'icons/obj/doors/Door1.dmi'
-	icon_state = "door1"
+	icon_state = "cdoor1"
 
 	var/close_door_at = 0
 	var/autoclose = TRUE
 	var/autoclose_time = 50
 	var/open = FALSE
 	var/scheduled_reopen = FALSE
+
+	var/start_screwed = FALSE
+	var/start_welded = FALSE
+	var/start_bolted = FALSE
+
 	density = FALSE
 
 
 /obj/cover/autodoor/proc/UpdateOpen()
 	density = (open ? FALSE : FALSE)
 	opacity = (open ? FALSE : TRUE)
+
 	icon_state = (open ? "door0" : "door1")
 
 	if(directional_blocker)
 		directional_blocker.is_active = (open ? FALSE : TRUE)
 
+	src.SetWorldstate("IsOpen", src.open)
 	return src
+
+
+/obj/cover/autodoor/UpdateIcon()
+	icon_state = "cdoor1"
+
+	var/screwed = src.GetWorldstate("screwed", FALSE)
+	var/welded = src.GetWorldstate("welded", FALSE)
+	var/bolted = src.GetWorldstate("bolted", FALSE)
+	var/is_open = src.GetWorldstate("IsOpen", FALSE)
+
+	if(is_open)
+		icon_state = "codoor0"
+
+	else if(screwed && welded && bolted)
+		icon_state = "codoorl_locked"
+
+	else if(welded && bolted)
+		icon_state = "cdoorl_locked"
+
+	else if(screwed && welded)
+		icon_state = "co_doorl"
+
+	else if(screwed)
+		icon_state = "co_door1"
+
+	else if(welded)
+		icon_state = "cdoorl"
+
+	return src
+
+
+/obj/cover/autodoor/proc/Weld(var/atom/welder)
+	/*
+	if(isnull(welder))
+		return FALSE
+	*/
+	var/welded = src.GetWorldstate("welded", FALSE)
+	src.SetWorldstate("welded", !welded)
+	src.UpdateIcon()
+	return TRUE
+
+
+/proc/WeldUsing(var/atom/target, var/atom/welder)
+	if(isnull(target))
+		return FALSE
+
+	/*
+	if(isnull(welder))
+		return FALSE
+	*/
+
+	var/obj/cover/autodoor/AD = target
+	if(istype(AD))
+		AD.Weld(welder)
+		return TRUE
+
+	return FALSE
+
+
+/obj/cover/autodoor/proc/Screw(var/atom/screwdriver)
+	/*
+	if(isnull(screwdriver))
+		return FALSE
+	*/
+	var/screwed = src.GetWorldstate("screwed", FALSE)
+	src.SetWorldstate("screwed", !screwed)
+	src.UpdateIcon()
+
+	return TRUE
+
+
+/proc/ScrewUsing(var/atom/target, var/atom/screwdriver)
+	if(isnull(target))
+		return FALSE
+
+	/*
+	if(isnull(screwdriver))
+		return FALSE
+	*/
+
+	var/obj/cover/autodoor/AD = target
+	if(istype(AD))
+		AD.Screw(screwdriver)
+		return TRUE
+
+	return FALSE
+
+
+/proc/HackUsing(var/atom/target, var/atom/hacktool)
+	if(isnull(target))
+		return FALSE
+
+	/*
+	if(isnull(hacktool))
+		return FALSE
+	*/
+
+	var/obj/cover/autodoor/AD = target
+	if(istype(AD))
+		AD.SetWorldstate("bolted", FALSE)
+		return TRUE
+
+	return FALSE
 
 
 /obj/cover/autodoor/proc/NextCloseTime()
@@ -250,7 +360,13 @@
 	..()
 	name = "[name] @ [COORDS_TUPLE(src)]"
 	directional_blocker = new(null, null, TRUE, TRUE)
+
+	src.SetWorldstate("screwed", src.start_screwed)
+	src.SetWorldstate("welded", src.start_welded)
+	src.SetWorldstate("bolted", src.start_bolted)
+
 	UpdateOpen()
+	UpdateIcon()
 
 	spawn(0)
 		while(src)

@@ -207,8 +207,10 @@
 	if(isnull(bestcand))
 		return
 
+	# ifdef MOVEMENT_DEBUG_LOGGING
 	var/og_xpos = pawn.x
 	var/og_ypos = pawn.y
+	# endif
 
 	//bestcand.pDrawVectorbeam(pawn, bestcand, "n_beam")
 	var/step_result = MovePawn(bestcand)

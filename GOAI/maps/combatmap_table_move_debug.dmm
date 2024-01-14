@@ -2,7 +2,7 @@
 "b" = (/turf/ground,/area)
 "c" = (/mob/living/simple_animal/aitester/utility{name = "Alpha"},/turf/ground,/area)
 "d" = (/obj/cover/autodoor,/turf/ground,/area)
-"e" = (/mob/living/simple_animal/aitester/utility{faction = "enemy"; name = "Enemy"; real_name = "Enemy"; spawn_commander = 0},/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester/utility{faction = "enemy"; name = "Enemy"; real_name = "Enemy"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
 "g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
 "h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)

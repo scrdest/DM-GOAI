@@ -161,12 +161,10 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path)
 
 	if(isnull(path))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_on_path Path is null @ L[__LINE__] in [__FILE__]")
-
 		var/default_on_null = DEFAULT_IF_NULL(consideration_args?["default_on_null"], FALSE)
-
 		return default_on_null
 
-	for(var/path_idx = path.len + 0, path_idx > 0, path_idx--)
+	for(var/path_idx = (path?.len || 0) + 0, path_idx > 0, path_idx--)
 		var/turf/T = path[path_idx]
 
 		if(get_dist(T, candidate) <= min_dist_to_path)
@@ -201,7 +199,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_is_on_path_gradient)
 
 	var/list/path = _cihelper_get_planned_path(context, requester, consideration_args)
 
-	if(isnull(path))
+	if(isnull(path) || !istype(path))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_is_on_path_gradient Path is null @ L[__LINE__] in [__FILE__]")
 
 		var/default_on_null = consideration_args?["default_on_null"]

@@ -90,3 +90,6 @@
 # define DEFAULT_IF_NULL(Nullable, Default) (isnull(Nullable) ? Default : Nullable)
 
 # define SENSE_COVERLEAP_WAYFINDER "SenseCoverleapWayfinder"
+
+# define HANDLERTYPE_SRCMETHOD 0
+# define HANDLERTYPE_FUNC 1

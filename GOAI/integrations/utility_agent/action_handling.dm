@@ -42,21 +42,39 @@
 			MAYBE_LOG("[src]: HandleAction action is: [action]")
 
 			var/actionproc = action.handler
+			var/handlertype = action.handlertype
 
 			var/list/action_args = list()
 			action_args["tracker"] = tracker
+
 			if(action?.arguments?.len)
-				action_args += action.arguments
+				if(handlertype == HANDLERTYPE_SRCMETHOD)
+					action_args += action.arguments
+
+				if(handlertype == HANDLERTYPE_FUNC)
+					var/list/funcargs = list()
+
+					for(var/passed_arg in action.arguments)
+						var/passed_val = action.arguments[passed_arg]
+
+						if(passed_arg == "func_proc")
+							action_args["func_proc"] = passed_val
+							continue
+
+						funcargs[passed_arg] = passed_val
+
+					action_args["func_args"] = funcargs
 
 			if(isnull(actionproc))
-				world << "Failed to call [actionproc]([json_encode(action_args)])!"
+				MAYBE_LOG("Failed to call [actionproc]([json_encode(action_args)])!")
 				tracker.SetFailed()
 
 			else
 				if(tracker.IsStopped())
 					break
 
-				world << "Calling [actionproc]([json_encode(action_args)])!"
+				MAYBE_LOG("Calling [actionproc]([json_encode(action_args)])!")
+
 				call(src, actionproc)(arglist(action_args))
 
 				if(action.instant)

@@ -32,6 +32,7 @@
 # define JSON_KEY_ACT_CTXPROC "context_procs"
 # define JSON_KEY_ACT_CTXARGS "context_args"
 # define JSON_KEY_ACT_HANDLER "handler"
+# define JSON_KEY_ACT_HANDLERTYPE "handlertype"
 # define JSON_KEY_ACT_HARDARGS "args"  // hardcoded args, to avoid code duplication for nearly identical Actions
 # define JSON_KEY_ACT_PRIORITY "priority"
 # define JSON_KEY_ACT_CHARGES "charges"
@@ -140,6 +141,8 @@
 	var/raw_handler = json_data[JSON_KEY_ACT_HANDLER]
 	var/handler = STR_TO_PROC(raw_handler)
 
+	var/handlertype = json_data[JSON_KEY_ACT_HANDLERTYPE]
+
 	var/list/hard_args = json_data[JSON_KEY_ACT_HARDARGS]
 
 	var/priority = json_data[JSON_KEY_ACT_PRIORITY]
@@ -157,6 +160,7 @@
 	var/datum/utility_action_template/new_action_template = new(
 		considerations,
 		handler,
+		handlertype,
 		true_ctxprocs,
 		context_args,
 		priority,
