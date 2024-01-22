@@ -375,6 +375,10 @@
 
 
 /obj/cover/autodoor/proc/pOpen()
+	if(src.GetWorldstate("screwed")) return open
+	if(src.GetWorldstate("welded"))  return open
+	if(src.GetWorldstate("bolted"))  return open
+
 	Toggle(FALSE)
 	return open
 

@@ -60,12 +60,8 @@
 	if(success)
 		tracker.SetDone()
 
-	if(!success)
-		var/bb_failures = tracker.BBSetDefault("failed_steps", 0)
-		tracker.BBSet("failed_steps", ++bb_failures)
-
-		if(bb_failures > 3)
-			tracker.SetFailed()
+	else
+		tracker.SetFailed()
 
 	return
 

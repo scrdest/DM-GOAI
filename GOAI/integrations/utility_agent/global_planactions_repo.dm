@@ -1,0 +1,68 @@
+
+var/global/list/global_plan_actions_repo = null
+
+
+/proc/InitializeGlobalPlanActionsRepo()
+	var/list/actions_repo = list()
+
+	global.global_plan_actions_repo = actions_repo
+	RegisterGlobalPlanActionsFromJson(GOAPPLAN_METADATA_PATH)
+
+	return global.global_plan_actions_repo
+
+
+/proc/RegisterGlobalPlanAction(var/key, var/handler_proc, var/list/preconditions, var/list/effects, var/target_key, var/loc_key, var/handler_is_func = FALSE, var/feature_move_to = FALSE, var/description = null, var/list/context_args = null)
+	var/list/action_data = list()
+
+	action_data[JSON_KEY_PLANACTION_HANDLERPROC] = handler_proc
+	action_data[JSON_KEY_PLANACTION_PRECONDITIONS] = preconditions
+	action_data[JSON_KEY_PLANACTION_EFFECTS] = effects
+	action_data[JSON_KEY_PLANACTION_TARGET_KEY] = target_key
+	action_data[JSON_KEY_PLANACTION_HANDLER_LOCARG] = loc_key
+	action_data[JSON_KEY_PLANACTION_HANDLER_ISFUNC] = handler_is_func
+	action_data[JSON_KEY_PLANACTION_HASMOVEMENT] = (isnull(feature_move_to) ? FALSE : feature_move_to)
+	action_data[JSON_KEY_PLANACTION_DESCRIPTION] = description
+	action_data[JSON_KEY_PLANACTION_CTXARGS] = context_args
+
+	global.global_plan_actions_repo[key] = action_data
+	return TRUE
+
+
+/proc/PlanActionFromJson(var/list/json_data, var/key = null)
+	if(isnull(key))
+		key = json_data[JSON_KEY_PLANACTION_ACTIONKEY]
+
+	var/handler_proc = STR_TO_PROC(json_data[JSON_KEY_PLANACTION_HANDLERPROC])
+	var/preconditions = json_data[JSON_KEY_PLANACTION_PRECONDITIONS]
+	var/effects = json_data[JSON_KEY_PLANACTION_EFFECTS]
+	var/target_key = json_data[JSON_KEY_PLANACTION_TARGET_KEY]
+	var/loc_key = json_data[JSON_KEY_PLANACTION_HANDLER_LOCARG]
+	var/handler_is_func = json_data[JSON_KEY_PLANACTION_HANDLER_ISFUNC]
+	var/feature_move_to = json_data[JSON_KEY_PLANACTION_HASMOVEMENT]
+	var/description = json_data[JSON_KEY_PLANACTION_DESCRIPTION]
+	var/list/context_args = json_data[JSON_KEY_PLANACTION_CTXARGS]
+
+	. = RegisterGlobalPlanAction(
+		key=key,
+		handler_proc=handler_proc,
+		preconditions=preconditions,
+		effects=effects,
+		target_key=target_key,
+		loc_key=loc_key,
+		handler_is_func=handler_is_func,
+		feature_move_to=feature_move_to,
+		description=description,
+		context_args=context_args
+	)
+	return
+
+
+/proc/RegisterGlobalPlanActionsFromJson(var/json_file)
+	var/list/json_data = READ_JSON_FILE(json_file)
+	ASSERT(json_data)
+
+	for(var/action_key in json_data)
+		var/action_data = json_data[action_key]
+		PlanActionFromJson(action_data, action_key)
+
+	return

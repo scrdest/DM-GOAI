@@ -137,6 +137,7 @@
 #include "integrations\utility_agent\combat_commander.dm"
 #include "integrations\utility_agent\core.dm"
 #include "integrations\utility_agent\debug.dm"
+#include "integrations\utility_agent\global_planactions_repo.dm"
 #include "integrations\utility_agent\movement.dm"
 #include "integrations\utility_agent\orders.dm"
 #include "integrations\utility_agent\planning.dm"

@@ -87,6 +87,10 @@ X================================================================X
 	/* Abstract class */
 	var/list/graph
 
+	// Since DM has no nice stackey tuples or arrays, we'll track the search status with this var.
+	// It should always start at FALSE (reset per run) and toggle to TRUE once we have a path.
+	var/last_run_finished_flag = FALSE
+
 
 /datum/GOAP/proc/update_op(var/old_val, var/new_val)
 	// REQUIRED!
@@ -312,7 +316,7 @@ X================================================================X
 	// o curr_cost - *PRIVATE* optional; the total cost of getting from search root to current start pos. You shouldn't need to mess with it.
 	// o curr_iter - *PRIVATE* optional; the search iteration index. You shouldn't need to mess with it.
 	//
-	// Returns: 2-tuple, (continue_search, next_iteration_params (usually) | best_path (if found))
+	// Returns: next_iteration_params (usually; assoc list) | best_path (if found; array list)
 	//
 	*/
 	MAYBE_LOG("    ")
@@ -333,14 +337,21 @@ X================================================================X
 	var/list/updated_state = update_counts(_blackboard, start)
 
 	var/goal_check_result = goal_check(updated_state, goal)
-	if (goal_check_result > 0)
+	if(goal_check_result)
 		MAYBE_LOG("GOAL CHECK SUCCEEDED.")
 
+		// Pluck the thing that actually holds the path from the final state:
 		var/raw_final_result = updated_state[GOAP_KEY_SRC]
-		var/list/full_final_result = islist(start) ? list(raw_final_result, start) : raw_final_result + list(start)
-		var/datum/Tuple/final_result = new /datum/Tuple(0, full_final_result)
 
-		return final_result
+		// It doesn't have the start state, so add that in:
+		var/list/full_final_result = islist(start) ? list(raw_final_result, start) : raw_final_result + list(start)
+
+		// Flag that we're done
+		src.last_run_finished_flag = TRUE
+
+		// Yay we've got a plan!
+		return full_final_result
+
 
 	if (visited)
 		var/curr_visit_count = visited[start] ? visited[start] : 0
@@ -367,7 +378,7 @@ X================================================================X
 
 		var/priority_key = pqueue_key_gen(curr_iter, curr_cost, heuristic)
 
-		var/datum/Quadruple/cand_tuple = new /datum/Quadruple (priority_key, total_cost, neigh, source)
+		var/datum/Quadruple/cand_tuple = new /datum/Quadruple(priority_key, total_cost, neigh, source)
 
 		if (total_cost < PLUS_INF && (!(cand_tuple in _pqueue)))
 			_pqueue.Enqueue(cand_tuple)
@@ -382,12 +393,14 @@ X================================================================X
 	var/datum/Quadruple/next_cand_tuple = _pqueue.Dequeue()
 	var/cand_cost = next_cand_tuple.second
 	var/cand_pos = next_cand_tuple.third
+
 	var/list/source_pos = next_cand_tuple.fourth
+
+	# ifdef DEBUG_LOGGING
 
 	MAYBE_LOG("CAND: [next_cand_tuple.third]")
 	MAYBE_LOG("CAND SRCp: [source_pos]")
 
-	# ifdef DEBUG_LOGGING
 	/*for (var/srcpit in source_pos)
 		MAYBE_LOG("SRCp item: [srcpit]")*/
 	# endif
@@ -420,17 +433,15 @@ X================================================================X
 	new_params["curr_cost"] = cand_cost
 	new_params["curr_iter"] = curr_iter + 1
 
-	var/datum/Tuple/result = new /datum/Tuple (1, new_params)
-
 	# ifdef DEBUG_LOGGING
-	var/list/pathli = result.right
+	var/list/pathli = new_params
 	MAYBE_LOG("Result tuple: ([result.left], [pathli] ([pathli.len]))")
 	# endif
 
-	return result
+	return new_params
 
 
-/datum/GOAP/proc/Plan(var/list/start, var/list/goal, var/paths = null, var/visited = null, var/cutoff_iter, var/max_queue_size = null)
+/datum/GOAP/proc/Plan(var/list/start, var/list/goal, var/paths = null, var/visited = null, var/cutoff_iter, var/max_queue_size = null, var/custom_backtrack = FALSE)
 	/* Main planning proc. Runs the full Astar search over a graph of Actions until either a path
 	// satisfying the Goal criteria is found or the iteration cutoff has been exceeded (if set).
 	//
@@ -453,15 +464,16 @@ X================================================================X
 	// o max_queue_size - optional; maximum space allocated for the Priority Queue. Unlimited if null, otherwise trims the worst candidates from the list tail.
 	// o pqueue_key_gen - optional proc; a hook to allow custom queue sort keys. Default - simply uses the iteration as the primary sort key.
 	//
-	// Returns: 2-tuple, (continue_search, best_path (if found)) if a path is found; null otherwise.
+	// Returns: best_path (if found); null otherwise.
 	*/
-	var/curr_iter = 0
-	var/continue_search = 1
+	src.last_run_finished_flag = FALSE // always reset
+
+	var/curr_iter = -1
 
 	var/list/true_paths = isnull(paths) ? list() : paths
 	var/list/next_params = list()
-	var/datum/Tuple/result = null
-	var/PriorityQueue/queue = new /PriorityQueue (/datum/Quadruple/proc/ActionCompare)
+	var/list/result = null
+	var/PriorityQueue/queue = new /PriorityQueue(/datum/Quadruple/proc/ActionCompare)
 
 	next_params["start"] = start
 	next_params["goal"] = goal
@@ -471,30 +483,30 @@ X================================================================X
 	next_params["cutoff_iter"] = cutoff_iter
 	next_params["max_queue_size"] = max_queue_size
 
-	while (next_params && continue_search)
-		sleep(-1) // this is a safe time to pause things and catch up with reality
+	while(next_params)
+		if(!isnull(cutoff_iter)) // 0 is *technically* valid, so let's use ifnull...
+			if (curr_iter >= ++cutoff_iter)
+				MAYBE_LOG("Path not found within [cutoff_iter] iterations!")
+				return
+
+		sleep(0) // this is a safe time to pause things and catch up with reality
 
 		result = SearchIteration(arglist(next_params))
-		continue_search = result?.left || FALSE
-		var/list/new_params = result?.right
 
-		next_params = new_params
+		if(src.last_run_finished_flag)
+			// Got a plan, end the loop.
+			break
 
-		if (continue_search > 0)
-
-			if (!isnull(cutoff_iter)) // 0 is *technically* valid, so let's use ifnull...
-				curr_iter = curr_iter + 1
-				if (curr_iter >= cutoff_iter)
-					MAYBE_LOG("Path not found within [cutoff_iter] iterations!")
-					return
-
+		// Reload params for the next iteration.
+		next_params = result
 
 	MAYBE_LOG("Broken out of the Plan loop!")
-	var/datum/Triple/best_opt = result ? result.right : null
-	var/best_path = best_opt
 
-	for (var/parent_elem in best_path)
-		handle_backtrack(parent_elem)
+	if(custom_backtrack)
+		var/list/best_path = result
+
+		for(var/parent_elem in best_path)
+			handle_backtrack(parent_elem)
 
 	return result
 
@@ -502,5 +514,4 @@ X================================================================X
 /datum/GOAP/New(var/list/graphmap)
 	..()
 	graph = graphmap
-
 

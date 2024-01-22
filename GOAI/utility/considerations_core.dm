@@ -98,7 +98,7 @@
 	var/raw_input = call(src.get_input_val_proc)(action_template, context, requester, src.consideration_args)
 
 	# ifdef UTILITYBRAIN_LOG_CONSIDERATION_INPUTS
-	UTILITYBRAIN_DEBUG_LOG("INFO: Raw input for Consideration `[src.name]` is [raw_input || "null"] <- [src.get_input_val_proc]; CTX: [context], RQS: [requester] @ L[__LINE__] in [__FILE__]!")
+	UTILITYBRAIN_DEBUG_LOG("INFO: Raw input for Consideration `[src.name]` is [raw_input || "null"] <- [src.get_input_val_proc]; CTX: [json_encode(context)], RQS: [requester] @ L[__LINE__] in [__FILE__]!")
 	# endif
 
 	var/activation = src.Run(raw_input)

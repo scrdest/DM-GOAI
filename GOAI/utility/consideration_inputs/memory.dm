@@ -9,7 +9,7 @@
 # define DEBUGLOG_MEMORY_ERRCATCH(X) catch(X)
 # else
 # define DEBUGLOG_MEMORY_FETCH(X)
-# define DEBUGLOG_MEMORY_ERRCATCH(X) catch()
+# define DEBUGLOG_MEMORY_ERRCATCH(X) catch(X)
 # endif
 
 CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)

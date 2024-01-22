@@ -8,54 +8,6 @@
 
 // Unfortunately DM is suffering, so these have to be 'plain' procs and not classmethods.
 
-# define READ_JSON_FILE(FP) (fexists(FP) && json_decode(file2text(FP)))
-# define WRITE_JSON_FILE(Data, FP) ((!isnull(Data)) && text2file(json_encode(Data), FP))
-
-/* ====  JSON schemas  ==== */
-
-// Generic:
-# define JSON_KEY_VERSION "version"
-
-// Consideration schema:
-# define JSON_KEY_CONSIDERATION_INPPROC "input_proc"
-# define JSON_KEY_CONSIDERATION_CURVEPROC "curve_proc"
-# define JSON_KEY_CONSIDERATION_LOMARK "lo_mark"
-# define JSON_KEY_CONSIDERATION_HIMARK "hi_mark"
-# define JSON_KEY_CONSIDERATION_NOISESCALE "noise_scale"
-# define JSON_KEY_CONSIDERATION_NAME "name"
-# define JSON_KEY_CONSIDERATION_DESC "description"
-# define JSON_KEY_CONSIDERATION_ACTIVE "active"
-# define JSON_KEY_CONSIDERATION_ARGS "input_args"
-
-// ActionTemplate schema:
-# define JSON_KEY_CONSIDERATIONS "considerations"
-# define JSON_KEY_ACT_CTXPROC "context_procs"
-# define JSON_KEY_ACT_CTXARGS "context_args"
-# define JSON_KEY_ACT_HANDLER "handler"
-# define JSON_KEY_ACT_HANDLERTYPE "handlertype"
-# define JSON_KEY_ACT_HARDARGS "args"  // hardcoded args, to avoid code duplication for nearly identical Actions
-# define JSON_KEY_ACT_PRIORITY "priority"
-# define JSON_KEY_ACT_CHARGES "charges"
-# define JSON_KEY_ACT_ISINSTANT "instant"
-# define JSON_KEY_ACT_NAME "name"
-# define JSON_KEY_ACT_DESCRIPTION "description"
-# define JSON_KEY_ACT_ACTIVE "active"
-# define JSON_KEY_ACT_PRECONDS "preconditions"
-# define JSON_KEY_ACT_EFFECTS "effects"
-
-// ActionSet schema:
-# define JSON_KEY_ACTSET_NAME "name"
-# define JSON_KEY_ACTSET_ACTIVE "active"
-# define JSON_KEY_ACTSET_ACTIONS "actions"
-
-# define JSON_KEY_ACTSET_TTL_REMOVE "ttl_removal"
-# define JSON_KEY_ACTSET_TTL_DEACTIVATE "ttl_deactivate"
-# define JSON_KEY_ACTSET_TIME_RETRIEVED "time_retrieved"
-# define JSON_KEY_ACTSET_FRESHNESS_PROC "freshness_proc"
-# define JSON_KEY_ACTSET_FRESHNESS_PROC_ARGS "freshness_proc_args"
-
-/* ============================================= */
-
 
 /proc/UtilityConsiderationFromData(var/list/json_data) // list -> ActionTemplate
 	ASSERT(json_data)
@@ -242,7 +194,7 @@
 	return new_actionset
 
 
-/proc/ActionSetFromJsonFile(var/json_filepath) // str -> ActionTemplate
+/proc/ActionSetFromJsonFile(var/json_filepath) // str -> ActionSet
 	ASSERT(json_filepath)
 
 	var/list/json_data = READ_JSON_FILE(json_filepath)

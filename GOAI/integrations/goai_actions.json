@@ -1,0 +1,208 @@
+{
+	"OpenDoor": {
+		"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor",
+		"preconditions": {
+			"target": {
+				"IsOpen": -1,
+				"welded": -1,
+				"bolted": -1,
+				"screwed": -1
+			}
+		},
+		"effects": {
+			"target": {
+				"IsOpen": 1
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_autodoor"
+			}
+		],
+		"target_key": "location",
+		"location_key": "location",
+		"is_function": 0,
+		"has_movement": 1,
+		"description": ""
+	},
+	"UnweldDoor": {
+		"handler": "/proc/WeldUsing",
+		"preconditions": {
+			"global": {
+				"DoorDebugAllowUnwelding": 1
+			},
+			"pawn": {
+				"HasWelder": 1
+			},
+			"target": {
+				"welded": 1
+			}
+		},
+		"effects": {
+			"target": {
+				"welded": 0
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_autodoor"
+			}
+		],
+		"target_key": "location",
+		"location_key": "target",
+		"is_function": 1,
+		"has_movement": 1,
+		"description": ""
+	},
+	"GetWelder": {
+		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
+		"preconditions": {
+			"global": {
+				"DoorDebugAllowGetWelder": 1
+			}
+		},
+		"effects": {
+			"pawn": {
+				"HasWelder": 1
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_welder"
+			}
+		],
+		"target_key": "target",
+		"location_key": "target",
+		"is_function": 0,
+		"has_movement": 0,
+		"description": ""
+	},
+	"HackDoor": {
+		"handler": "/proc/HackUsing",
+		"preconditions": {
+			"global": {
+				"DoorDebugAllowHacking": 1
+			},
+			"pawn": {
+				"HasMultitool": 1
+			},
+			"target": {
+				"screwed": 1,
+				"bolted": 1
+			}
+		},
+		"effects": {
+			"target": {
+				"bolted": 0
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_autodoor"
+			}
+		],
+		"target_key": "location",
+		"location_key": "target",
+		"is_function": 1,
+		"has_movement": 1,
+		"description": ""
+	},
+	"GetMultitool": {
+		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
+		"preconditions": {},
+		"effects": {
+			"pawn": {
+				"HasMultitool": 1
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_multitool"
+			}
+		],
+		"target_key": "target",
+		"location_key": "target",
+		"is_function": 0,
+		"has_movement": 0,
+		"description": ""
+	},
+	"UnscrewDoor": {
+		"handler": "/proc/ScrewUsing",
+		"preconditions": {
+			"global": {
+				"DoorDebugAllowUnscrewing": 1
+			},
+			"pawn": {
+				"HasScrewdriver": 1
+			},
+			"target": {
+				"screwed": 1,
+				"bolted": -1
+			}
+		},
+		"effects": {
+			"target": {
+				"screwed": 0
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_autodoor"
+			}
+		],
+		"target_key": "location",
+		"location_key": "target",
+		"is_function": 1,
+		"has_movement": 1,
+		"description": ""
+	},
+	"ScrewDoor": {
+		"handler": "/proc/ScrewUsing",
+		"preconditions": {
+			"global": {
+				"DoorDebugAllowScrewing": 1
+			},
+			"pawn": {
+				"HasScrewdriver": 1
+			},
+			"target": {
+				"screwed": -1,
+				"bolted": 1
+			}
+		},
+		"effects": {
+			"target": {
+				"screwed": 1
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_autodoor"
+			}
+		],
+		"target_key": "location",
+		"location_key": "target",
+		"is_function": 1,
+		"has_movement": 1,
+		"description": ""
+	},
+	"GetScrewdriver": {
+		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
+		"preconditions": {},
+		"effects": {
+			"pawn": {
+				"HasScrewdriver": 1
+			}
+		},
+		"context_args": [
+			{
+				"tag": "test_screwdriver"
+			}
+		],
+		"target_key": "target",
+		"location_key": "target",
+		"is_function": 0,
+		"has_movement": 0,
+		"description": ""
+	}
+}

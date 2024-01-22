@@ -37,6 +37,9 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_tagged_target)
 	// To be clear, these are *DM tags* - this kills the Garbage Collector.
 	// So, this is only a tool for testing ideas without building proper
 	// Senses and HIGHLY NOT RECOMMENDED for production-level AIs.
+	//
+	// EXCEPTION: if you construct the input programmatically, you can use a text ref.
+	// These SHOULD be GC-friendly, but then you cannot create 'em at compile-time.
 
 	var/list/contexts = list()
 

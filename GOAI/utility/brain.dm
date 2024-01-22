@@ -236,7 +236,17 @@
 	var/list/smart_plans = list()
 
 	// devshit, remove once GOAP integrated properly
-	var/datum/plan_smartobject/demo_plan = new()
+	var/list/demo_plan_items = list(
+		"GetScrewdriver",
+		"GetMultitool",
+		"GetWelder",
+		"UnweldDoor",
+		"ScrewDoor",
+		"HackDoor",
+		"UnscrewDoor",
+		"OpenDoor"
+	)
+	var/datum/plan_smartobject/demo_plan = new(demo_plan_items)
 	smart_plans["demo"] = demo_plan
 
 	if(isnull(smartobjects))

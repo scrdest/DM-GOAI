@@ -4,10 +4,13 @@
 	"actions": [
 		{
 			"name": "OpenDoor", 
-			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/OpenDoor", 
+			"description": "Opens a target door, moving to it if necessary.", 
+			"handler": "/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper", 
+			"args": {
+				"ai_proc": "/datum/utility_ai/mob_commander/proc/OpenDoor",
+				"location_key": "location"
+			},
 			"preconditions": {
-				"global": {},
 				"target": {
 					"IsOpen": -1,
 					"welded": -1,
@@ -49,17 +52,31 @@
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "DoorNearby",
+					"lo_mark": 1, 
+					"hi_mark": 20, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "location",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
 				}
 			]
 		},
 		{
 			"name": "UnweldDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
-			"handlertype": 1,
+			"handler": "/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper", 
 			"args": {
-				"func_proc": "/proc/WeldUsing"
+				"ai_proc": "/proc/WeldUsing",
+				"location_key": "target",
+				"is_func": 1
 			},
+			"handlertype": 0,
 			"preconditions": {
 				"global": {
 					"DoorDebugAllowUnwelding": 1
@@ -80,7 +97,7 @@
 			"context_args": [
 				{
 					"tag": "test_autodoor",
-					"output_context_key": "target"
+					"output_context_key": "location"
 				}
 			],
 			"priority": 9, 
@@ -91,7 +108,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -102,7 +119,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -159,10 +176,11 @@
 		{
 			"name": "HackDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
-			"handlertype": 1,
+			"handler": "/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper", 
 			"args": {
-				"func_proc": "/proc/HackUsing"
+				"ai_proc": "/proc/HackUsing",
+				"location_key": "target",
+				"is_func": 1
 			},
 			"preconditions": {
 				"global": {
@@ -185,7 +203,7 @@
 			"context_args": [
 				{
 					"tag": "test_autodoor",
-					"output_context_key": "target"
+					"output_context_key": "location"
 				}
 			],
 			"priority": 9, 
@@ -196,7 +214,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -207,7 +225,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -260,10 +278,11 @@
 		{
 			"name": "UnscrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
-			"handlertype": 1,
+			"handler": "/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper", 
 			"args": {
-				"func_proc": "/proc/ScrewUsing"
+				"ai_proc": "/proc/ScrewUsing",
+				"location_key": "target",
+				"is_func": 1
 			},
 			"preconditions": {
 				"global": {
@@ -286,7 +305,7 @@
 			"context_args": [
 				{
 					"tag": "test_autodoor",
-					"output_context_key": "target"
+					"output_context_key": "location"
 				}
 			],
 			"priority": 9, 
@@ -297,7 +316,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -308,7 +327,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -318,11 +337,13 @@
 		{
 			"name": "ScrewDoor", 
 			"description": "Replace Contextproc and Considerations later!!!", 
-			"handler": "/datum/utility_ai/mob_commander/proc/WrapFunction", 
-			"handlertype": 1,
+			"handler": "/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper", 
 			"args": {
-				"func_proc": "/proc/ScrewUsing"
+				"ai_proc": "/proc/ScrewUsing",
+				"location_key": "target",
+				"is_func": 1
 			},
+			"handlertype": 0,
 			"preconditions": {
 				"global": {
 					"DoorDebugAllowScrewing": 1
@@ -344,7 +365,7 @@
 			"context_args": [
 				{
 					"tag": "test_autodoor",
-					"output_context_key": "target"
+					"output_context_key": "location"
 				}
 			],
 			"priority": 9, 
@@ -355,7 +376,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_effects_not_all_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"
@@ -366,7 +387,7 @@
 					"hi_mark": 1, 
 					"input_proc": "/proc/consideration_actiontemplate_preconditions_met", 
 					"input_args": {
-						"target_key": "target",
+						"target_key": "location",
 						"from_context": 1
 					},
 					"curve_proc": "/proc/curve_linear"

@@ -43,14 +43,8 @@
 	for(var/goalkey in goal)
 		PLANNING_DEBUG_LOG("[src] CreatePlan goal: [goalkey] => [goal[goalkey]]")
 
-	var/datum/Tuple/result = planner.Plan(arglist(params))
-
-	if(result)
-		path = result.right
-		last_plan_successful = TRUE
-
-	else
-		last_plan_successful = FALSE
+	path = planner.Plan(arglist(params))
+	last_plan_successful = (!isnull(path))
 
 	is_planning = 0
 	return path

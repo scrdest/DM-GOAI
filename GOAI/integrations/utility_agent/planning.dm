@@ -16,9 +16,6 @@
 		src.ai_worldstate["global"]["DoorDebugAllowScrewing"] = 1
 		src.ai_worldstate["global"]["DoorDebugAllowHacking"] = 1
 		src.ai_worldstate["global"]["DoorDebugAllowGetWelder"] = 1
-		src.ai_worldstate["global"]["DoorDebugUnscrewed"] = prob(75)
-		src.ai_worldstate["global"]["DoorDebugWelded"] = prob(75)
-		src.ai_worldstate["global"]["DoorDebugBolted"] = prob(75)
 
 	var/list/worldstate = src.ai_worldstate.Copy()
 
@@ -83,12 +80,158 @@
 		src.smartobject_cache_key = src.name
 
 
+/proc/ActionSetFromGoapPlan(var/list/plan, var/name, var/requester = null) // [Action] -> ActionSet
+	// Plan assumed to be a simple array-style list of action KEYS
+	// (meaning: just strings, no further metadata; we need to do a JOIN)
+
+	if(isnull(global.global_plan_actions_repo))
+		InitializeGlobalPlanActionsRepo()
+
+	var/list/planned_actions = list()
+
+	// Running tracker of preconds/effects.
+	// To ensure proper sequencing, the preconds of each Action must be the 'base' Preconds AND all predecessors' Effects
+	//var/list/preconds_blackboard = list()
+
+	for(var/action_key in plan)
+		var/list/action_data = global.global_plan_actions_repo[action_key]
+		ASSERT(!isnull(action_data))
+
+		var/has_movement = action_data[JSON_KEY_PLANACTION_HASMOVEMENT]
+		var/target_key = action_data[JSON_KEY_PLANACTION_TARGET_KEY]
+
+		var/list/common_consideration_args = list(
+			"target_key" = target_key,
+			"from_context" = TRUE
+		)
+
+		var/datum/consideration/effects_consideration = new(
+			input_val_proc = /proc/consideration_actiontemplate_effects_not_all_met,
+			curve_proc = /proc/curve_linear,
+			loMark = 0,
+			hiMark = 1,
+			noiseScale = 0,
+			name = "EffectsNotMet",
+			active = TRUE,
+			consideration_args = common_consideration_args
+		)
+
+		var/datum/consideration/preconds_consideration = new(
+			input_val_proc = /proc/consideration_actiontemplate_preconditions_met,
+			curve_proc = /proc/curve_linear,
+			loMark = 0,
+			hiMark = 1,
+			noiseScale = 0,
+			name = "PrecondsAllMet",
+			active = TRUE,
+			consideration_args = common_consideration_args
+		)
+
+		var/list/considerations = list(effects_consideration, preconds_consideration)
+		var/handler_proc = action_data[JSON_KEY_PLANACTION_HANDLERPROC]
+
+		var/list/hard_args = list()
+
+		var/list/context_args = list()
+
+		var/loc_key = action_data[JSON_KEY_PLANACTION_HANDLER_LOCARG]
+		context_args["output_context_key"] = loc_key
+
+		if(has_movement)
+			// Sneakily substitute the raw function with a decorated one
+			var/is_func = action_data[JSON_KEY_PLANACTION_HANDLER_ISFUNC]
+
+			hard_args["ai_proc"] = handler_proc
+			hard_args["location_key"] = loc_key
+			hard_args["is_func"] = isnull(is_func) ? FALSE : is_func
+
+			context_args["output_context_key"] = "location" // always this for the hardcoded decorator
+
+			handler_proc = /datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper
+
+			// TODO this could be more sophisticated, e.g. a pair of distance considerations (Too Near/Too Far)
+			var/datum/consideration/distance_consideration = new(
+				input_val_proc = /proc/consideration_input_manhattan_distance_to_requester,
+				curve_proc = /proc/curve_linear,
+				loMark = 1,
+				hiMark = 20,
+				noiseScale = 0,
+				name = "TargetNearby",
+				active = TRUE,
+				consideration_args = list(
+					"input_key" = target_key,
+					"from_context" = 1
+				)
+			)
+			//considerations.Add(distance_consideration)
+
+		var/list/ctxprocs = list(
+			// TODO: get actual value from Elsewhere (TM)
+			/proc/ctxfetcher_get_tagged_target
+		)
+
+		var/list/extra_ctx_args = action_data[JSON_KEY_PLANACTION_CTXARGS]
+
+		for(var/extra_ctx_section in extra_ctx_args)
+			for(var/arg_key in extra_ctx_section)
+				var/arg_val = extra_ctx_section[arg_key]
+				context_args[arg_key] = arg_val
+
+		var/list/all_context_args = list()
+
+		all_context_args.len++
+		all_context_args[all_context_args.len] = context_args
+
+		var/priority = 9 // TODO: get actual value from Elsewhere (TM)
+		var/charges = null
+		var/instant = FALSE
+		var/act_description = action_data[JSON_KEY_PLANACTION_DESCRIPTION]
+
+		var/list/preconds = action_data[JSON_KEY_PLANACTION_PRECONDITIONS]
+
+		var/list/effects = action_data[JSON_KEY_PLANACTION_EFFECTS]
+
+		if(isnull(effects))
+			effects = list()
+
+		var/datum/utility_action_template/new_action_template = new(
+			considerations,
+			handler_proc,
+			HANDLERTYPE_SRCMETHOD,
+			ctxprocs,
+			all_context_args,
+			priority,
+			charges,
+			instant,
+			hard_args,
+			action_key,
+			act_description,
+			TRUE,
+			// GOAP stuff
+			preconds,
+			effects
+		)
+
+		// Package it up!
+		planned_actions.Add(new_action_template)
+
+	var/datum/action_set/plan_actionset = new(
+		name = name,
+		included_actions = planned_actions,
+		active = TRUE,
+		origin = isnull(requester) ? plan : requester
+		// TODO: could use a freshness proc w/ the plan as args
+	)
+	return plan_actionset
+
+
 /datum/plan_smartobject/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
 	// Replace this with proper generation of Actions from the GOAP Plan!
 
 	// For exploratory development, just hardcoding a plan for now
 	ASSERT(fexists(GOAPPLAN_ACTIONSET_PATH))
-	var/datum/action_set/myset = ActionSetFromJsonFile(GOAPPLAN_ACTIONSET_PATH)
+	//var/datum/action_set/myset = ActionSetFromJsonFile(GOAPPLAN_ACTIONSET_PATH)
+	var/datum/action_set/myset = ActionSetFromGoapPlan(src.plan, "TestPlan", src)
 	ASSERT(!isnull(myset))
 
 	var/list/my_action_sets = list()
