@@ -141,6 +141,7 @@
 
 // Utility/GOAP interface schema:
 # define JSON_KEY_PLANACTION_ACTIONKEY "key"
+# define JSON_KEY_PLANACTION_RAW_HANDLERPROC "raw_handler"
 # define JSON_KEY_PLANACTION_HANDLERPROC "handler"
 # define JSON_KEY_PLANACTION_PRECONDITIONS "preconditions"
 # define JSON_KEY_PLANACTION_EFFECTS "effects"

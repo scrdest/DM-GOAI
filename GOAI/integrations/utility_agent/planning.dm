@@ -128,6 +128,7 @@
 		)
 
 		var/list/considerations = list(effects_consideration, preconds_consideration)
+		var/raw_handler_proc = action_data[JSON_KEY_PLANACTION_RAW_HANDLERPROC]
 		var/handler_proc = action_data[JSON_KEY_PLANACTION_HANDLERPROC]
 
 		var/list/hard_args = list()
@@ -139,11 +140,13 @@
 
 		if(has_movement)
 			// Sneakily substitute the raw function with a decorated one
-			var/is_func = action_data[JSON_KEY_PLANACTION_HANDLER_ISFUNC]
-
 			hard_args["ai_proc"] = handler_proc
 			hard_args["location_key"] = loc_key
-			hard_args["is_func"] = isnull(is_func) ? FALSE : is_func
+
+			// Introspect function path to check whether it's a method or not
+			// We need this because of how the call() syntax works
+			var/is_func = (findtextEx(raw_handler_proc, "/proc/") == 1)
+			hard_args["is_func"] = is_func
 
 			context_args["output_context_key"] = "location" // always this for the hardcoded decorator
 
@@ -152,7 +155,7 @@
 			// TODO this could be more sophisticated, e.g. a pair of distance considerations (Too Near/Too Far)
 			var/datum/consideration/distance_consideration = new(
 				input_val_proc = /proc/consideration_input_manhattan_distance_to_requester,
-				curve_proc = /proc/curve_linear,
+				curve_proc = /proc/curve_linear_leaky,
 				loMark = 1,
 				hiMark = 20,
 				noiseScale = 0,
@@ -163,7 +166,7 @@
 					"from_context" = 1
 				)
 			)
-			//considerations.Add(distance_consideration)
+			considerations.Add(distance_consideration)
 
 		var/list/ctxprocs = list(
 			// TODO: get actual value from Elsewhere (TM)

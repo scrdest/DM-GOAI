@@ -21,16 +21,13 @@
 		],
 		"target_key": "location",
 		"location_key": "location",
-		"is_function": 0,
 		"has_movement": 1,
 		"description": ""
 	},
+	
 	"UnweldDoor": {
 		"handler": "/proc/WeldUsing",
 		"preconditions": {
-			"global": {
-				"DoorDebugAllowUnwelding": 1
-			},
 			"pawn": {
 				"HasWelder": 1
 			},
@@ -50,17 +47,13 @@
 		],
 		"target_key": "location",
 		"location_key": "target",
-		"is_function": 1,
 		"has_movement": 1,
 		"description": ""
 	},
+	
 	"GetWelder": {
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
-		"preconditions": {
-			"global": {
-				"DoorDebugAllowGetWelder": 1
-			}
-		},
+		"preconditions": {},
 		"effects": {
 			"pawn": {
 				"HasWelder": 1
@@ -77,12 +70,10 @@
 		"has_movement": 0,
 		"description": ""
 	},
+	
 	"HackDoor": {
 		"handler": "/proc/HackUsing",
 		"preconditions": {
-			"global": {
-				"DoorDebugAllowHacking": 1
-			},
 			"pawn": {
 				"HasMultitool": 1
 			},
@@ -103,10 +94,10 @@
 		],
 		"target_key": "location",
 		"location_key": "target",
-		"is_function": 1,
 		"has_movement": 1,
 		"description": ""
 	},
+	
 	"GetMultitool": {
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 		"preconditions": {},
@@ -122,16 +113,13 @@
 		],
 		"target_key": "target",
 		"location_key": "target",
-		"is_function": 0,
 		"has_movement": 0,
 		"description": ""
 	},
+	
 	"UnscrewDoor": {
 		"handler": "/proc/ScrewUsing",
 		"preconditions": {
-			"global": {
-				"DoorDebugAllowUnscrewing": 1
-			},
 			"pawn": {
 				"HasScrewdriver": 1
 			},
@@ -152,16 +140,13 @@
 		],
 		"target_key": "location",
 		"location_key": "target",
-		"is_function": 1,
 		"has_movement": 1,
 		"description": ""
 	},
+	
 	"ScrewDoor": {
 		"handler": "/proc/ScrewUsing",
 		"preconditions": {
-			"global": {
-				"DoorDebugAllowScrewing": 1
-			},
 			"pawn": {
 				"HasScrewdriver": 1
 			},
@@ -182,10 +167,10 @@
 		],
 		"target_key": "location",
 		"location_key": "target",
-		"is_function": 1,
 		"has_movement": 1,
 		"description": ""
 	},
+	
 	"GetScrewdriver": {
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 		"preconditions": {},
@@ -201,7 +186,6 @@
 		],
 		"target_key": "target",
 		"location_key": "target",
-		"is_function": 0,
 		"has_movement": 0,
 		"description": ""
 	}

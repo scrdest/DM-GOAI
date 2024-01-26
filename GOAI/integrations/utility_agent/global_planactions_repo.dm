@@ -11,9 +11,10 @@ var/global/list/global_plan_actions_repo = null
 	return global.global_plan_actions_repo
 
 
-/proc/RegisterGlobalPlanAction(var/key, var/handler_proc, var/list/preconditions, var/list/effects, var/target_key, var/loc_key, var/handler_is_func = FALSE, var/feature_move_to = FALSE, var/description = null, var/list/context_args = null)
+/proc/RegisterGlobalPlanAction(var/key, var/raw_handler_proc, var/handler_proc, var/list/preconditions, var/list/effects, var/target_key, var/loc_key, var/handler_is_func = FALSE, var/feature_move_to = FALSE, var/description = null, var/list/context_args = null)
 	var/list/action_data = list()
 
+	action_data[JSON_KEY_PLANACTION_RAW_HANDLERPROC] = raw_handler_proc
 	action_data[JSON_KEY_PLANACTION_HANDLERPROC] = handler_proc
 	action_data[JSON_KEY_PLANACTION_PRECONDITIONS] = preconditions
 	action_data[JSON_KEY_PLANACTION_EFFECTS] = effects
@@ -32,7 +33,8 @@ var/global/list/global_plan_actions_repo = null
 	if(isnull(key))
 		key = json_data[JSON_KEY_PLANACTION_ACTIONKEY]
 
-	var/handler_proc = STR_TO_PROC(json_data[JSON_KEY_PLANACTION_HANDLERPROC])
+	var/raw_handler_proc = json_data[JSON_KEY_PLANACTION_HANDLERPROC]
+	var/handler_proc = STR_TO_PROC(raw_handler_proc)
 	var/preconditions = json_data[JSON_KEY_PLANACTION_PRECONDITIONS]
 	var/effects = json_data[JSON_KEY_PLANACTION_EFFECTS]
 	var/target_key = json_data[JSON_KEY_PLANACTION_TARGET_KEY]
@@ -44,6 +46,7 @@ var/global/list/global_plan_actions_repo = null
 
 	. = RegisterGlobalPlanAction(
 		key=key,
+		raw_handler_proc=raw_handler_proc,
 		handler_proc=handler_proc,
 		preconditions=preconditions,
 		effects=effects,
