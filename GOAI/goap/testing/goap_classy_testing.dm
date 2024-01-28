@@ -25,21 +25,21 @@
 	var/true_cutoff = cutoff
 
 	var/list/test_actions = list(
-		"Eat" = new /datum/Triple (10, list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1)),
-		"Shop" = new /datum/Triple (10, list("Money" = 10), list("HasFood" = 1, "Money" = -10)),
-		"Party" = new /datum/Triple (10, list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4)),
-		"Sleep" = new /datum/Triple (10, list("Fed" = 1), list("Rested" = 10)),
-		"DishWash" = new /datum/Triple (10, list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1)),
-		"Work" = new /datum/Triple (10, list("Rested" = 1), list("Money" = 10)),
-		"Idle" = new /datum/Triple (10, list(), list("Rested" = 1))
+		"Eat" = new /datum/goai_action(list("HasFood" = 1, "HasCleanDishes" = 1), list("HasDirtyDishes" = 1, "HasCleanDishes" = -1, "Fed" = 1, "HasFood" = -1), 10),
+		"Shop" = new /datum/goai_action(list("Money" = 10), list("HasFood" = 1, "Money" = -10), 10),
+		"Party" = new /datum/goai_action(list("Money" = 11), list("Rested" = 1, "Money" = -11, "Fun" = 4), 10),
+		"Sleep" = new /datum/goai_action(list("Fed" = 1), list("Rested" = 10), 10),
+		"DishWash" = new /datum/goai_action(list("HasDirtyDishes" = 1, "Rested" = 1), list("HasDirtyDishes" = -1, "HasCleanDishes" = 1, "Rested" = -1), 10),
+		"Work" = new /datum/goai_action(list("Rested" = 1), list("Money" = 10), 10),
+		"Idle" = new /datum/goai_action(list(), list("Rested" = 1), 10)
 	)
 
 	if(!(state && state.len))
 		true_state = list("HasFood" = 0, "HasDirtyDishes" = 2)
 
 	if(!(goals && goals.len))
-		//true_goals = list("Fed" = 2, "HasCleanDishes" = 2)
-		true_goals = list("Money" = 20)
+		true_goals = list("Fed" = 2, "HasCleanDishes" = 2)
+		//true_goals = list("Money" = 20)
 
 	if (isnull(cutoff))
 		true_cutoff = 30
@@ -52,10 +52,10 @@
 	params["goal"] = true_goals
 	params["cutoff_iter"] = true_cutoff
 
-	var/datum/Tuple/result = Planner.Plan(arglist(params))
+	var/result = Planner.Plan(arglist(params))
 
 	if (result)
-		var/list/path = result.right
+		var/list/path = result
 		//to_world("Result cost: [result.left]")
 		to_world("Path: [path] ([path.len])")
 		for (var/act in path)

@@ -55,7 +55,7 @@
 
 /datum/GOAP/demoGoap/check_preconds(var/current_pos, var/list/blackboard)
 	DEMOGOAP_DEBUG_LOG("CurrentPos: [current_pos]")
-	DEMOGOAP_DEBUG_LOG("Graph: [json_encode(graph)]")
+	//DEMOGOAP_DEBUG_LOG("Graph: [json_encode(graph)]")
 	DEMOGOAP_DEBUG_LOG("Graph @ Pos: [graph[current_pos]]")
 
 	var/datum/goai_action/actiondata = graph[current_pos]
@@ -103,11 +103,13 @@
 				break
 
 		else if (isnull(blackboard_val))
-			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [req_val] FOUND null")
-			match = 0
-			break
+			// consider whether 0 & null should match
+			if(req_val > 0)
+				DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [req_val] FOUND null")
+				match = 0
+				break
 
-		if (req_val > 0 && blackboard_val < req_val)
+		else if (req_val > 0 && blackboard_val < req_val)
 			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ > [req_val] FOUND [blackboard_val]")
 			match = 0
 			break
@@ -121,7 +123,6 @@
 
 
 /datum/GOAP/demoGoap/get_effects(var/action_key)
-	world.log << ("demoGoap get_effects([action_key]) called")
 	var/datum/goai_action/actiondata = src.graph[action_key]
 	var/list/effects = actiondata.effects
 	return effects

@@ -244,7 +244,6 @@ X================================================================X
 
 			for (var/stitm in state)
 				MAYBE_LOG("STITM: [stitm]")
-				to_world_log("STITM: [stitm]")
 
 				if (stitm in src.graph)
 					var/list/statitm_fx = get_effects(stitm)
@@ -254,11 +253,9 @@ X================================================================X
 					is_state = 1
 
 			if (is_state)
-				to_world_log("Action is state: [json_encode(action)]")
 				act_effects = update_counts(act_effects, state)
 
 		else
-			to_world_log("Action is not list: [action]")
 			act_effects = get_effects(action)
 
 		rebuilt_blackboard = update_counts(rebuilt_blackboard, act_effects)
@@ -402,8 +399,8 @@ X================================================================X
 				if (!isnull(max_queue_size))
 					_pqueue.L.Cut(1, max_queue_size)
 
-		else
-			to_world_log("Dropping candidate tuple for [neigh] @ [json_encode(source)] - infinite cost")
+		//else
+		//	to_world_log("Dropping candidate tuple for [neigh] @ [json_encode(source)] - infinite cost")
 
 	if (_pqueue.L.len <= 0)
 		to_world_log("Exhausted all candidates before a path was found!")

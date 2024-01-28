@@ -55,7 +55,7 @@
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 		"preconditions": {
 			"pawn": {
-				"HasWelder": 0
+				"HasWelder": -1
 			}
 		},
 		"effects": {
@@ -106,7 +106,7 @@
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 		"preconditions": {
 			"pawn": {
-				"HasMultitool": 0
+				"HasMultitool": -1
 			}
 		},
 		"effects": {
@@ -183,7 +183,7 @@
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
 		"preconditions": {
 			"pawn": {
-				"HasScrewdriver": 0
+				"HasScrewdriver": -1
 			}
 		},
 		"effects": {
