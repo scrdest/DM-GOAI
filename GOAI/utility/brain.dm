@@ -227,6 +227,10 @@
 	return file_actionset
 
 
+var/global/list/demo_plan = null
+var/global/last_plan_time = null
+
+
 /datum/brain/utility/GetAvailableActions()
 	var/list/actionsets = list()
 
@@ -236,6 +240,7 @@
 	var/list/smart_plans = list()
 
 	// devshit, remove once GOAP integrated properly
+	/*
 	var/list/demo_plan_items = list(
 		"GetScrewdriver",
 		"GetMultitool",
@@ -246,6 +251,36 @@
 		"UnscrewDoor",
 		"OpenDoor"
 	)
+	*/
+
+	var/list/demo_plan_items = global.demo_plan
+	if(isnull(global.last_plan_time))
+		global.last_plan_time = 0
+
+	if(isnull(global.demo_plan) && (world.time - global.last_plan_time > 20))
+		global.last_plan_time = world.time
+		var/list/start_state = list(
+			"IsOpen" = FALSE,
+			"welded" = TRUE,
+			"bolted" = TRUE,
+			"screwed" = FALSE
+		)
+		var/list/goal_state = list(
+			"IsOpen" = TRUE
+		)
+
+		var/myref = ref(src)
+		var/datum/GOAP/planner = GetGoapResource(myref)
+		if(!isnull(planner))
+			var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing way too much I/O, but dev gonna dev
+			//var/list/actions = GoapActionSetFromJsonFile("integrations/goai_actions_basic.json") // temp debug replacement
+			planner.graph = actions
+			to_world_log("PLANNING! START: [json_encode(start_state)] GOAL: [json_encode(goal_state)], ACTIONS: [json_encode(actions)]")
+			demo_plan_items = planner.Plan(start_state, goal_state, cutoff_iter=20)
+			to_world_log("PLANNING END - PLAN: [json_encode(demo_plan_items)]")
+			global.demo_plan = demo_plan_items
+			FreeGoapResource(planner, myref)
+
 	var/datum/plan_smartobject/demo_plan = new(demo_plan_items)
 	smart_plans["demo"] = demo_plan
 

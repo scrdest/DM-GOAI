@@ -53,7 +53,11 @@
 	
 	"GetWelder": {
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
-		"preconditions": {},
+		"preconditions": {
+			"pawn": {
+				"HasWelder": 0
+			}
+		},
 		"effects": {
 			"pawn": {
 				"HasWelder": 1
@@ -100,7 +104,11 @@
 	
 	"GetMultitool": {
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
-		"preconditions": {},
+		"preconditions": {
+			"pawn": {
+				"HasMultitool": 0
+			}
+		},
 		"effects": {
 			"pawn": {
 				"HasMultitool": 1
@@ -173,7 +181,11 @@
 	
 	"GetScrewdriver": {
 		"handler": "/datum/utility_ai/mob_commander/proc/PickUp", 
-		"preconditions": {},
+		"preconditions": {
+			"pawn": {
+				"HasScrewdriver": 0
+			}
+		},
 		"effects": {
 			"pawn": {
 				"HasScrewdriver": 1

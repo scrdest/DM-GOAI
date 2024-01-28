@@ -9,13 +9,7 @@
 /datum/utility_ai/proc/QueryWorldState(var/list/trg_queries = null)
 	if(isnull(src.ai_worldstate))
 		src.ai_worldstate = list()
-		// Debug initial worldstate stuff
 		src.ai_worldstate["global"] = list()
-		src.ai_worldstate["global"]["DoorDebugAllowUnwelding"] = 1
-		src.ai_worldstate["global"]["DoorDebugAllowUnscrewing"] = 1
-		src.ai_worldstate["global"]["DoorDebugAllowScrewing"] = 1
-		src.ai_worldstate["global"]["DoorDebugAllowHacking"] = 1
-		src.ai_worldstate["global"]["DoorDebugAllowGetWelder"] = 1
 
 	var/list/worldstate = src.ai_worldstate.Copy()
 
@@ -232,8 +226,9 @@
 	// Replace this with proper generation of Actions from the GOAP Plan!
 
 	// For exploratory development, just hardcoding a plan for now
-	ASSERT(fexists(GOAPPLAN_ACTIONSET_PATH))
+	//ASSERT(fexists(GOAPPLAN_ACTIONSET_PATH))
 	//var/datum/action_set/myset = ActionSetFromJsonFile(GOAPPLAN_ACTIONSET_PATH)
+
 	var/datum/action_set/myset = ActionSetFromGoapPlan(src.plan, "TestPlan", src)
 	ASSERT(!isnull(myset))
 

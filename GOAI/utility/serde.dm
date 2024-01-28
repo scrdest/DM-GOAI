@@ -240,3 +240,66 @@
 	return new_sense
 
 # endif
+
+
+// Like Utility actions, but just fetch GOAP details
+// The GOAP spec is a subset of the Utility one, so you can use Utility data for this
+/proc/GoapActionFromData(var/list/json_data) // list -> GoaiAction
+	ASSERT(json_data)
+
+	var/list/raw_preconds = json_data[JSON_KEY_ACT_PRECONDS]
+	var/list/raw_effects = json_data[JSON_KEY_ACT_EFFECTS]
+
+	var/list/preconds = list()
+	for(var/typekey in raw_preconds)
+		var/list/typekey_preconds = raw_preconds[typekey]
+		preconds.Add(typekey_preconds)
+
+	var/list/effects = list()
+	for(var/typekey in raw_effects)
+		var/list/typekey_fxs = raw_effects[typekey]
+		effects.Add(typekey_fxs)
+
+	var/cost = 10  // TODO!
+	var/act_name = json_data[JSON_KEY_ACT_NAME]
+	var/is_instant = json_data[JSON_KEY_ACT_ISINSTANT]
+	var/list/action_args = json_data[JSON_KEY_ACT_HARDARGS]
+
+	var/datum/goai_action/new_goap_action = new(
+		preconds,
+		effects,
+		cost,
+		act_name,
+		is_instant,
+		action_args
+	)
+
+	return new_goap_action
+
+
+/proc/GoapActionFromJsonFile(var/json_filepath) // str -> GoaiAction
+	ASSERT(json_filepath)
+
+	var/list/json_data = READ_JSON_FILE(json_filepath)
+	ASSERT(json_data)
+
+	var/datum/goai_action/new_goap_action = GoapActionFromData(json_data)
+	return new_goap_action
+
+
+/proc/GoapActionSetFromJsonFile(var/json_filepath) // str -> [GoaiAction]
+	ASSERT(json_filepath)
+
+	var/list/json_data = READ_JSON_FILE(json_filepath)
+	ASSERT(json_data)
+
+	var/list/actionset = list()
+
+	for(var/action_data_key in json_data)
+		var/list/action_data_list = json_data[action_data_key]
+		action_data_list[JSON_KEY_ACT_NAME] = action_data_key
+		var/datum/goai_action/new_goap_action = GoapActionFromData(action_data_list)
+		actionset[action_data_key] = new_goap_action
+
+	return actionset
+

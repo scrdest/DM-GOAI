@@ -1,7 +1,7 @@
-// # define DEMOGOAP_DEBUG_LOGGING 0
+# define DEMOGOAP_DEBUG_LOGGING 0
 
 # ifdef DEMOGOAP_DEBUG_LOGGING
-# define DEMOGOAP_DEBUG_LOG(X) to_world_log(X)
+# define DEMOGOAP_DEBUG_LOG(X) world.log << X
 # else
 # define DEMOGOAP_DEBUG_LOG(X)
 # endif
@@ -11,8 +11,9 @@
 
 
 /datum/GOAP/demoGoap/update_op(var/old_val, var/new_val)
-	var/result = old_val + new_val
-	return result
+	//var/result = old_val + new_val
+	//return result
+	return new_val
 
 
 /datum/GOAP/demoGoap/compare_op(var/curr_val, var/targ_val)
@@ -28,7 +29,7 @@
 	// o graph - assoc list representing the action graph; should have the neighbor_key as a key innit.
 	*/
 	var/cost = PLUS_INF
-	var/datum/goai_action/action_data = (neighbor_key in graph) ? graph[neighbor_key] : null
+	var/datum/goai_action/action_data = graph[neighbor_key]
 	if (action_data && !(isnull(action_data.cost)))
 		cost = action_data.cost
 
@@ -53,9 +54,10 @@
 
 
 /datum/GOAP/demoGoap/check_preconds(var/current_pos, var/list/blackboard)
-	MAYBE_LOG("Current Pos: [current_pos]")
-	MAYBE_LOG("Graph: [graph]")
-	MAYBE_LOG("Graph @ Pos: [graph[current_pos]]")
+	DEMOGOAP_DEBUG_LOG("CurrentPos: [current_pos]")
+	DEMOGOAP_DEBUG_LOG("Graph: [json_encode(graph)]")
+	DEMOGOAP_DEBUG_LOG("Graph @ Pos: [graph[current_pos]]")
+
 	var/datum/goai_action/actiondata = graph[current_pos]
 	var/list/preconds = actiondata.preconditions
 	var/match = 1
@@ -106,12 +108,12 @@
 			break
 
 		if (req_val > 0 && blackboard_val < req_val)
-			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [req_val] FOUND [blackboard_val]")
+			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ > [req_val] FOUND [blackboard_val]")
 			match = 0
 			break
 
 		else if (req_val < 0 && blackboard_val >= -req_val)
-			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ [-req_val] FOUND [blackboard_val]")
+			DEMOGOAP_DEBUG_LOG("[current_pos] failed - [req_key] REQ < [req_val] FOUND [blackboard_val]")
 			match = 0
 			break
 
@@ -119,6 +121,11 @@
 
 
 /datum/GOAP/demoGoap/get_effects(var/action_key)
-	var/datum/goai_action/actiondata = graph[action_key]
+	world.log << ("demoGoap get_effects([action_key]) called")
+	var/datum/goai_action/actiondata = src.graph[action_key]
 	var/list/effects = actiondata.effects
 	return effects
+
+
+/datum/GOAP/demoGoap/adjacent(var/current_pos)
+	return src.graph

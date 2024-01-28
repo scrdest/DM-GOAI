@@ -72,6 +72,7 @@
 #include "integrations\ai_state.dm"
 #include "integrations\covers.dm"
 #include "integrations\food.dm"
+#include "integrations\planner_cache.dm"
 #include "integrations\utility_plantest_tools.dm"
 #include "integrations\base_commander\_defines.dm"
 #include "integrations\base_commander\actions.dm"

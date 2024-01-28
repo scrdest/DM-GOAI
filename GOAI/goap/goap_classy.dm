@@ -91,6 +91,9 @@ X================================================================X
 	// It should always start at FALSE (reset per run) and toggle to TRUE once we have a path.
 	var/last_run_finished_flag = FALSE
 
+	// for object-pooling only, set by the cache
+	var/cache_id = null
+
 
 /datum/GOAP/proc/update_op(var/old_val, var/new_val)
 	// REQUIRED!
@@ -192,7 +195,11 @@ X================================================================X
 
 	var/effects = actual_blackboard.Copy()
 	var/list/curr_source = (GOAP_KEY_SRC in effects) ? effects[GOAP_KEY_SRC].Copy() : list()
-	curr_source.Add(current_pos)
+
+	var/list/curr_pos_src = (GOAP_KEY_SRC in current_pos) ? current_pos[GOAP_KEY_SRC] : list()
+	if(curr_pos_src)
+		// not sure about the order here, verify...
+		curr_source.Add(curr_pos_src)
 
 	effects[GOAP_KEY_SRC] = curr_source
 
@@ -205,7 +212,7 @@ X================================================================X
 	if(new_effects)
 		effects = update_counts(effects, new_effects)
 
-	var/neigh_distance = neighbor_dist(current_pos, neigh, graph)
+	var/neigh_distance = neighbor_dist(current_pos, neigh, src.graph)
 	var/goal_distance = goal_dist(neigh, goal)
 
 	var/heuristic = neigh_distance + goal_distance
@@ -215,7 +222,7 @@ X================================================================X
 	return result
 
 
-/datum/GOAP/proc/rebuild_effects(var/list/action_plan)
+/datum/GOAP/proc/rebuild_effects(var/list/action_plan, var/list/initial_state = null)
 	/* Rebuilds the world-state after the given plan is applied.
 	//
 	// We need this proc so that we can check action preconds without carrying the blackboards on the stack
@@ -226,7 +233,7 @@ X================================================================X
 	// o blackboard_default - optional; the default value to use for unset keys in the blackboard (only when necessary, e.g. comparing values). Default: 0.
 	//
 	*/
-	var/list/rebuilt_blackboard = list()
+	var/list/rebuilt_blackboard = isnull(initial_state) ? list() : initial_state.Copy()
 
 	for (var/action in action_plan)
 		var/list/act_effects = list()
@@ -237,8 +244,9 @@ X================================================================X
 
 			for (var/stitm in state)
 				MAYBE_LOG("STITM: [stitm]")
+				to_world_log("STITM: [stitm]")
 
-				if (stitm in graph)
+				if (stitm in src.graph)
 					var/list/statitm_fx = get_effects(stitm)
 					act_effects = update_counts(act_effects, statitm_fx)
 
@@ -246,9 +254,11 @@ X================================================================X
 					is_state = 1
 
 			if (is_state)
+				to_world_log("Action is state: [json_encode(action)]")
 				act_effects = update_counts(act_effects, state)
 
 		else
+			to_world_log("Action is not list: [action]")
 			act_effects = get_effects(action)
 
 		rebuilt_blackboard = update_counts(rebuilt_blackboard, act_effects)
@@ -258,7 +268,7 @@ X================================================================X
 
 /datum/GOAP/proc/adjacent(var/current_pos)
 	var/list/all_actions = list()
-	for (var/act in graph)
+	for (var/act in src.graph)
 		all_actions.Add(act)
 	return all_actions
 
@@ -273,7 +283,6 @@ X================================================================X
 		if (isnull(goal_val))
 			continue
 
-
 		var/curr_value = (state in pos_effects) ? pos_effects[state] : 0
 		var/cmp_result = compare_op(curr_value, goal_val)
 
@@ -284,10 +293,10 @@ X================================================================X
 	return match
 
 
-/datum/GOAP/proc/SearchIteration(var/list/start, var/list/goal, var/paths = null, var/PriorityQueue/queue = null, var/visited = null, var/cutoff_iter = null, var/max_queue_size = null, var/list/blackboard = null, var/curr_cost = 0, var/curr_iter = 0)
+/datum/GOAP/proc/SearchIteration(var/list/start, var/list/goal, var/paths = null, var/PriorityQueue/queue = null, var/visited = null, var/cutoff_iter = null, var/max_queue_size = null, var/list/blackboard = null, var/curr_cost = 0, var/curr_iter = 0, var/_source_pos = null)
 	/* The main 'worker' logic of the search.
 	//
-	// Takes in a graph, the starting position/state, the target position/state and a pile of configuration options/procs,
+	// Takes the starting position/state, the target position/state and a pile of configuration options/procs,
 	// then evaluates all possible Candidates (followup actions available for the current state), simulating their results,
 	// and returns the best Candidate to look at in the next SearchIteration call.
 	// That is, unless our current start state already DOES satisfy the goals - in that case, we simply return the path to the goal.
@@ -321,20 +330,22 @@ X================================================================X
 	*/
 	MAYBE_LOG("    ")
 	MAYBE_LOG("CURR ITER: [curr_iter]")
-	MAYBE_LOG("CURR POS: [start]")
+	MAYBE_LOG("CURR POS: [json_encode(start)]")
 
 	var/list/_paths = isnull(paths) ? list() : paths
 	var/PriorityQueue/_pqueue = isnull(queue) ? new /PriorityQueue(/datum/Quadruple/proc/ActionCompare) : queue
 
-	# ifdef DEBUG_LOGGING
-	MAYBE_LOG("START BB is [blackboard]")
-	for (var/bbitem in blackboard)
-		MAYBE_LOG("START BB ITEM: [bbitem] @ [blackboard[bbitem]]")
-	# endif
-
 	var/list/_blackboard = isnull(blackboard) ? list() : blackboard.Copy()
 
+	# ifdef DEBUG_LOGGING
+	MAYBE_LOG("RAW_BB is [json_encode(_blackboard)]")
+	# endif
+
 	var/list/updated_state = update_counts(_blackboard, start)
+
+	# ifdef DEBUG_LOGGING
+	MAYBE_LOG("START_BB is [json_encode(updated_state)]")
+	# endif
 
 	var/goal_check_result = goal_check(updated_state, goal)
 	if(goal_check_result)
@@ -344,14 +355,15 @@ X================================================================X
 		var/raw_final_result = updated_state[GOAP_KEY_SRC]
 
 		// It doesn't have the start state, so add that in:
-		var/list/full_final_result = islist(start) ? list(raw_final_result, start) : raw_final_result + list(start)
+		//var/list/full_final_result = islist(start) ? list(raw_final_result, start) : raw_final_result + list(start)
+		// temp - should we actually add the start? why even?
+		var/list/full_final_result = raw_final_result
 
 		// Flag that we're done
 		src.last_run_finished_flag = TRUE
 
 		// Yay we've got a plan!
 		return full_final_result
-
 
 	if (visited)
 		var/curr_visit_count = visited[start] ? visited[start] : 0
@@ -366,7 +378,7 @@ X================================================================X
 		var/datum/Tuple/evaluation = evaluate_neighbor(neigh, start, goal, updated_state)
 		var/heuristic = evaluation.left
 		var/effects = evaluation.right
-		var/source = (GOAP_KEY_SRC in effects) ? effects[GOAP_KEY_SRC] : null
+		var/source = effects[GOAP_KEY_SRC]
 
 		var/datum/Triple/stored_data = _paths[neigh] ? _paths[neigh] : new /datum/Triple(PLUS_INF, null, null)
 		var/stored_neigh_cost = stored_data.left
@@ -378,13 +390,20 @@ X================================================================X
 
 		var/priority_key = pqueue_key_gen(curr_iter, curr_cost, heuristic)
 
-		var/datum/Quadruple/cand_tuple = new /datum/Quadruple(priority_key, total_cost, neigh, source)
+		if(total_cost < PLUS_INF)
+			var/datum/Quadruple/cand_tuple = new /datum/Quadruple(priority_key, total_cost, neigh, source)
 
-		if (total_cost < PLUS_INF && (!(cand_tuple in _pqueue)))
-			_pqueue.Enqueue(cand_tuple)
+			if(cand_tuple in _pqueue)
+				to_world_log("Dropping candidate tuple for [neigh] @ [json_encode(source)] - already in queue")
 
-			if (!isnull(max_queue_size))
-				_pqueue.L.Cut(1, max_queue_size)
+			else
+				_pqueue.Enqueue(cand_tuple)
+
+				if (!isnull(max_queue_size))
+					_pqueue.L.Cut(1, max_queue_size)
+
+		else
+			to_world_log("Dropping candidate tuple for [neigh] @ [json_encode(source)] - infinite cost")
 
 	if (_pqueue.L.len <= 0)
 		to_world_log("Exhausted all candidates before a path was found!")
@@ -397,29 +416,12 @@ X================================================================X
 	var/list/source_pos = next_cand_tuple.fourth
 
 	# ifdef DEBUG_LOGGING
-
 	MAYBE_LOG("CAND: [next_cand_tuple.third]")
-	MAYBE_LOG("CAND SRCp: [source_pos]")
-
-	/*for (var/srcpit in source_pos)
-		MAYBE_LOG("SRCp item: [srcpit]")*/
+	MAYBE_LOG("CAND SRCp: [json_encode(source_pos)]")
 	# endif
 
-	var/list/action_stack = list(source_pos ? source_pos.Copy() : list())
+	var/list/action_stack = source_pos ? source_pos.Copy() : list()
 	action_stack.Add(cand_pos)
-
-	# ifdef DEBUG_LOGGING
-	/*for (var/actpit in source_pos)
-		MAYBE_LOG("ACTp item: [actpit]")*/
-	# endif
-
-	var/cand_blackboard = rebuild_effects(action_stack)
-	cand_blackboard[GOAP_KEY_SRC] = source_pos
-
-	# ifdef DEBUG_LOGGING
-	for (var/blit in cand_blackboard)
-		MAYBE_LOG("BLIT: [blit] = [cand_blackboard[blit]]")
-	# endif
 
 	var/list/new_params = list()
 
@@ -429,13 +431,15 @@ X================================================================X
 	new_params["visited"] = visited
 	new_params["cutoff_iter"] = cutoff_iter
 	new_params["max_queue_size"] = max_queue_size
-	new_params["blackboard"] = cand_blackboard
+	//new_params["blackboard"] = cand_blackboard
 	new_params["curr_cost"] = cand_cost
 	new_params["curr_iter"] = curr_iter + 1
+	// moving this out of here to access global start state; might regret later ;_;
+	new_params["_source_pos"] = source_pos
 
 	# ifdef DEBUG_LOGGING
 	var/list/pathli = new_params
-	MAYBE_LOG("Result tuple: ([result.left], [pathli] ([pathli.len]))")
+	MAYBE_LOG("Result ([pathli.len]): ([json_encode(pathli)])")
 	# endif
 
 	return new_params
@@ -484,12 +488,14 @@ X================================================================X
 	next_params["max_queue_size"] = max_queue_size
 
 	while(next_params)
+		curr_iter++
+
 		if(!isnull(cutoff_iter)) // 0 is *technically* valid, so let's use ifnull...
-			if (curr_iter >= ++cutoff_iter)
+			if (curr_iter >= cutoff_iter)
 				MAYBE_LOG("Path not found within [cutoff_iter] iterations!")
 				return
 
-		sleep(0) // this is a safe time to pause things and catch up with reality
+		sleep(-1) // this is a safe time to pause things and catch up with reality
 
 		result = SearchIteration(arglist(next_params))
 
@@ -499,6 +505,40 @@ X================================================================X
 
 		// Reload params for the next iteration.
 		next_params = result
+
+		# ifdef DEBUG_LOGGING
+		MAYBE_LOG("next_params: [json_encode(next_params)]")
+		# endif
+
+		// Fix up the blackboard to account for start state!
+		var/list/source_pos = ("_source_pos" in next_params) ? next_params["_source_pos"]: null
+		var/list/action_stack = list()
+
+		if(!isnull(source_pos))
+			# ifdef DEBUG_LOGGING
+			MAYBE_LOG("source_pos: [json_encode(source_pos)]")
+			# endif
+			action_stack.Add(source_pos)
+
+		var/cand_pos = ("start" in next_params) ? next_params["start"] : null
+		if(!isnull(cand_pos))
+			# ifdef DEBUG_LOGGING
+			MAYBE_LOG("cand_pos: [cand_pos]")
+			# endif
+			action_stack.Add(cand_pos)
+
+		# ifdef DEBUG_LOGGING
+		MAYBE_LOG("ACTION_STACK: [json_encode(action_stack)]")
+		# endif
+
+		var/cand_blackboard = rebuild_effects(action_stack, start)
+		cand_blackboard[GOAP_KEY_SRC] = action_stack
+
+		# ifdef DEBUG_LOGGING
+		MAYBE_LOG("CAND_BLACKBOARD: [json_encode(cand_blackboard)]")
+		# endif
+
+		next_params["blackboard"] = cand_blackboard
 
 	MAYBE_LOG("Broken out of the Plan loop!")
 
@@ -513,5 +553,5 @@ X================================================================X
 
 /datum/GOAP/New(var/list/graphmap)
 	..()
-	graph = graphmap
+	src.graph = graphmap
 
