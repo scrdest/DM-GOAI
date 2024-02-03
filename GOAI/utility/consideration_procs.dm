@@ -33,4 +33,8 @@
 
 	var/datum/brain/requesting_brain = controller.brain
 
+	if(isnull(requesting_brain))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("[caller] requesting_brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
 	return requesting_brain

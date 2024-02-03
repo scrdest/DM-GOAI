@@ -236,53 +236,8 @@ var/global/last_plan_time = null
 
 	var/list/smartobjects = src.GetMemoryValue("SmartObjects", null)
 	var/list/smart_paths = src.GetMemoryValue("AbstractSmartPaths", null)
-
-	var/list/smart_plans = list()
-
-	// devshit, remove once GOAP integrated properly
-	/*
-	var/list/demo_plan_items = list(
-		"GetScrewdriver",
-		"GetMultitool",
-		"GetWelder",
-		"UnweldDoor",
-		"ScrewDoor",
-		"HackDoor",
-		"UnscrewDoor",
-		"OpenDoor"
-	)
-	*/
-
-	var/list/demo_plan_items = global.demo_plan
-	if(isnull(global.last_plan_time))
-		global.last_plan_time = 0
-
-	if(isnull(global.demo_plan) && (world.time - global.last_plan_time > 20))
-		global.last_plan_time = world.time
-		var/list/start_state = list(
-			"IsOpen" = FALSE,
-			"welded" = TRUE,
-			"bolted" = TRUE,
-			"screwed" = FALSE
-		)
-		var/list/goal_state = list(
-			"IsOpen" = TRUE
-		)
-
-		var/myref = ref(src)
-		var/datum/GOAP/planner = GetGoapResource(myref)
-		if(!isnull(planner))
-			var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing way too much I/O, but dev gonna dev
-			//var/list/actions = GoapActionSetFromJsonFile("integrations/goai_actions_basic.json") // temp debug replacement
-			planner.graph = actions
-			to_world_log("PLANNING! START: [json_encode(start_state)] GOAL: [json_encode(goal_state)], ACTIONS: [json_encode(actions)]")
-			demo_plan_items = planner.Plan(start_state, goal_state, cutoff_iter=20)
-			to_world_log("PLANNING END - PLAN: [json_encode(demo_plan_items)]")
-			global.demo_plan = demo_plan_items
-			FreeGoapResource(planner, myref)
-
-	var/datum/plan_smartobject/demo_plan = new(demo_plan_items)
-	smart_plans["demo"] = demo_plan
+	var/list/smart_plans = src.GetMemoryValue("SmartPlans", null)
+	to_world_log("--SmartPlans: [json_encode(smart_plans)]")
 
 	if(isnull(smartobjects))
 		smartobjects = list()
@@ -294,10 +249,8 @@ var/global/last_plan_time = null
 				smartobjects.Add(path_so)
 
 	if(!isnull(smart_plans))
-		for(var/plan_key in smart_plans)
-			var/datum/plan_smartobject/plan_so = smart_plans[plan_key]
-			if(istype(plan_so))
-				smartobjects.Add(plan_so)
+		for(var/datum/plan_smartobject/plan_so in smart_plans)
+			smartobjects.Add(plan_so)
 
 	var/requester = src.GetRequester()
 	ASSERT(!isnull(requester))

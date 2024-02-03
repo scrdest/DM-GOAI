@@ -391,7 +391,7 @@
 	// This is a bit lossy, but 99% of the time that's all you care about.
 	var/datum/memory/retrieved_mem = GetMemory(mem_key, null, by_age, check_hivemind, recursive, prefer_hivemind)
 	var/memory_value = retrieved_mem?.val
-	//to_world_log("Key: [mem_key] - Retrieved memory [retrieved_mem || "null"] w/val [memory_value || "null"] @ TTL: [retrieved_mem?.ttl || "null"]")
+	//to_world_log("Key: [mem_key] - Retrieved memory [isnull(retrieved_mem) ?  "null" : retrieved_mem] w/val [isnull(memory_value) ?  "null" : json_encode(memory_value)] @ TTL: [isnull(retrieved_mem?.ttl) ?  "null" : retrieved_mem?.ttl]")
 	return (isnull(memory_value) ? default : memory_value)
 
 

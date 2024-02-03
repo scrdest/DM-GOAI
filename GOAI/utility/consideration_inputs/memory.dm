@@ -2,7 +2,7 @@
 // Consideration procs that deal with AI Brain data: Memories, Perceptions, Needs, etc.
 */
 
-//# define DEBUG_MEMORY_QUERIES 1
+# define DEBUG_MEMORY_QUERIES 1
 
 # ifdef DEBUG_MEMORY_QUERIES
 # define DEBUGLOG_MEMORY_FETCH(X) to_world_log(X)
@@ -17,6 +17,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 	// the code to fetch a Memory-ized path for various ACTUAL Considerations (e.g. 'Path Exists' or 'Path Length Is...')
 	// These proper Considerations should just forward their callsig to this Helper.
 
+	to_world_log("Requester for _cihelper_get_requester_brain is: [json_encode(requester)]...")
 	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_brain_data")
 
 	if(isnull(requesting_brain))
@@ -59,12 +60,12 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_has_memory)
-	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 	return !isnull(memory)
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_memory_value)
-	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 	return memory
 
 
@@ -73,7 +74,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_memory_ghost_turf)
 	// Like consideration_input_get_memory_value(), but specialized to 'ghosts' in memory
 	// (i.e. stuff like last known position of something as opposed to its actual location).
 	*/
-	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 	var/dict/position_ghost = memory
 
 	if(isnull(position_ghost))
@@ -99,7 +100,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_memory_ghost_turf)
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_requester_distance_to_memory_value)
-	var/atom/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/atom/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 
 	if(isnull(memory))
 		return PLUS_INF
@@ -119,7 +120,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain)
 		DEBUGLOG_MEMORY_FETCH("consideration_input_candidate_in_brain Candidate is null ([candidate || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 	var/result = memory == candidate
 	return result
 
@@ -139,12 +140,16 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain_list)
 		DEBUGLOG_MEMORY_FETCH("consideration_input_candidate_in_brain_list Candidate is null ([candidate || "null"]) <from_ctx=[from_ctx] | pos_key=[pos_key]> @ L[__LINE__] in [__FILE__]")
 		return null
 
-	var/raw_memory = _cihelper_get_brain_data(context, requester, consideration_args)
+	var/raw_memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
+	if(isnull(raw_memory))
+		return FALSE
+
 	var/list/memory = raw_memory
 
-	if(!isnull(raw_memory))
+	if(!istype(memory))
 		// Throw an error if the memory is not a list
-		ASSERT(!isnull(memory))
+		to_world_log("ERROR: Wrong memory type: [json_encode(memory)] ([memory])!")
+		ASSERT(istype(memory))
 
 	for(var/item in memory)
 		if (item == candidate)
