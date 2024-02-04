@@ -28,7 +28,7 @@
 	return
 
 
-/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper(var/datum/ActionTracker/tracker, var/atom/location, var/list/func_args, var/ai_proc, var/location_key = null, var/min_dist = 1, var/is_func = FALSE)
+/datum/utility_ai/mob_commander/proc/MoveToAndExecuteWrapper(var/datum/ActionTracker/tracker, var/atom/location, var/list/func_args, var/ai_proc, var/location_key = null, var/min_dist = 1, var/is_func = FALSE, var/timeout = 100)
 	// Wraps another Action with extra logic to go to the target first.
 
 	if(isnull(tracker))
@@ -37,6 +37,14 @@
 
 	if(tracker.IsStopped())
 		return
+
+	if(!isnull(timeout))
+		var/start_time = tracker.BBSetDefault("start_time", world.time)
+		var/curr_time = world.time
+		if((curr_time - start_time) > timeout)
+			RUN_ACTION_DEBUG_LOG("Timed out! ([curr_time] - [start_time]) > [timeout]! | <@[src]> | [__FILE__] -> L[__LINE__]")
+			tracker.SetFailed()
+			return
 
 	if(isnull(ai_proc))
 		RUN_ACTION_DEBUG_LOG("ai_proc is null | <@[src]> | [__FILE__] -> L[__LINE__]")
@@ -66,9 +74,17 @@
 	var/_min_target_dist = DEFAULT_IF_NULL(min_dist, 1)
 	var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 100)
 
-	var/list/path = tracker.BBGet("wrapper_path")
+	var/dist_to_target = MANHATTAN_DISTANCE(pawn, location)
 
-	if(isnull(path))
+	if(dist_to_target > _min_target_dist)
+		// Too far; check if we need a path.
+		var/list/path = tracker.BBGet("wrapper_path")
+
+		if(!isnull(path))
+			// We're too far to actually execute the wrapped call, so wait until the next tick.
+			// Mostly here to unnest the code.
+			return
+
 		path = src.AiAStar(
 			start = get_turf(pawn.loc),
 			end = get_turf(location),
@@ -91,21 +107,24 @@
 		src.brain.SetMemory(MEM_PATH_ACTIVE, path, _path_ttl)
 		src.brain.SetMemory("last_pathing_target", location)
 
+		// We're too far to actually execute the wrapped call, so wait until the next tick.
+		return
+
+	// Movement all done, time to unwrap.
 	var/list/_func_args = isnull(func_args) ? list() : func_args
 
 	if(!isnull(location_key))
 		_func_args[location_key] = location
 
-	if(MANHATTAN_DISTANCE(pawn, location) <= _min_target_dist)
-		if(is_func)
-			to_world("====>Calling wrapped [ai_proc]([json_encode(_func_args)])!")
-			call(true_ai_proc)(arglist(_func_args))
-			tracker.SetDone()
-			return
+	if(is_func)
+		to_world("====>Calling wrapped [ai_proc]([json_encode(_func_args)])!")
+		call(true_ai_proc)(arglist(_func_args))
+		tracker.SetDone()
+		return
 
-		_func_args["tracker"] = tracker
+	_func_args["tracker"] = tracker
 
-		to_world("====>Calling wrapped .[ai_proc]([json_encode(_func_args)])!")
-		call(src, true_ai_proc)(arglist(_func_args))
+	to_world("====>Calling wrapped .[ai_proc]([json_encode(_func_args)])!")
+	call(src, true_ai_proc)(arglist(_func_args))
 
 	return

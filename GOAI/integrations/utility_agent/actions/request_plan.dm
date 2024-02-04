@@ -1,5 +1,5 @@
 
-/datum/utility_ai/mob_commander/proc/PlanAroundObstacle(var/datum/ActionTracker/tracker, var/atom/obstacle, var/atom/position)
+/datum/utility_ai/mob_commander/proc/PlanAroundObstacle(var/datum/ActionTracker/tracker, var/atom/obstacle, var/atom/position, var/planning_budget = null)
 	// Requests a GOAP Plan to handle a contextual obstacle
 	// Fails if no Plan was found
 	// Otherwise, creates a Utility-friendly SmartObject to deal with execution
@@ -21,16 +21,10 @@
 		tracker.SetFailed()
 		return
 
-	var/list/start_state = list(
-		// delet dis
-		"IsOpen" = FALSE,
-		"welded" = TRUE,
-		"bolted" = TRUE,
-		"screwed" = FALSE
-	)
+	var/list/start_state = obstacle.worldstate
 
 	var/list/goal_state = list(
-		// dis 2
+		// Should be generalized I guess
 		"IsOpen" = TRUE
 	)
 
@@ -40,10 +34,11 @@
 
 	if(!isnull(planner))
 		var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing way too much I/O, but dev gonna dev
+		var/_planning_budget = isnull(planning_budget) ? 20 : planning_budget
 		planner.graph = actions
 
 		to_world_log("PLANNING! START: [json_encode(start_state)] GOAL: [json_encode(goal_state)], ACTIONS: [json_encode(actions)]")
-		plan_items = planner.Plan(start_state, goal_state, cutoff_iter=20)
+		plan_items = planner.Plan(start_state, goal_state, cutoff_iter=_planning_budget)
 		to_world_log("PLANNING END - PLAN: [json_encode(plan_items)]")
 
 		FreeGoapResource(planner, myref)
@@ -52,7 +47,9 @@
 		tracker.SetFailed()
 		return
 
-	var/datum/plan_smartobject/returned_plan = new(plan_items)
+	var/list/bound_context = list()
+	bound_context["action_target"] = obstacle
+	var/datum/plan_smartobject/returned_plan = new(plan_items, bound_context)
 
 	var/_plan_ttl = 600
 	var/list/stored_plans = src.brain.GetMemoryValue("SmartPlans")

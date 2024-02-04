@@ -63,6 +63,7 @@
 				"HasWelder": 1
 			}
 		},
+		"context_fetcher": "/proc/ctxfetcher_get_tagged_target",
 		"context_args": [
 			{
 				"tag": "test_welder"
@@ -114,6 +115,7 @@
 				"HasMultitool": 1
 			}
 		},
+		"context_fetcher": "/proc/ctxfetcher_get_tagged_target",
 		"context_args": [
 			{
 				"tag": "test_multitool"
@@ -191,6 +193,7 @@
 				"HasScrewdriver": 1
 			}
 		},
+		"context_fetcher": "/proc/ctxfetcher_get_tagged_target",
 		"context_args": [
 			{
 				"tag": "test_screwdriver"

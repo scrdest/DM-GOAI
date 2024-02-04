@@ -31,9 +31,8 @@
 
 /obj/cover/autodoor/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
 	var/list/my_action_sets = list()
-	return my_action_sets // plan testing!
 
-	ASSERT(fexists(DOOR_ACTIONSET_PATH))
+	ASSERT(fexists(AUTODOOR_ACTIONSET_PATH))
 	var/datum/action_set/myset = ActionSetFromJsonFile(AUTODOOR_ACTIONSET_PATH)
 
 	myset.origin = src
@@ -43,7 +42,6 @@
 
 
 /obj/cover/autodoor/HasUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> bool
-	return FALSE // plan testing!
 	var/atom/requester_atom = requester
 
 	if(isnull(requester_atom))

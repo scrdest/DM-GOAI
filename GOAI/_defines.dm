@@ -89,4 +89,4 @@
 #define DEFAULT_UTILITY_AI_SENSES "dev_sense.json"
 
 // Size of the GOAI plan buffer; if we would exceed it, eject a plan.
-#define MAX_STORED_PLANS 2
+#define MAX_STORED_PLANS 1

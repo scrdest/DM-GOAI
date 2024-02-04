@@ -17,7 +17,6 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 	// the code to fetch a Memory-ized path for various ACTUAL Considerations (e.g. 'Path Exists' or 'Path Length Is...')
 	// These proper Considerations should just forward their callsig to this Helper.
 
-	to_world_log("Requester for _cihelper_get_requester_brain is: [json_encode(requester)]...")
 	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_brain_data")
 
 	if(isnull(requesting_brain))
@@ -122,6 +121,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain)
 
 	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 	var/result = memory == candidate
+	to_world_log("consideration_input_candidate_in_brain: memory [memory] vs candidate [candidate] => [result]")
 	return result
 
 

@@ -11,7 +11,7 @@ var/global/list/global_plan_actions_repo = null
 	return global.global_plan_actions_repo
 
 
-/proc/RegisterGlobalPlanAction(var/key, var/raw_handler_proc, var/handler_proc, var/list/preconditions, var/list/effects, var/target_key, var/loc_key, var/handler_is_func = FALSE, var/feature_move_to = FALSE, var/description = null, var/list/context_args = null)
+/proc/RegisterGlobalPlanAction(var/key, var/raw_handler_proc, var/handler_proc, var/list/preconditions, var/list/effects, var/target_key, var/loc_key, var/handler_is_func = FALSE, var/feature_move_to = FALSE, var/description = null, var/list/context_args = null, var/context_fetcher_override = null)
 	var/list/action_data = list()
 
 	action_data[JSON_KEY_PLANACTION_RAW_HANDLERPROC] = raw_handler_proc
@@ -24,6 +24,7 @@ var/global/list/global_plan_actions_repo = null
 	action_data[JSON_KEY_PLANACTION_HASMOVEMENT] = (isnull(feature_move_to) ? FALSE : feature_move_to)
 	action_data[JSON_KEY_PLANACTION_DESCRIPTION] = description
 	action_data[JSON_KEY_PLANACTION_CTXARGS] = context_args
+	action_data[JSON_KEY_PLANACTION_CTXFETCHER_OVERRIDE] = context_fetcher_override
 
 	global.global_plan_actions_repo[key] = action_data
 	return TRUE
@@ -43,6 +44,7 @@ var/global/list/global_plan_actions_repo = null
 	var/feature_move_to = json_data[JSON_KEY_PLANACTION_HASMOVEMENT]
 	var/description = json_data[JSON_KEY_PLANACTION_DESCRIPTION]
 	var/list/context_args = json_data[JSON_KEY_PLANACTION_CTXARGS]
+	var/context_fetcher_override = json_data[JSON_KEY_PLANACTION_CTXFETCHER_OVERRIDE]
 
 	. = RegisterGlobalPlanAction(
 		key=key,
@@ -55,7 +57,8 @@ var/global/list/global_plan_actions_repo = null
 		handler_is_func=handler_is_func,
 		feature_move_to=feature_move_to,
 		description=description,
-		context_args=context_args
+		context_args=context_args,
+		context_fetcher_override=context_fetcher_override
 	)
 	return
 

@@ -151,6 +151,7 @@
 # define JSON_KEY_PLANACTION_HASMOVEMENT "has_movement"
 # define JSON_KEY_PLANACTION_DESCRIPTION "description"
 # define JSON_KEY_PLANACTION_CTXARGS "context_args"
+# define JSON_KEY_PLANACTION_CTXFETCHER_OVERRIDE "context_fetcher"
 
 # define GOAPPLAN_METADATA_PATH "integrations/goai_actions.json"
 /* ============================================= */

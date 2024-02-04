@@ -59,22 +59,26 @@
 	// the actual plan
 	var/list/plan
 
+	// an assoc of metadata; things like the target etc.
+	var/list/bound_context
+
 	// number of failed steps; if this is too high, invalidate the plan
 	var/frustration = 0
 
 
-/datum/plan_smartobject/New(var/list/new_plan, var/new_name = null)
+/datum/plan_smartobject/New(var/list/new_plan, var/list/new_bound_context, var/new_name = null)
 	if(!isnull(new_name))
 		src.name = new_name
 
 	src.plan = new_plan
+	src.bound_context = new_bound_context
 
 	if(!isnull(src.name))
 		// Potentially, cache by destination later.
 		src.smartobject_cache_key = src.name
 
 
-/proc/ActionSetFromGoapPlan(var/list/plan, var/name, var/requester = null) // [Action] -> ActionSet
+/proc/ActionSetFromGoapPlan(var/list/plan, var/list/bound_context, var/name, var/requester = null) // [Action] -> ActionSet
 	// Plan assumed to be a simple array-style list of action KEYS
 	// (meaning: just strings, no further metadata; we need to do a JOIN)
 
@@ -82,6 +86,10 @@
 		InitializeGlobalPlanActionsRepo()
 
 	var/list/planned_actions = list()
+	var/list/plan_context = (isnull(bound_context) ? list() : bound_context)
+
+	// wip targetting stuff
+	var/action_target = plan_context["action_target"]
 
 	// Running tracker of preconds/effects.
 	// To ensure proper sequencing, the preconds of each Action must be the 'base' Preconds AND all predecessors' Effects
@@ -129,6 +137,10 @@
 
 		var/list/context_args = list()
 
+		// targetting, very wip:
+		context_args["action_target"] = action_target
+		context_args["contextarg_variable"] = "action_target"
+
 		var/loc_key = action_data[JSON_KEY_PLANACTION_HANDLER_LOCARG]
 		context_args["output_context_key"] = loc_key
 
@@ -162,9 +174,13 @@
 			)
 			considerations.Add(distance_consideration)
 
+		var/raw_override_ctxproc = action_data[JSON_KEY_PLANACTION_CTXFETCHER_OVERRIDE]
+		var/override_ctxproc = (isnull(raw_override_ctxproc) ? null : STR_TO_PROC(raw_override_ctxproc))
+		var/contextfetcher = (isnull(override_ctxproc) ? /proc/ctxfetcher_read_another_contextarg : override_ctxproc)
+
 		var/list/ctxprocs = list(
-			// TODO: get actual value from Elsewhere (TM)
-			/proc/ctxfetcher_get_tagged_target
+			// by default, the context is the target of the plan
+			contextfetcher
 		)
 
 		var/list/extra_ctx_args = action_data[JSON_KEY_PLANACTION_CTXARGS]
@@ -229,7 +245,7 @@
 	//ASSERT(fexists(GOAPPLAN_ACTIONSET_PATH))
 	//var/datum/action_set/myset = ActionSetFromJsonFile(GOAPPLAN_ACTIONSET_PATH)
 
-	var/datum/action_set/myset = ActionSetFromGoapPlan(src.plan, "TestPlan", src)
+	var/datum/action_set/myset = ActionSetFromGoapPlan(src.plan, src.bound_context, "TestPlan", src)
 	ASSERT(!isnull(myset))
 
 	var/list/my_action_sets = list()
