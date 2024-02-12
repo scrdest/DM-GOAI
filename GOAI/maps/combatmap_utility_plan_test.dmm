@@ -1,6 +1,6 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
-"c" = (/mob/living/simple_animal/aitester/utility{name = "Alpha"},/turf/ground,/area)
+"c" = (/mob/living/simple_animal/aitester/utility{name = "Alpha"; spawn_commander = 1},/turf/ground,/area)
 "d" = (/obj/cover/autodoor{start_bolted = 1; start_welded = 0; tag = "test_autodoor"},/turf/ground,/area)
 "e" = (/obj/item/up_test_multitool{tag = "test_multitool"},/turf/ground,/area)
 "f" = (/obj/item/up_test_screwdriver{tag = "test_screwdriver"},/turf/ground,/area)

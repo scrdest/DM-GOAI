@@ -140,6 +140,44 @@ X================================================================X
 	return
 
 
+/proc/TextSort(var/left_str, var/right_str) // (str, str) -> int
+	/*
+	// returns -1 if Right > Left
+	// returns 1 if Right < Left
+	// return 0 if Right == Left
+	//
+	// Used for sorting text alphabetically
+	*/
+	ASSERT(!isnull(right_str))
+
+	if(isnull(left_str))
+		// special case for unpopulated list
+		return 1
+
+	// flipped so that right > left => -1
+	return sorttext(right_str, left_str)
+
+
+/proc/hash_goap_state(var/list/state) // assoc -> str
+	// Used for transposition tables.
+	// We want to skip equivalent plans, e.g. "Get<B> -> Get<A> -> Foo" == "Get<A> -> Get<B> -> Foo"
+	// We don't care about the ordering if it's equivalent, and retaining such duplicates slows planning down significantly.
+	// To do that, we need to have a way to check output states for any ordering.
+	// We'll do that by just sorting keys alphabetically then stringifying them + value.
+	if(isnull(state))
+		return
+
+	var/list/sorted_list = list()
+
+	for(var/statekey in state)
+		var/val = state[statekey]
+		var/statestring = "[statekey]@[val]"
+		ADD_SORTED(sorted_list, statestring, /proc/TextSort)
+
+	var/hashstring = sorted_list.Join(";")
+	return hashstring
+
+
 /datum/GOAP/proc/update_counts(var/list/old_state, var/list/new_state)
 		/* Merges counts in two assoc lists. Returns the result as a new assoc list.
 	//
@@ -166,7 +204,7 @@ X================================================================X
 	return result_state
 
 
-/datum/GOAP/proc/evaluate_neighbor(var/neigh, var/current_pos, var/goal, var/list/blackboard)
+/datum/GOAP/proc/evaluate_neighbor(var/neigh, var/current_pos, var/goal, var/list/blackboard, var/list/transposition_table)
 		/* Evaluates a single Candidate action based on the current state.
 	//
 	// This involves three essential steps:
@@ -187,6 +225,7 @@ X================================================================X
 	// o current_pos - current position in the plan, i.e. the 'start' var in the SearchIteration() call.
 	// o goal  - assoc list of the goal state we're trying to reach (or exceed, depending on cmp)
 	// o blackboard - optional;
+	// o transposition_table - optional;
 	//
 	*/
 	var/list/actual_blackboard = blackboard ? blackboard : list()
@@ -205,12 +244,22 @@ X================================================================X
 
 	var/datum/Tuple/result = null
 	if (!is_valid)
-		result = new /datum/Tuple(PLUS_INF, effects)
-		return result
+		// Invalid, skip!
+		return
 
 	var/list/new_effects = get_effects(neigh)
 	if(new_effects)
 		effects = update_counts(effects, new_effects)
+
+	if(transposition_table)
+		var/effect_hash = hash_goap_state(effects)
+
+		if(effect_hash in transposition_table)
+			// Duplicate end state, skip!
+			return
+
+		// the value is arbitrary, just dunno if DM's weird lists behave the same in array vs assoc mode =_=
+		transposition_table[effect_hash] = 1
 
 	var/neigh_distance = neighbor_dist(current_pos, neigh, src.graph)
 	var/goal_distance = goal_dist(neigh, goal)
@@ -290,7 +339,7 @@ X================================================================X
 	return match
 
 
-/datum/GOAP/proc/SearchIteration(var/list/start, var/list/goal, var/paths = null, var/PriorityQueue/queue = null, var/visited = null, var/cutoff_iter = null, var/max_queue_size = null, var/list/blackboard = null, var/curr_cost = 0, var/curr_iter = 0, var/_source_pos = null)
+/datum/GOAP/proc/SearchIteration(var/list/start, var/list/goal, var/paths = null, var/PriorityQueue/queue = null, var/visited = null, var/cutoff_iter = null, var/max_queue_size = null, var/list/transposition_table = null, var/list/blackboard = null, var/curr_cost = 0, var/curr_iter = 0, var/_source_pos = null)
 	/* The main 'worker' logic of the search.
 	//
 	// Takes the starting position/state, the target position/state and a pile of configuration options/procs,
@@ -329,10 +378,17 @@ X================================================================X
 	MAYBE_LOG("CURR ITER: [curr_iter]")
 	MAYBE_LOG("CURR POS: [json_encode(start)]")
 
-	var/list/_paths = isnull(paths) ? list() : paths
-	var/PriorityQueue/_pqueue = isnull(queue) ? new /PriorityQueue(/datum/Quadruple/proc/ActionCompare) : queue
+	// remove me, losing my mind here
+	to_world_log("     ")
+	to_world_log(" --- ")
+	to_world_log("     ")
+	to_world_log("+-+ CURR ITER: [curr_iter] | CURR POS: [json_encode(start)]")
 
+	var/list/_paths = isnull(paths) ? list() : paths
+	var/list/_transposition_table = isnull(transposition_table) ? list() : transposition_table
 	var/list/_blackboard = isnull(blackboard) ? list() : blackboard.Copy()
+
+	var/PriorityQueue/_pqueue = isnull(queue) ? new /PriorityQueue(/datum/Quadruple/proc/ActionCompare) : queue
 
 	# ifdef DEBUG_LOGGING
 	MAYBE_LOG("RAW_BB is [json_encode(_blackboard)]")
@@ -343,9 +399,11 @@ X================================================================X
 	# ifdef DEBUG_LOGGING
 	MAYBE_LOG("START_BB is [json_encode(updated_state)]")
 	# endif
+	to_world_log("START_BB is [json_encode(updated_state)]") // removeme
 
 	var/goal_check_result = goal_check(updated_state, goal)
 	if(goal_check_result)
+		to_world_log("GOAL CHECK SUCCEEDED.") // removeme
 		MAYBE_LOG("GOAL CHECK SUCCEEDED.")
 
 		// Pluck the thing that actually holds the path from the final state:
@@ -372,7 +430,11 @@ X================================================================X
 		if (visited && visited[neigh])
 			continue
 
-		var/datum/Tuple/evaluation = evaluate_neighbor(neigh, start, goal, updated_state)
+		var/datum/Tuple/evaluation = evaluate_neighbor(neigh, start, goal, updated_state, _transposition_table)
+
+		if(isnull(evaluation))
+			continue
+
 		var/heuristic = evaluation.left
 		var/effects = evaluation.right
 		var/source = effects[GOAP_KEY_SRC]
@@ -425,10 +487,12 @@ X================================================================X
 	new_params["start"] = cand_pos
 	new_params["goal"] = goal
 	new_params["paths"] = paths
+	new_params["queue"] = _pqueue
 	new_params["visited"] = visited
 	new_params["cutoff_iter"] = cutoff_iter
 	new_params["max_queue_size"] = max_queue_size
 	//new_params["blackboard"] = cand_blackboard
+	new_params["transposition_table"] = _transposition_table
 	new_params["curr_cost"] = cand_cost
 	new_params["curr_iter"] = curr_iter + 1
 	// moving this out of here to access global start state; might regret later ;_;
@@ -473,8 +537,12 @@ X================================================================X
 
 	var/list/true_paths = isnull(paths) ? list() : paths
 	var/list/next_params = list()
+	var/list/transposition_table = list() // prunes equivalent paths
 	var/list/result = null
 	var/PriorityQueue/queue = new /PriorityQueue(/datum/Quadruple/proc/ActionCompare)
+
+	var/starthash = hash_goap_state(start)
+	transposition_table[starthash] = 1 // will have to check if this is O(1) to check membership if not assoc'd
 
 	next_params["start"] = start
 	next_params["goal"] = goal
@@ -483,6 +551,7 @@ X================================================================X
 	next_params["visited"] = visited
 	next_params["cutoff_iter"] = cutoff_iter
 	next_params["max_queue_size"] = max_queue_size
+	next_params["transposition_table"] = transposition_table
 
 	while(next_params)
 		curr_iter++
@@ -499,6 +568,9 @@ X================================================================X
 		if(src.last_run_finished_flag)
 			// Got a plan, end the loop.
 			break
+
+		if(isnull(result))
+			return
 
 		// Reload params for the next iteration.
 		next_params = result

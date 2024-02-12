@@ -260,7 +260,10 @@
 		var/list/typekey_fxs = raw_effects[typekey]
 		effects.Add(typekey_fxs)
 
-	var/cost = 10  // TODO!
+	var/cost = json_data[JSON_KEY_ACT_PRIORITY]
+	if(isnull(cost))
+		cost = 50
+
 	var/act_name = json_data[JSON_KEY_ACT_NAME]
 	var/is_instant = json_data[JSON_KEY_ACT_ISINSTANT]
 	var/list/action_args = json_data[JSON_KEY_ACT_HARDARGS]
@@ -287,7 +290,7 @@
 	return new_goap_action
 
 
-/proc/GoapActionSetFromJsonFile(var/json_filepath) // str -> [GoaiAction]
+/proc/GoapActionSetFromJsonFile(var/json_filepath) // str -> {str: GoaiAction}
 	ASSERT(json_filepath)
 
 	var/list/json_data = READ_JSON_FILE(json_filepath)

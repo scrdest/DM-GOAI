@@ -156,6 +156,9 @@
 					# endif
 
 					var/utility = action_template.ScoreAction(action_template, ctx, requester)
+					if(utility > 0.01)
+						// tiebreaker noise
+						utility -= (0.01 * rand())
 
 					# ifdef UTILITYBRAIN_LOG_UTILITIES
 					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name]: [utility] (priority: [action_template?.priority_class])")
@@ -238,6 +241,8 @@ var/global/last_plan_time = null
 	var/list/smart_paths = src.GetMemoryValue("AbstractSmartPaths", null)
 	var/list/smart_plans = src.GetMemoryValue("SmartPlans", null)
 	to_world_log("--SmartPlans: [json_encode(smart_plans)]")
+	var/list/smart_orders = src.GetMemoryValue("SmartOrders", null)
+	to_world_log("--SmartOrders: [json_encode(smart_orders)]")
 
 	if(isnull(smartobjects))
 		smartobjects = list()
@@ -251,6 +256,10 @@ var/global/last_plan_time = null
 	if(!isnull(smart_plans))
 		for(var/datum/plan_smartobject/plan_so in smart_plans)
 			smartobjects.Add(plan_so)
+
+	if(!isnull(smart_orders))
+		for(var/datum/order_smartobject/order_so in smart_orders)
+			smartobjects.Add(order_so)
 
 	var/requester = src.GetRequester()
 	ASSERT(!isnull(requester))

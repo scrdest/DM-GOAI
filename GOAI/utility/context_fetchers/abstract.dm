@@ -31,7 +31,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_read_origin_var)
 		candidate = parent_actionset.origin
 
 	if(isnull(candidate))
-		UTILITYBRAIN_DEBUG_LOG("ActionTemplate [parent] has no parent (direct or ActionSet). Cannot infer origin! @ L[__LINE__] in [__FILE__]")
+		UTILITYBRAIN_DEBUG_LOG("ActionTemplate [parent?.name] has no parent (direct or ActionSet). Cannot infer origin! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/raw_result = candidate.vars[var_key]

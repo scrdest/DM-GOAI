@@ -185,7 +185,7 @@
 
 
 /obj/cover/door/proc/pOpen()
-	open = !open
+	open = TRUE
 	UpdateOpen()
 	return open
 
@@ -194,6 +194,12 @@
 	set src in range(1)
 	var/result = pOpen()
 	return result
+
+
+/obj/cover/door/proc/pClose()
+	open = FALSE
+	UpdateOpen()
+	return !open
 
 
 /* Automated, self-closing door */
@@ -218,31 +224,33 @@
 	density = (open ? FALSE : FALSE)
 	opacity = (open ? FALSE : TRUE)
 
-	icon_state = (open ? "door0" : "door1")
-
 	if(directional_blocker)
 		directional_blocker.is_active = (open ? FALSE : TRUE)
 
 	src.SetWorldstate("IsOpen", src.open)
+	src.UpdateIcon()
 	return src
 
 
 /obj/cover/autodoor/UpdateIcon()
 	icon_state = "cdoor1"
 
-	var/screwed = src.GetWorldstate("screwed", FALSE)
-	var/welded = src.GetWorldstate("welded", FALSE)
-	var/bolted = src.GetWorldstate("bolted", FALSE)
-	var/is_open = src.GetWorldstate("IsOpen", FALSE)
+	var/screwed = src.GetWorldstateValue("screwed", FALSE)
+	var/welded = src.GetWorldstateValue("welded", FALSE)
+	var/bolted = src.GetWorldstateValue("bolted", FALSE)
+	var/is_open = src.GetWorldstateValue("IsOpen", FALSE)
 
 	if(is_open)
 		icon_state = "codoor0"
 
-	else if(screwed && welded && bolted)
+	else if(bolted && screwed && welded)
 		icon_state = "codoorl_locked"
 
-	else if(welded && bolted)
+	else if(bolted && welded)
 		icon_state = "cdoorl_locked"
+
+	else if(bolted && screwed)
+		icon_state = "co_door_locked"
 
 	else if(screwed && welded)
 		icon_state = "co_doorl"
@@ -253,6 +261,12 @@
 	else if(welded)
 		icon_state = "cdoorl"
 
+	else if(bolted)
+		icon_state = "cdoor_locked"
+
+	else
+		icon_state = "cdoor1"
+
 	return src
 
 
@@ -261,7 +275,7 @@
 	if(isnull(welder))
 		return FALSE
 	*/
-	var/welded = src.GetWorldstate("welded", FALSE)
+	var/welded = src.GetWorldstateValue("welded", FALSE)
 	src.SetWorldstate("welded", !welded)
 	src.UpdateIcon()
 	return TRUE
@@ -289,7 +303,7 @@
 	if(isnull(screwdriver))
 		return FALSE
 	*/
-	var/screwed = src.GetWorldstate("screwed", FALSE)
+	var/screwed = src.GetWorldstateValue("screwed", FALSE)
 	src.SetWorldstate("screwed", !screwed)
 	src.UpdateIcon()
 
@@ -324,7 +338,7 @@
 
 	var/obj/cover/autodoor/AD = target
 	if(istype(AD))
-		AD.SetWorldstate("bolted", FALSE)
+		AD.SetWorldstate("bolted", !AD.GetWorldstate("bolted", FALSE))
 		return TRUE
 
 	return FALSE
@@ -356,14 +370,21 @@
 			close_door_at = 0
 
 
+/obj/cover/autodoor/InitWorldstate()
+	. = ..()
+
+	src.worldstate["screwed"] = src.start_screwed
+	src.worldstate["welded"] = src.start_welded
+	src.worldstate["bolted"] = src.start_bolted
+
+	return
+
+
 /obj/cover/autodoor/Setup()
 	..()
 	name = "[name] @ [COORDS_TUPLE(src)]"
 	directional_blocker = new(null, null, TRUE, TRUE)
-
-	src.SetWorldstate("screwed", src.start_screwed)
-	src.SetWorldstate("welded", src.start_welded)
-	src.SetWorldstate("bolted", src.start_bolted)
+	src.InitWorldstate()
 
 	UpdateOpen()
 	UpdateIcon()
@@ -375,9 +396,9 @@
 
 
 /obj/cover/autodoor/proc/pOpen()
-	if(src.GetWorldstate("screwed")) return open
-	if(src.GetWorldstate("welded"))  return open
-	if(src.GetWorldstate("bolted"))  return open
+	if(src.GetWorldstateValue("screwed")) return open
+	if(src.GetWorldstateValue("welded"))  return open
+	if(src.GetWorldstateValue("bolted"))  return open
 
 	Toggle(FALSE)
 	return open
@@ -385,7 +406,7 @@
 
 /obj/cover/autodoor/proc/pClose()
 	Toggle(TRUE)
-	return open
+	return !open
 
 
 /obj/cover/autodoor/proc/Toggle(var/forced_state = null)

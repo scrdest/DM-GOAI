@@ -14,7 +14,7 @@
 	var/list/worldstate = src.ai_worldstate.Copy()
 
 	if(trg_queries?.len)
-		for(var/atom/trg_key in trg_queries)
+		for(var/datum/trg_key in trg_queries)
 			var/list/qry = trg_queries[trg_key]
 
 			if(isnull(qry))
@@ -24,7 +24,7 @@
 				worldstate[trg_key] = list()
 
 			for(var/query_key in qry)
-				var/result = trg_key.GetWorldstate(query_key)
+				var/result = trg_key.GetWorldstateValue(query_key)
 				worldstate[trg_key][query_key] = result
 
 	return worldstate
@@ -39,20 +39,115 @@
 		if(isnull(worldstate["pawn"]))
 			worldstate["pawn"] = list()
 
+		// Needs to be hella improved
 		var/obj/item/up_test_welder/welder = locate() in pawn; worldstate["pawn"]["HasWelder"] = (!isnull(welder))
 		var/obj/item/up_test_multitool/multitool = locate() in pawn; worldstate["pawn"]["HasMultitool"] = (!isnull(multitool))
 		var/obj/item/up_test_screwdriver/screwdriver = locate() in pawn; worldstate["pawn"]["HasScrewdriver"] = (!isnull(screwdriver))
 
-		/*
-		var/obj/item/up_test_welder/globwelder = locate()
-		var/obj/item/up_test_welder/tagwelder = locate("test_welder")
-		to_world("Welder - in pawn: [welder], global [globwelder], by tag [tagwelder]")
-		*/
-
 	return worldstate
 
 
+/datum/order_smartobject
+	/*
+	// A fairly lightweight generic "here's something to solve for with planning" marker.
+	// By giving one to an agent, you're effectively requesting the AI to solve for a certain
+	// state for a given target.
+	//
+	// Things like Doors having Actions to plan for opening them are effectively a special case
+	// of this pattern where we've offloaded the equivalent logic to an actual physical object.
+	//
+	// Orders just let us make things a bit more generic and allow users to specify arbitrary
+	// goals on arbitrary targets.
+	*/
+
+	// optional-ish, identifier for debugging:
+	var/name
+
+	// An assoc of worldstate values we require our plan to result in
+	// e.g. {"IsOpen": 1} to request a plan to open a door (using Python dict notation as shorthand)
+	var/list/goal_state = null
+
+	// Who do we want to apply those worldstate values to (e.g. WHICH door to open)
+	var/datum/target
+
+	// Utility Considerations required to *plan*
+	// (i.e. separate from the Considerations of plan Actions themselves!)
+	var/list/planning_considerations = null
+
+
+/datum/order_smartobject/New(var/list/new_goal_state, var/datum/new_target, var/list/new_planning_considerations, var/name = null)
+	. = ..()
+	src.goal_state = new_goal_state
+	src.target = new_target
+	src.planning_considerations = new_planning_considerations
+	src.name = DEFAULT_IF_NULL(name, src.name)
+	return
+
+
+/datum/order_smartobject/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
+	var/list/actions = list()
+
+	var/action_key = src.name
+
+	var/list/considerations = (isnull(src.planning_considerations) ? list() : src.planning_considerations)
+	considerations.Add(/proc/consideration_input_always) // devjunk, remove me!
+
+	var/list/ctxprocs = list(/proc/ctxfetcher_read_origin_var)
+	var/list/context_args = list()
+	var/list/hard_args = list()
+
+	var/list/primary_context = list()
+
+	primary_context["variable"] = "target" // i.e. src.target
+	primary_context["output_context_key"] = "target" // the arg used by the handler
+
+	// nested sublists =_=
+	context_args.len++
+	context_args[1] = primary_context
+
+	hard_args["goal_state"] = src.goal_state
+
+	var/desc = "plan for order: [json_encode(src.goal_state)]"
+
+	var/datum/utility_action_template/new_action_template = new(
+		considerations, //considerations
+		/datum/utility_ai/mob_commander/proc/PlanForGoal, //handler
+		HANDLERTYPE_SRCMETHOD, //handler_type
+		ctxprocs, //ctxprocs
+		context_args, //context_args
+		3, //priority
+		2, //charges
+		FALSE, //instant
+		hard_args, //hard_args
+		action_key, //action_key
+		desc, //act_description
+		TRUE, // instant
+		// GOAP stuff
+		null, //preconds,
+		null //effects
+	)
+
+	var/used_name = (src.name || desc)
+
+	new_action_template.name = used_name
+	new_action_template.origin = src
+	actions.Add(new_action_template)
+
+	var/datum/action_set/myset = new(used_name, actions)
+
+	ASSERT(!isnull(myset))
+
+	var/list/my_action_sets = list()
+	myset.origin = src
+	my_action_sets.Add(myset)
+
+	return my_action_sets
+
+
+
 /datum/plan_smartobject
+	/* Represents a Plan of Actions. Grants SO Actions corresponding to what's in the plan. */
+
 	// optional-ish, identifier for debugging:
 	var/name
 
@@ -231,7 +326,6 @@
 	var/datum/action_set/plan_actionset = new(
 		name = name,
 		included_actions = planned_actions,
-		active = TRUE,
 		origin = isnull(requester) ? plan : requester
 		// TODO: could use a freshness proc w/ the plan as args
 	)
@@ -239,12 +333,6 @@
 
 
 /datum/plan_smartobject/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
-	// Replace this with proper generation of Actions from the GOAP Plan!
-
-	// For exploratory development, just hardcoding a plan for now
-	//ASSERT(fexists(GOAPPLAN_ACTIONSET_PATH))
-	//var/datum/action_set/myset = ActionSetFromJsonFile(GOAPPLAN_ACTIONSET_PATH)
-
 	var/datum/action_set/myset = ActionSetFromGoapPlan(src.plan, src.bound_context, "TestPlan", src)
 	ASSERT(!isnull(myset))
 

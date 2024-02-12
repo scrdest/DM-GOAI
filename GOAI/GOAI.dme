@@ -67,6 +67,7 @@
 #include "basics\concrete_brains\_concrete.dm"
 #include "basics\concrete_brains\sim.dm"
 #include "basics\testing\generic.dm"
+#include "basics\testing\ui_hackery.dm"
 #include "goap\goap_classy.dm"
 #include "integrations\_defines.dm"
 #include "integrations\ai_state.dm"

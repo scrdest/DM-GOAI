@@ -2,6 +2,10 @@
 # define CEIL(x) -round(-x)
 # define SQR(x) ((x) * (x))
 
+// copies all key/value pairs in an assoc list FROM to assoc list TO (LTR == LeftToRight to hint at usage)
+// like list.Copy() but can be chained to merge multiple assocs (although ordering matters for key collisions)
+#define UPSERT_ASSOC_LTR(FROM, TO) for(var/___temp_upsert_key in FROM) { var/___temp_upsert_val = FROM[___temp_upsert_key]; TO[___temp_upsert_key] = ___temp_upsert_val }
+
 # ifdef GOAI_LIBRARY_FEATURES
 /*
 /proc/floor(x)

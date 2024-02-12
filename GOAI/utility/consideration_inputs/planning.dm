@@ -84,8 +84,12 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_preconditions_me
 
 		for(var/precond_key in target_preconds)
 			PLANNING_CONSIDERATIONS_LOG("- AT [action_template.name] preconds check for [target_key]/[precond_key]!")
-			var/precond_val = target_preconds[precond_key]
 
+			if(precond_key[1] == "_")
+				// leading underscore indicates GOAP-only stuff
+				continue
+
+			var/precond_val = target_preconds[precond_key]
 			var/worldval = null
 
 			if(precond_val > 0)
@@ -214,6 +218,10 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_effects_not_all_
 
 		for(var/effect_key in effect_worldstate)
 			PLANNING_CONSIDERATIONS_LOG("- AT [action_template.name] effects check for [target_key]/[effect_key]!")
+
+			if(effect_key[1] == "_")
+				// leading underscore indicates GOAP-only stuff
+				continue
 
 			var/effect_val = effect_worldstate[effect_key]
 

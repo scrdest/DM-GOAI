@@ -8,6 +8,9 @@
 
 // Demo implementation
 /datum/GOAP/demoGoap
+	// I hate to do that in the state, but I will to POC it.
+	var/list/blackboard_defaults = null
+	var/bfs_to_dfs_switchpoint = 100
 
 
 /datum/GOAP/demoGoap/update_op(var/old_val, var/new_val)
@@ -16,8 +19,34 @@
 	return new_val
 
 
+/datum/GOAP/demoGoap/pqueue_key_gen(var/curr_iter, var/curr_cost, var/heuristic)
+	// I've discovered a curious tradeoff in the algorithm:
+	// Simple, short plans benefit from BFS (explore close branches first) as per classic GOAP papers
+	// Complex plans actually perform better with DFS (expand existing branches)!
+	//
+	// The difference is like 30 (DFS) vs 200 (BFS) iterations to resolve a plan to open a door.
+	//
+	// However, DFS plans are lower quality, with completely pointless actions
+	// (as the heuristic favors branch-diving through unneeded intermediate steps)
+	//
+	// So the compromise is a mix; heuristically, we'll switch between BFS and DFS based on iteration.
+	// Idea being - simple plans should be short as-is, and if complex plans grow too long we should switch to DFS to finish them.
+
+	// NOTE: The above is true when not using transposition table filtering. May not be true anymore.
+	// As such, I upped the default switchpoint to iteration 100.
+	return ((curr_iter < src.bfs_to_dfs_switchpoint) ? 1 : -1) * curr_iter
+
+
 /datum/GOAP/demoGoap/compare_op(var/curr_val, var/targ_val)
-	var/result = curr_val >= targ_val
+	var/result = FALSE
+
+	if(targ_val >= 0)
+		result = curr_val >= targ_val
+
+	else
+		// 'negative' cases (req < 0)
+		result = (curr_val < -targ_val)
+
 	return result
 
 
@@ -48,13 +77,13 @@
 	// o end - end state (neighbor for neighbor measure, goal for goal measure)
 	// o graph - assoc list representing the action graph (not actually used here, just for consistency)
 	*/
-	var/cost = 0
-	cost -= ((roll(1, 4) - 1) / 4) // empirically, more uniform (i.e. less rolls) randomness seems to work better for some reason
+	var/cost = 1
+	cost += ((rand() - 0.5) * 4) // tiebreaker noise
+	//cost -= ((roll(1, 4) - 1) / 4) // empirically, more uniform (i.e. less rolls) randomness seems to work better for some reason
 	return cost
 
 
 /datum/GOAP/demoGoap/check_preconds(var/current_pos, var/list/blackboard)
-	DEMOGOAP_DEBUG_LOG("CurrentPos: [current_pos]")
 	//DEMOGOAP_DEBUG_LOG("Graph: [json_encode(graph)]")
 	DEMOGOAP_DEBUG_LOG("Graph @ Pos: [graph[current_pos]]")
 
@@ -67,7 +96,10 @@
 		if (isnull(req_val))
 			continue
 
-		var/blackboard_val = (req_key in blackboard) ? blackboard[req_key] : null
+		var/blackboard_val = blackboard[req_key]
+		if(isnull(blackboard_val))
+			if(isnull(src.blackboard_defaults)) { src.blackboard_defaults = list() }
+			blackboard_val = src.blackboard_defaults[req_key]
 
 		/*             Funky preconditions algebra
 		// Because spliting booleans into two states is painful.

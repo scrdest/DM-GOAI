@@ -27,7 +27,7 @@
 #define LOAD_TEXT(fp) file2text(fp)
 #define SAVE_TEXT(txt, fp) text2file(txt, fp)
 
-#define LOAD_JSON(fp) json_decode(LOAD_TEXT)
+#define LOAD_JSON(fp) json_decode(LOAD_TEXT(fp))
 #define SAVE_JSON(data, fp) SAVE_TEXT(json_encode(data), fp)
 #define SAVE_JSON_OVERWRITE(data, fp) fdel(fp); SAVE_TEXT(json_encode(data), fp)
 

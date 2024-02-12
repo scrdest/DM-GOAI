@@ -153,27 +153,27 @@
 	// returns -1 if Right < Left
 	// return 0 if Right == Left
 
-	if (right.first > left.first)
+	if (left.first < right.first)
 		return 1
 
-	if (right.first < left.first)
+	if (left.first > right.first)
 		return -1
 
-	if (right.second > left.second)
+	if (left.second < right.second)
 		return 1
 
-	if (right.second < left.second)
+	if (left.second > right.second)
 		return -1
 
-	if (right.third > left.third)
+	if (left.third < right.third)
 		return 1
 
-	if (right.third < left.third)
+	if (left.third > right.third)
 		return -1
 
 	return 0
 
-
+/*
 /datum/Quadruple/proc/ActionCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
 	/*
 	// returns 1 if Right > Left
@@ -203,4 +203,34 @@
 	// to use a custom proc instead of this one as well.
 	*/
 	return 0
+*/
 
+/datum/Quadruple/proc/ActionCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
+	/*
+	// returns -1 if Right > Left
+	// returns 1 if Right < Left
+	// return 0 if Right == Left
+	//
+	// This is just a cut-down version of the QuadCompare proc.
+	*/
+
+	if (right.first > left.first)
+		return -1
+
+	if (right.first < left.first)
+		return 1
+
+	if (right.second > left.second)
+		return -1
+
+	if (right.second < left.second)
+		return 1
+
+	/* For this GOAP implementation, our standard key is at most
+	// the first two values (iteration, for BFS, and cost, for
+	// Astarry-ness), and the rest can be whatever, so we return 0.
+	//
+	// If you use a custom key generator proc, you will probably need
+	// to use a custom proc instead of this one as well.
+	*/
+	return 0

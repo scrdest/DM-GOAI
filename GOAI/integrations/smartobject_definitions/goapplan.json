@@ -14,6 +14,7 @@
 				"target": {
 					"IsOpen": -1,
 					"welded": -1,
+					"bolted": -1,
 					"screwed": -1
 				}
 			},
