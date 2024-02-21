@@ -1,9 +1,81 @@
 
 # define GOAPPLAN_ACTIONSET_PATH "integrations/smartobject_definitions/goapplan.json"
 
+// DYNAMIC QUERY SYNTAX: <Querytype>:<Typeval>@<Target>=><Outkey> WHERE
+// - Querytype: what kind of query this is, e.g. 'type' for type matching
+// - Typeval: what exactly are we searching for in this querytype, e.g. '/foo/bar' to find typesof /foo/bar'
+// - Target: var to search, e.g. 'contents'
+// - Outkey: key to write results to, e.g. 'HasBar'
+# define DYNAMIC_WS_QUERY_REGEX @"\?(\w+?):(.+?)@(\w+)=>(\w+)"
+
 
 /datum/utility_ai
 	var/list/ai_worldstate = null
+
+
+/proc/RunDynamicWorldStateQuery(var/datum/target, var/query = null, var/parsed_querytype = null, var/parsed_typeval = null, var/parsed_targvar = null)
+	// A leading questionmark in a precond/effect indicates a *Dynamic Worldstate Query* (TM)
+	// (this is as opposed to a NON-dynamic one, which is just a simple assoc lookup).
+	//
+	// This is used for info we cannot reasonably calculate upfront,
+	// e.g. <type>InInventory - would require nigh-infinite memory to store all possible types.
+	//
+	// Input can either be a query or the relevant data already parsed OUT of the query.
+	// If the data is not provided, the query will be parsed for the details.
+	// Otherwise, the explicit parsed data takes precedence.
+	//
+	// This is primarily to allow users to parse the query earlier and forward the results to this call.
+
+	if(isnull(target))
+		return
+
+	var/raw_querytype = parsed_querytype
+	var/raw_typeval = parsed_typeval
+	var/raw_targvar = parsed_targvar
+
+	if(isnull(parsed_querytype) || isnull(parsed_typeval) || isnull(parsed_targvar))
+		// Try to get those from the query
+		if(!query)
+			return
+
+		// a minimum of 1 for leading '?', 1 for colon, 1 for @ and 3 single-char vars
+		// if that's not there, this will never parse so there's no point building a regex
+		ASSERT(length(query) >= 6)
+
+		var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+
+		ASSERT(ws_query_regex.Find(query, Start=2))
+
+		raw_querytype = ws_query_regex.group[1]
+		raw_typeval = ws_query_regex.group[2]
+		raw_targvar = ws_query_regex.group[3]
+
+	var/typeval
+
+	// I'm building a DSL in BYOND. Truly the darkest timeline.
+	switch(raw_querytype)
+		if("findtype")
+			typeval = text2path(raw_typeval)
+			ASSERT(ispath(typeval))
+
+			var/searchval = target.vars[raw_targvar]
+
+			if(islist(searchval))
+				var/list/searchlist = searchval
+
+				// For lists, check if we have any instance of type or subtypes in it
+				for(var/itm in searchlist)
+					if(istype(itm, typeval))
+						return TRUE
+
+			else
+				return istype(searchval, typeval)
+
+		else
+			// parsing error!
+			ASSERT(FALSE)
+
+	return FALSE
 
 
 /datum/utility_ai/proc/QueryWorldState(var/list/trg_queries = null)
@@ -24,25 +96,37 @@
 				worldstate[trg_key] = list()
 
 			for(var/query_key in qry)
-				var/result = trg_key.GetWorldstateValue(query_key)
-				worldstate[trg_key][query_key] = result
+				var/result
+				var/output_key = query_key
+				var/is_dynamic = FALSE // just for debug purposes
 
-	return worldstate
+				if(query_key[1] == "?")
+					// question mark signifies a dynamic query
+					is_dynamic = TRUE
 
+					var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
 
-/datum/utility_ai/mob_commander/QueryWorldState(var/list/trg_queries = null)
-	var/list/worldstate = ..(trg_queries)
+					ASSERT(ws_query_regex.Find(query_key))
 
-	var/atom/pawn = src.GetPawn()
+					var/raw_querytype = ws_query_regex.group[1]
+					var/raw_typeval = ws_query_regex.group[2]
+					var/raw_targvar = ws_query_regex.group[3]
+					var/raw_outkey = ws_query_regex.group[4]
 
-	if(!isnull(pawn))
-		if(isnull(worldstate["pawn"]))
-			worldstate["pawn"] = list()
+					ASSERT(!isnull(raw_querytype))
+					ASSERT(!isnull(raw_typeval))
+					ASSERT(!isnull(raw_targvar))
+					ASSERT(!isnull(raw_outkey))
 
-		// Needs to be hella improved
-		var/obj/item/up_test_welder/welder = locate() in pawn; worldstate["pawn"]["HasWelder"] = (!isnull(welder))
-		var/obj/item/up_test_multitool/multitool = locate() in pawn; worldstate["pawn"]["HasMultitool"] = (!isnull(multitool))
-		var/obj/item/up_test_screwdriver/screwdriver = locate() in pawn; worldstate["pawn"]["HasScrewdriver"] = (!isnull(screwdriver))
+					result = RunDynamicWorldStateQuery(trg_key, null, raw_querytype, raw_typeval, raw_targvar)
+					//output_key = raw_outkey
+					output_key = query_key // I think this will work better; just use the outkey for GOAP
+
+				else
+					result = trg_key.GetWorldstateValue(query_key)
+
+				to_world_log("Setting result [result] for [trg_key]/[output_key] in Worldstate (dynamic: [is_dynamic ? "True" : "False"])")
+				worldstate[trg_key][output_key] = result
 
 	return worldstate
 
@@ -102,8 +186,7 @@
 	primary_context["output_context_key"] = "target" // the arg used by the handler
 
 	// nested sublists =_=
-	context_args.len++
-	context_args[1] = primary_context
+	ARRAY_APPEND(context_args, primary_context)
 
 	hard_args["goal_state"] = src.goal_state
 
@@ -190,7 +273,11 @@
 	// To ensure proper sequencing, the preconds of each Action must be the 'base' Preconds AND all predecessors' Effects
 	//var/list/preconds_blackboard = list()
 
+	var/plan_len = length(plan)
+	var/action_idx = 0
+
 	for(var/action_key in plan)
+		action_idx++
 		var/list/action_data = global.global_plan_actions_repo[action_key]
 		ASSERT(!isnull(action_data))
 
@@ -200,6 +287,34 @@
 		var/list/common_consideration_args = list(
 			"target_key" = target_key,
 			"from_context" = TRUE
+		)
+
+		var/datum/consideration/not_previous_consideration = new(
+			input_val_proc = /proc/consideration_input_action_in_brain,
+			curve_proc = /proc/curve_antilinear_leaky,
+			loMark = 0,
+			hiMark = 1,
+			noiseScale = 0,
+			name = "NotAction-1",
+			active = TRUE,
+			consideration_args = list(
+				"action_name" = action_key,
+				"memory_key" = MEM_ACTION_MINUS_ONE
+			)
+		)
+
+		var/datum/consideration/not_preprevious_consideration = new(
+			input_val_proc = /proc/consideration_input_action_in_brain,
+			curve_proc = /proc/curve_antilinear_leaky,
+			loMark = 0,
+			hiMark = 1,
+			noiseScale = 0,
+			name = "NotAction-2",
+			active = TRUE,
+			consideration_args = list(
+				"action_name" = action_key,
+				"memory_key" = MEM_ACTION_MINUS_TWO
+			)
 		)
 
 		var/datum/consideration/effects_consideration = new(
@@ -224,7 +339,12 @@
 			consideration_args = common_consideration_args
 		)
 
-		var/list/considerations = list(effects_consideration, preconds_consideration)
+		var/list/considerations = list(
+			not_previous_consideration,
+			not_preprevious_consideration,
+			effects_consideration,
+			preconds_consideration
+		)
 		var/raw_handler_proc = action_data[JSON_KEY_PLANACTION_RAW_HANDLERPROC]
 		var/handler_proc = action_data[JSON_KEY_PLANACTION_HANDLERPROC]
 
@@ -286,11 +406,12 @@
 				context_args[arg_key] = arg_val
 
 		var/list/all_context_args = list()
+		ARRAY_APPEND(all_context_args, context_args)
 
-		all_context_args.len++
-		all_context_args[all_context_args.len] = context_args
+		var/priority = action_data[JSON_KEY_PLANACTION_PRIORITY]
+		if(isnull(priority))
+			priority = DEFAULT_PLANACTION_PRIORITY
 
-		var/priority = 9 // TODO: get actual value from Elsewhere (TM)
 		var/charges = null
 		var/instant = FALSE
 		var/act_description = action_data[JSON_KEY_PLANACTION_DESCRIPTION]
@@ -319,6 +440,9 @@
 			preconds,
 			effects
 		)
+
+		if(action_idx == plan_len)
+			new_action_template._terminates_plan = TRUE
 
 		// Package it up!
 		planned_actions.Add(new_action_template)

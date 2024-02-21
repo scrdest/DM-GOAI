@@ -24,38 +24,38 @@
 
 
 /datum/Tuple/proc/FirstCompare(var/datum/Tuple/left, var/datum/Tuple/right)
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
+	// returns -1 if Right > Left
+	// returns 1 if Right < Left
 	// return 0 if Right == Left
 
 	// Does not care about the second item - first item is the sort key.
 
 	if (right.left > left.left)
-		return 1
+		return -1
 
 	if (right.left < left.left)
-		return -1
+		return 1
 
 	return 0
 
 
 
 /datum/Tuple/proc/TupleCompare(var/datum/Tuple/left, var/datum/Tuple/right)
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
+	// returns -1 if Right > Left
+	// returns 1 if Right < Left
 	// return 0 if Right == Left
 
 	if (right.left > left.left)
-		return 1
+		return -1
 
 	if (right.left < left.left)
-		return -1
-
-	if (right.right > left.right)
 		return 1
 
-	if (right.right < left.right)
+	if (right.right > left.right)
 		return -1
+
+	if (right.right < left.right)
+		return 1
 
 	return 0
 
@@ -82,6 +82,8 @@
 	// return 0 if Right == Left
 
 	// Does not care about the last item - first two are the hierarchical sort key.
+
+	// NOTE: THIS IS *INVERTED* FROM THE USUAL COMPARISON - we want highest positions in the lowest locations here
 
 	if (right.left > left.left)
 		return 1
@@ -117,93 +119,62 @@
 
 
 /datum/Quadruple/proc/QuadCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
+	// returns -1 if Right > Left
+	// returns 1 if Right < Left
 	// return 0 if Right == Left
 
 	if (right.first > left.first)
-		return 1
+		return -1
 
 	if (right.first < left.first)
-		return -1
+		return 1
 
 	if (right.second > left.second)
-		return 1
+		return -1
 
 	if (right.second < left.second)
-		return -1
+		return 1
 
 	if (right.third > left.third)
-		return 1
+		return -1
 
 	if (right.third < left.third)
-		return -1
-
-	if (right.fourth > left.fourth)
 		return 1
 
-	if (right.fourth < left.fourth)
+	if (right.fourth > left.fourth)
 		return -1
+
+	if (right.fourth < left.fourth)
+		return 1
 
 	return 0
 
 
 /datum/Quadruple/proc/TriCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
+	// returns -1 if Right > Left
+	// returns 1 if Right < Left
 	// return 0 if Right == Left
 
 	if (left.first < right.first)
-		return 1
+		return -1
 
 	if (left.first > right.first)
-		return -1
+		return 1
 
 	if (left.second < right.second)
-		return 1
+		return -1
 
 	if (left.second > right.second)
-		return -1
+		return 1
 
 	if (left.third < right.third)
-		return 1
+		return -1
 
 	if (left.third > right.third)
-		return -1
+		return 1
 
 	return 0
 
-/*
-/datum/Quadruple/proc/ActionCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
-	/*
-	// returns 1 if Right > Left
-	// returns -1 if Right < Left
-	// return 0 if Right == Left
-	//
-	// This is just a cut-down version of the QuadCompare proc.
-	*/
-
-	if (right.first > left.first)
-		return 1
-
-	if (right.first < left.first)
-		return -1
-
-	if (right.second > left.second)
-		return 1
-
-	if (right.second < left.second)
-		return -1
-
-	/* For this GOAP implementation, our standard key is at most
-	// the first two values (iteration, for BFS, and cost, for
-	// Astarry-ness), and the rest can be whatever, so we return 0.
-	//
-	// If you use a custom key generator proc, you will probably need
-	// to use a custom proc instead of this one as well.
-	*/
-	return 0
-*/
 
 /datum/Quadruple/proc/ActionCompare(var/datum/Quadruple/left, var/datum/Quadruple/right)
 	/*

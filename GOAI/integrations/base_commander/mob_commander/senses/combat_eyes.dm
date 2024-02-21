@@ -63,7 +63,7 @@
 			continue
 
 		enemies.Add(enemy)
-		var/datum/Tuple/enemy_tup = new(-enemy_dist, enemy)
+		var/datum/Tuple/enemy_tup = new(enemy_dist, enemy)
 		target_queue.Enqueue(enemy_tup)
 
 	owner_brain.SetMemory("Enemies", enemies, owner.ai_tick_delay*20)

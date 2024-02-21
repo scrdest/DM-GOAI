@@ -143,6 +143,7 @@
 # define JSON_KEY_PLANACTION_ACTIONKEY "key"
 # define JSON_KEY_PLANACTION_RAW_HANDLERPROC "raw_handler"
 # define JSON_KEY_PLANACTION_HANDLERPROC "handler"
+# define JSON_KEY_PLANACTION_PRIORITY "priority"
 # define JSON_KEY_PLANACTION_PRECONDITIONS "preconditions"
 # define JSON_KEY_PLANACTION_EFFECTS "effects"
 # define JSON_KEY_PLANACTION_TARGET_KEY "target_key"
@@ -153,5 +154,9 @@
 # define JSON_KEY_PLANACTION_CTXARGS "context_args"
 # define JSON_KEY_PLANACTION_CTXFETCHER_OVERRIDE "context_fetcher"
 
+# define DEFAULT_PLANACTION_PRIORITY 5
+
 # define GOAPPLAN_METADATA_PATH "integrations/goai_actions.json"
 /* ============================================= */
+
+# define RETAIN_LAST_ACTIONS_TTL 300

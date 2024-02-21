@@ -48,10 +48,7 @@
 		"handler": "/proc/WeldUsing",
 		"preconditions": {
 			"pawn": {
-				"HasWelder": 1
-			},
-			"target": {
-				"welded": 0
+				"?findtype:/obj/item/up_test_welder@contents=>HasWelder": 1
 			}
 		},
 		"effects": {
@@ -70,10 +67,7 @@
 		"handler": "/proc/WeldUsing",
 		"preconditions": {
 			"pawn": {
-				"HasWelder": 1
-			},
-			"target": {
-				"welded": 1
+				"?findtype:/obj/item/up_test_welder@contents=>HasWelder": 1
 			}
 		},
 		"effects": {
@@ -93,13 +87,18 @@
 		"preconditions": {},
 		"effects": {
 			"pawn": {
-				"HasWelder": 1
+				"?findtype:/obj/item/up_test_welder@contents=>HasWelder": 1
 			}
 		},
-		"context_fetcher": "/proc/ctxfetcher_get_tagged_target",
+		"context_fetcher": "/proc/ctxfetcher_get_memory_value_array",
 		"context_args": [
 			{
-				"tag": "test_welder"
+				"memory_source": "perception",
+				"key": "SightCurr",
+				"filter_proc": "/proc/typecheck_filter",
+				"filter_args": {
+					"target_type": "/obj/item/up_test_welder"
+				}
 			}
 		],
 		"target_key": "target",
@@ -113,7 +112,7 @@
 		"handler": "/proc/HackUsing",
 		"preconditions": {
 			"pawn": {
-				"HasMultitool": 1
+				"?findtype:/obj/item/up_test_multitool@contents=>HasMultitool": 1
 			},
 			"target": {
 				"screwed": 1
@@ -135,7 +134,7 @@
 		"handler": "/proc/HackUsing",
 		"preconditions": {
 			"pawn": {
-				"HasMultitool": 1
+				"?findtype:/obj/item/up_test_multitool@contents=>HasMultitool": 1
 			},
 			"target": {
 				"screwed": 1
@@ -157,13 +156,18 @@
 		"preconditions": {},
 		"effects": {
 			"pawn": {
-				"HasMultitool": 1
+				"?findtype:/obj/item/up_test_multitool@contents=>HasMultitool": 1
 			}
 		},
-		"context_fetcher": "/proc/ctxfetcher_get_tagged_target",
+		"context_fetcher": "/proc/ctxfetcher_get_memory_value_array",
 		"context_args": [
 			{
-				"tag": "test_multitool"
+				"memory_source": "perception",
+				"key": "SightCurr",
+				"filter_proc": "/proc/typecheck_filter",
+				"filter_args": {
+					"target_type": "/obj/item/up_test_multitool"
+				}
 			}
 		],
 		"target_key": "target",
@@ -176,7 +180,7 @@
 		"handler": "/proc/ScrewUsing",
 		"preconditions": {
 			"pawn": {
-				"HasScrewdriver": 1
+				"?findtype:/obj/item/up_test_screwdriver@contents=>HasScrewdriver": 1
 			},
 			"target": {
 				"screwed": -1,
@@ -199,7 +203,7 @@
 		"handler": "/proc/ScrewUsing",
 		"preconditions": {
 			"pawn": {
-				"HasScrewdriver": 1
+				"?findtype:/obj/item/up_test_screwdriver@contents=>HasScrewdriver": 1
 			},
 			"target": {
 				"screwed": 1,
@@ -223,13 +227,18 @@
 		"preconditions": {},
 		"effects": {
 			"pawn": {
-				"HasScrewdriver": 1
+				"?findtype:/obj/item/up_test_screwdriver@contents=>HasScrewdriver": 1
 			}
 		},
-		"context_fetcher": "/proc/ctxfetcher_get_tagged_target",
+		"context_fetcher": "/proc/ctxfetcher_get_memory_value_array",
 		"context_args": [
 			{
-				"tag": "test_screwdriver"
+				"memory_source": "perception",
+				"key": "SightCurr",
+				"filter_proc": "/proc/typecheck_filter",
+				"filter_args": {
+					"target_type": "/obj/item/up_test_screwdriver"
+				}
 			}
 		],
 		"target_key": "target",

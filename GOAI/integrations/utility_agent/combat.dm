@@ -107,7 +107,6 @@
 
 		if(H.stat == CONSCIOUS)
 			my_gun = (my_gun || H.FindGunInHands())
-			to_world_log("[src] - Humanoid: found gun [my_gun] in [H]'s hands")
 
 		else
 			return FALSE

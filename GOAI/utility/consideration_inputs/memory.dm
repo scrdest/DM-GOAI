@@ -121,7 +121,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain)
 
 	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
 	var/result = memory == candidate
-	to_world_log("consideration_input_candidate_in_brain: memory [memory] vs candidate [candidate] => [result]")
+
 	return result
 
 
@@ -156,3 +156,17 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_candidate_in_brain_list)
 			return TRUE
 
 	return FALSE
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_action_in_brain)
+	var/pos_key = consideration_args["input_key"] || "action_name"
+
+	var/candidate = consideration_args[pos_key]
+	if(isnull(candidate))
+		DEBUGLOG_MEMORY_FETCH("consideration_input_action_in_brain Candidate is null ([isnull(candidate) ? "null" : candidate]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/memory = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
+	var/result = memory == candidate
+
+	return result

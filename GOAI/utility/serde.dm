@@ -253,12 +253,48 @@
 	var/list/preconds = list()
 	for(var/typekey in raw_preconds)
 		var/list/typekey_preconds = raw_preconds[typekey]
-		preconds.Add(typekey_preconds)
+
+		if(isnull(typekey_preconds))
+			continue
+
+		var/fixed_preconds[typekey_preconds.len]
+
+		for(var/raw_precond_key in typekey_preconds)
+			var/precond_val = typekey_preconds[raw_precond_key]
+
+			var/out_precond_key = raw_precond_key
+			if(length(raw_precond_key) && (raw_precond_key[1] == "?"))
+				// dynamic query, extract the output key from the raw query
+				var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+				ASSERT(ws_query_regex.Find(raw_precond_key))
+				out_precond_key = ws_query_regex.group[4]
+
+			fixed_preconds[out_precond_key] = precond_val
+
+		preconds.Add(fixed_preconds)
 
 	var/list/effects = list()
 	for(var/typekey in raw_effects)
 		var/list/typekey_fxs = raw_effects[typekey]
-		effects.Add(typekey_fxs)
+
+		if(isnull(typekey_fxs))
+			continue
+
+		var/fixed_effects[typekey_fxs.len]
+
+		for(var/raw_effect_key in typekey_fxs)
+			var/effect_val = typekey_fxs[raw_effect_key]
+
+			var/out_effect_key = raw_effect_key
+			if(length(raw_effect_key) && (raw_effect_key[1] == "?"))
+				// dynamic query, extract the output key from the raw query
+				var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+				ASSERT(ws_query_regex.Find(raw_effect_key))
+				out_effect_key = ws_query_regex.group[4]
+
+			fixed_effects[out_effect_key] = effect_val
+
+		effects.Add(fixed_effects)
 
 	var/cost = json_data[JSON_KEY_ACT_PRIORITY]
 	if(isnull(cost))

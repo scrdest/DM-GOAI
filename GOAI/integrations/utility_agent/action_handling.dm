@@ -68,20 +68,30 @@
 			if(isnull(actionproc))
 				MAYBE_LOG("Failed to call [actionproc]([json_encode(action_args)])!")
 				tracker.SetFailed()
+				return
 
 			else
 				if(tracker.IsStopped())
-					break
+					if(action._terminates_plan && tracker.is_done)
+						var/list/smart_plans = src.brain?.GetMemoryValue("SmartPlans", null) || list()
+						var/plan_len = smart_plans?.len || 0
+						if(plan_len >= action._terminates_plan)
+							smart_plans[action._terminates_plan] = null
+							src.brain?.SetMemory("SmartPlans", smart_plans)
+					return
 
 				MAYBE_LOG("Calling [actionproc]([json_encode(action_args)])!")
 
 				call(src, actionproc)(arglist(action_args))
 
-				if(action.instant)
-					break
-
-				if(tracker.IsStopped())
-					break
+				if(action.instant || tracker.IsStopped())
+					if(action._terminates_plan && tracker.is_done)
+						var/list/smart_plans = src.brain?.GetMemoryValue("SmartPlans", null) || list()
+						var/plan_len = smart_plans?.len || 0
+						if(plan_len >= action._terminates_plan)
+							smart_plans[action._terminates_plan] = null
+							src.brain?.SetMemory("SmartPlans", smart_plans)
+					return
 
 		var/safe_ai_delay = max(1, src.ai_tick_delay)
 		sleep(safe_ai_delay)
@@ -95,7 +105,7 @@
 		return
 
 	MAYBE_LOG("[src]: Tracker: [tracker] running @ [tracker?.IsRunning()]")
-	MAYBE_LOG("[src]: HandleAction action is: [action]")
+	MAYBE_LOG("[src]: HandleInstantAction action is: [action]")
 
 	var/actionproc = action_lookup[action.name]
 

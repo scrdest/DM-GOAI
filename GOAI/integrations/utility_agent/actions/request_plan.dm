@@ -1,5 +1,5 @@
 
-/datum/utility_ai/mob_commander/proc/_PlanForGenericGoal(var/target, var/atom/position, var/list/start_state = null, var/list/goal_state, var/planning_budget = null)
+/datum/utility_ai/mob_commander/proc/_PlanForGenericGoal(var/target, var/atom/position, var/list/start_state = null, var/list/goal_state, var/planning_budget = DEFAULT_GOAP_PLANNING_BUDGET)
 	// Requests a GOAP Plan to handle an arbitrary target state
 	// Fails if no Plan was found
 	// Otherwise, creates a Utility-friendly SmartObject to deal with execution
@@ -24,8 +24,10 @@
 
 	if(!isnull(planner))
 		var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing way too much I/O, but dev gonna dev
-		var/_planning_budget = isnull(planning_budget) ? 40 : planning_budget
+		var/_planning_budget = isnull(planning_budget) ? DEFAULT_GOAP_PLANNING_BUDGET : planning_budget
 		planner.graph = actions
+
+		// Add a dynamic query cache to the planner here!
 
 		to_world_log("PLANNING! START: [json_encode(start_state)] GOAL: [json_encode(goal_state)], ACTIONS: [json_encode(actions)]")
 		plan_items = planner.Plan(init_state, goal_state, cutoff_iter=_planning_budget)
@@ -55,7 +57,7 @@
 	if(stored_plans.len < MAX_STORED_PLANS)
 		// Pad out the length lazily if not full
 		// Might be better to preallocate MAX_STORED_PLANS' worth of space later.
-		stored_plans.len++; stored_plans[stored_plans.len] = returned_plan
+		ARRAY_APPEND(stored_plans, returned_plan)
 
 	else
 		var/eject_idx = 0
@@ -78,7 +80,7 @@
 	return stored_plans
 
 
-/datum/utility_ai/mob_commander/proc/PlanForGoal(var/datum/ActionTracker/tracker, var/list/goal_state, var/atom/target, var/atom/position, var/planning_budget = null)
+/datum/utility_ai/mob_commander/proc/PlanForGoal(var/datum/ActionTracker/tracker, var/list/goal_state, var/atom/target, var/atom/position, var/planning_budget = DEFAULT_GOAP_PLANNING_BUDGET)
 	// Requests a GOAP Plan to satisfy a specified target state
 	// Fails if no Plan was found
 	// Otherwise, creates a Utility-friendly SmartObject to deal with execution
@@ -104,7 +106,8 @@
 
 	var/list/ai_worldstate = src.QueryWorldState()
 	// This is pretty nasty; TODO allow GOAP to handle the sub-key structure like Utility does
-	var/list/start_state = ai_worldstate["pawn"]
+
+	var/list/start_state = ai_worldstate["pawn"] || list()
 
 	UPSERT_ASSOC_LTR(target.worldstate, start_state)
 
@@ -132,7 +135,7 @@
 
 
 
-/datum/utility_ai/mob_commander/proc/PlanAroundObstacle(var/datum/ActionTracker/tracker, var/atom/obstacle, var/atom/position, var/planning_budget = null)
+/datum/utility_ai/mob_commander/proc/PlanAroundObstacle(var/datum/ActionTracker/tracker, var/atom/obstacle, var/atom/position, var/planning_budget = DEFAULT_GOAP_PLANNING_BUDGET)
 	// Requests a GOAP Plan to handle a contextual obstacle
 	// Fails if no Plan was found
 	// Otherwise, creates a Utility-friendly SmartObject to deal with execution
@@ -162,7 +165,7 @@
 
 	var/list/goal_state = list(
 		// Should be generalized I guess
-		"IsOpen" = TRUE
+		"open" = TRUE
 	)
 
 	var/datum/plan_smartobject/returned_plan = src._PlanForGenericGoal(obstacle, position, start_state, goal_state, planning_budget)

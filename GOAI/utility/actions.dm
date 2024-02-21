@@ -14,6 +14,10 @@
 	var/charges = PLUS_INF
 	var/list/arguments
 
+	// Special marker used for GOAP/Utility integration only.
+	// If a positive int, nulls out a SmartPlan with that index upon success.
+	var/_terminates_plan = null
+
 
 /datum/utility_action/New(var/name, var/handler, var/handlertype, var/charges, var/instant = FALSE, var/list/action_args = null)
 	SET_IF_NOT_NULL(name, src.name)

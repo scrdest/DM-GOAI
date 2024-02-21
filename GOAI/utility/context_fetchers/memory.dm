@@ -73,9 +73,8 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value)
 	var/list/ctx = list()
 	ctx[context_key] = memory_val
 
-	contexts[++(contexts.len)] = ctx
+	ARRAY_APPEND(contexts, ctx)
 	return contexts
-
 
 
 CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value_array)
@@ -89,13 +88,41 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value_array)
 	// In contrast, the 'plain' ctxfetcher_get_memory_value would treat the whole
 	// Memory'd list as one big Context - which is also okay for other uses (for
 	// example, discouraging moving into a tile with multiple enemies having LOS to it).
+	//
+	// In addition to normal memory-related params, this proc takes two extra args:
+	// - filter_proc: optional; a proc that takes the input item and an assoc list of args and returns a boolean
+	// - filter_args: optional; aforementioned args to feed to the filter
+	//
+	// Null filter_args are *generally* valid and left to the filter proc to handle.
+	// Null filter_proc is valid and interpreted as 'no filtering'; in that case, filter_args are ignored entirely and the memory is return directly (no-copy)
 	*/
 
-	var/raw_memory_val = __ctxfetcher_get_memory_value_helper(CTXFETCHER_FORWARD_ARGS)
-	var/list/memory_val = raw_memory_val
+	var/list/raw_memory_val = __ctxfetcher_get_memory_value_helper(CTXFETCHER_FORWARD_ARGS)
 
-	if(!isnull(raw_memory_val))
-		ASSERT(!isnull(memory_val))
+	if(!istype(raw_memory_val))
+		ASSERT(istype(raw_memory_val))
+
+	var/list/memory_val = null
+
+	var/filter_proc = context_args["filter_proc"]
+	if(istext(filter_proc))
+		filter_proc = STR_TO_PROC(filter_proc)
+
+	if(isnull(filter_proc))
+		// no filtering would happen, saves us an allocation
+		memory_val = raw_memory_val
+
+	else
+		var/list/filter_args = context_args["filter_args"]  // null-safe
+
+		memory_val = list()
+
+		for(var/listitem in raw_memory_val)
+			to_world_log("Applying [filter_proc]([json_encode(filter_args)] to [listitem]...")
+			// apply filter
+			var/predicate_result = call(filter_proc)(listitem, filter_args)
+			if(predicate_result)
+				ARRAY_APPEND(memory_val, listitem)
 
 	var/context_key = context_args["output_context_key"] || "memory"
 
@@ -104,6 +131,38 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value_array)
 	for(var/mem_item in memory_val)
 		var/list/ctx = list()
 		ctx[context_key] = mem_item
-		contexts[++(contexts.len)] = ctx
+		ARRAY_APPEND(contexts, ctx)
 
 	return contexts
+
+
+// TODO move this out!
+/proc/typecheck_filter(var/datum/item, var/list/filterargs)
+	// Basic filter for typechecking items are subtypes of the specified type
+
+	if(isnull(item))
+		to_world_log("WARNING: typecheck_filter input item is null, returning FALSE! @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	if(isnull(filterargs))
+		to_world_log("WARNING: typecheck_filter filterargs are null, returning FALSE! @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	var/target_type = filterargs["target_type"]
+	if(istext(target_type))
+		target_type = text2path(target_type)
+
+	if(isnull(target_type))
+		to_world_log("WARNING: typecheck_filter target_type is null, returning FALSE! @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	if(!istype(item))
+		to_world_log("WARNING: typecheck_filter input item is not a datum subclass and therefore not a valid target, returning FALSE! @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	var/strict = filterargs["strict"] || FALSE
+
+	if(strict)
+		return item.type == target_type
+
+	return istype(item, target_type)

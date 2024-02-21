@@ -4,7 +4,11 @@
 
 // copies all key/value pairs in an assoc list FROM to assoc list TO (LTR == LeftToRight to hint at usage)
 // like list.Copy() but can be chained to merge multiple assocs (although ordering matters for key collisions)
-#define UPSERT_ASSOC_LTR(FROM, TO) for(var/___temp_upsert_key in FROM) { var/___temp_upsert_val = FROM[___temp_upsert_key]; TO[___temp_upsert_key] = ___temp_upsert_val }
+# define UPSERT_ASSOC_LTR(FROM, TO) for(var/___temp_upsert_key in FROM) { var/___temp_upsert_val = FROM[___temp_upsert_key]; TO[___temp_upsert_key] = ___temp_upsert_val }
+
+// Like vanilla list.Add(), but without the annoying overloading for lists where it concats them
+// I want to nest lists without creating and initializing a whole class just to be able to do that dammit!
+# define ARRAY_APPEND(ARR, ITM) ARR.len++; ARR[ARR.len] = ITM
 
 # ifdef GOAI_LIBRARY_FEATURES
 /*

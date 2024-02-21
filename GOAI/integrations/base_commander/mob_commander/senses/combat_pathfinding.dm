@@ -224,7 +224,7 @@
 
 			// Reminder to self: higher values are higher priority
 			// Smaller penalty => also higher priority
-			var/datum/Quadruple/cover_quad = new(-noisy_dist, -penalty, -cand_dist, cand)
+			var/datum/Quadruple/cover_quad = new(noisy_dist, penalty, cand_dist, cand)
 			cover_queue.Enqueue(cover_quad)
 			processed.Add(cand)
 

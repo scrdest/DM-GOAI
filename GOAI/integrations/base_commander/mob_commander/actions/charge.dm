@@ -133,9 +133,9 @@
 
 		penalty += -noisy_dist  // the closer to target, the better
 
-		// Reminder to self: higher values are higher priority
-		// Smaller penalty => also higher priority
-		var/datum/Quadruple/cover_quad = new(-noisy_dist, -penalty, -cand_dist, cand)
+		// The higher the first three elements are, the LESS likely the quadruple is to be picked
+		// Each value takes precedence over the next one, it falls through on ties only
+		var/datum/Quadruple/cover_quad = new(noisy_dist, penalty, cand_dist, cand)
 		cover_queue.Enqueue(cover_quad)
 		processed.Add(cand)
 

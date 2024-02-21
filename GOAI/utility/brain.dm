@@ -467,6 +467,10 @@ var/global/last_plan_time = null
 
 	running_action_tracker = new_actiontracker
 
+	// Update the tracked Action stack for Considerations
+	src.SetMemory(MEM_ACTION_MINUS_TWO, src.GetMemoryValue(MEM_ACTION_MINUS_ONE), RETAIN_LAST_ACTIONS_TTL)
+	src.SetMemory(MEM_ACTION_MINUS_ONE, utility_act.name, RETAIN_LAST_ACTIONS_TTL)
+
 	return new_actiontracker
 
 

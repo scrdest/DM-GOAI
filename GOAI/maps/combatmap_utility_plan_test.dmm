@@ -8,6 +8,7 @@
 "h" = (/obj/cover/autodoor{start_bolted = 1; start_welded = 1; tag = "test_autodoor3"},/turf/ground,/area)
 "i" = (/obj/cover/autodoor{start_bolted = 1; start_welded = 1; tag = "test_autodoor2"},/turf/ground,/area)
 "j" = (/obj/cover/autodoor{start_bolted = 1; start_welded = 0; tag = "test_autodoor4"},/turf/ground,/area)
+"k" = (/obj/cover/autodoor{start_bolted = 0; start_welded = 0; tag = "test_autodoor2"},/turf/ground,/area)
 
 (1,1,1) = {"
 aaaaaabb
@@ -15,7 +16,7 @@ abbjbaab
 adaabbab
 abbaahab
 aebbibaa
-afbbabba
+afbbkbba
 agbcaaba
 aaaaaaaa
 "}

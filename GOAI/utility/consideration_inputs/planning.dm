@@ -73,6 +73,21 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_preconditions_me
 			var/action_target_key = consideration_args["target_key"]
 			target_key = context[action_target_key]
 
+		else if(raw_target_key == "pawn")
+			var/datum/utility_ai/mob_commander/commander = ai
+
+			if(!istype(commander))
+				// Needs to be an AI with a mob, but isn't
+				return FALSE
+
+			var/atom/pawn = commander.GetPawn()
+
+			if(isnull(pawn))
+				// Needs to be an AI with a mob, but isn't
+				return FALSE
+
+			target_key = pawn
+
 		PLANNING_CONSIDERATIONS_LOG("AT [action_template.name] preconds check for [target_key]!!!")
 
 		if(!(target_key in world_state))
@@ -97,6 +112,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_preconditions_me
 				if(!(precond_key in target_worldstate))
 					// missing interpreted as false
 					PLANNING_CONSIDERATIONS_LOG("--- AT [action_template.name] failed preconds check for [target_key]/[precond_key] - V0")
+					PLANNING_CONSIDERATIONS_LOG("--- AT [action_template.name] V0 - TOTAL WS: [json_encode(world_state)]")
 					PLANNING_CONSIDERATIONS_LOG("--- AT [action_template.name] V0 - WS: [json_encode(target_worldstate)]")
 					return FALSE
 
@@ -205,6 +221,21 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_effects_not_all_
 			var/action_target_key = consideration_args["target_key"]
 			target_key = context[action_target_key]
 
+		else if(raw_target_key == "pawn")
+			var/datum/utility_ai/mob_commander/commander = ai
+
+			if(!istype(commander))
+				// Needs to be an AI with a mob, but isn't
+				continue
+
+			var/atom/pawn = commander.GetPawn()
+
+			if(isnull(pawn))
+				// Needs to be an AI with a mob, but isn't
+				continue
+
+			target_key = pawn
+
 		PLANNING_CONSIDERATIONS_LOG("AT [action_template.name] effects check for [target_key]!!!")
 
 		if(!(target_key in world_state))
@@ -226,7 +257,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_effects_not_all_
 			var/effect_val = effect_worldstate[effect_key]
 
 			if(!(effect_key in target_worldstate))
-				PLANNING_CONSIDERATIONS_LOG("-- AT [action_template.name] - [target_key]/[effect_key] not in worldstate!")
+				PLANNING_CONSIDERATIONS_LOG("-- AT [action_template.name] - [target_key]/[effect_key] not in worldstate [json_encode(worldstate)]!")
 				return TRUE
 
 			var/worldval = null
@@ -238,7 +269,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_actiontemplate_effects_not_all_
 					return TRUE
 
 				worldval = target_worldstate[effect_key]
-				PLANNING_CONSIDERATIONS_LOG("-- AT [action_template.name] effects worldval for [target_key]/[effect_key] is: [worldval] @ thresh [effect_val]")
+				PLANNING_CONSIDERATIONS_LOG("-- AT [action_template.name] effects worldval for [target_key]/[effect_key] is: [worldval] @ thresh [effect_val] in [json_encode(worldstate)]")
 
 				if(worldval < effect_val)
 					// not satisfied

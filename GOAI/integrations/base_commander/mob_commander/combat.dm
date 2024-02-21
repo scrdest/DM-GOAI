@@ -40,7 +40,7 @@
 
 		var/enemy_dist = ManhattanDistance(my_loc, enemy)
 
-		var/datum/Tuple/enemy_tup = new(-enemy_dist, enemy)
+		var/datum/Tuple/enemy_tup = new(enemy_dist, enemy)
 		target_queue.Enqueue(enemy_tup)
 
 	var/tries = 0

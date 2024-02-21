@@ -90,3 +90,11 @@
 
 // Size of the GOAI plan buffer; if we would exceed it, eject a plan.
 #define MAX_STORED_PLANS 1
+
+#define MEM_ACTION_MINUS_ONE "action-1"
+#define MEM_ACTION_MINUS_TWO "action-2"
+
+// GOAP is NP-time, so we cut it off and give up to prevent game lockup
+// This determines the default planning iteration when we give up
+// Usually this can be overridden at runtime in the thing requesting a plan.
+#define DEFAULT_GOAP_PLANNING_BUDGET 50

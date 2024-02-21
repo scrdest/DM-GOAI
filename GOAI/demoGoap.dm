@@ -91,10 +91,8 @@
 	var/list/preconds = actiondata.preconditions
 	var/match = 1
 
-	for (var/req_key in preconds)
+	for(var/req_key in preconds)
 		var/req_val = preconds[req_key]
-		if (isnull(req_val))
-			continue
 
 		var/blackboard_val = blackboard[req_key]
 		if(isnull(blackboard_val))

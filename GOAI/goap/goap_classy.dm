@@ -83,6 +83,18 @@ X================================================================X
   You can see a sample setup in the goap_testing.dm file.
 */
 
+# ifdef GOAP_INSPECTION_LOGGING
+# define GOAP_INSPECTION_LOG(TXT) to_world_log(TXT)
+# else
+# define GOAP_INSPECTION_LOG(TXT)
+# endif
+
+# ifdef DEBUG_LOGGING
+# define GOAP_DEBUG_LOG(TXT) MAYBE_LOG(TXT)
+# else
+# define GOAP_DEBUG_LOG(TXT)
+# endif
+
 /datum/GOAP
 	/* Abstract class */
 	var/list/graph
@@ -292,7 +304,7 @@ X================================================================X
 			var/is_state = 0
 
 			for (var/stitm in state)
-				MAYBE_LOG("STITM: [stitm]")
+				GOAP_DEBUG_LOG("STITM: [stitm]")
 
 				if (stitm in src.graph)
 					var/list/statitm_fx = get_effects(stitm)
@@ -374,15 +386,13 @@ X================================================================X
 	// Returns: next_iteration_params (usually; assoc list) | best_path (if found; array list)
 	//
 	*/
-	MAYBE_LOG("    ")
-	MAYBE_LOG("CURR ITER: [curr_iter]")
-	MAYBE_LOG("CURR POS: [json_encode(start)]")
+	GOAP_DEBUG_LOG("    ")
 
 	// remove me, losing my mind here
-	to_world_log("     ")
-	to_world_log(" --- ")
-	to_world_log("     ")
-	to_world_log("+-+ CURR ITER: [curr_iter] | CURR POS: [json_encode(start)]")
+	GOAP_INSPECTION_LOG("     ")
+	GOAP_INSPECTION_LOG(" --- ")
+	GOAP_INSPECTION_LOG("     ")
+	GOAP_INSPECTION_LOG("+-+ CURR ITER: [curr_iter] | CURR POS: [json_encode(start)]")
 
 	var/list/_paths = isnull(paths) ? list() : paths
 	var/list/_transposition_table = isnull(transposition_table) ? list() : transposition_table
@@ -390,21 +400,15 @@ X================================================================X
 
 	var/PriorityQueue/_pqueue = isnull(queue) ? new /PriorityQueue(/datum/Quadruple/proc/ActionCompare) : queue
 
-	# ifdef DEBUG_LOGGING
-	MAYBE_LOG("RAW_BB is [json_encode(_blackboard)]")
-	# endif
+	GOAP_DEBUG_LOG("RAW_BB is [json_encode(_blackboard)]")
 
 	var/list/updated_state = update_counts(_blackboard, start)
 
-	# ifdef DEBUG_LOGGING
-	MAYBE_LOG("START_BB is [json_encode(updated_state)]")
-	# endif
-	to_world_log("START_BB is [json_encode(updated_state)]") // removeme
+	GOAP_DEBUG_LOG("START_BB is [json_encode(updated_state)]")
 
 	var/goal_check_result = goal_check(updated_state, goal)
 	if(goal_check_result)
-		to_world_log("GOAL CHECK SUCCEEDED.") // removeme
-		MAYBE_LOG("GOAL CHECK SUCCEEDED.")
+		GOAP_DEBUG_LOG("GOAL CHECK SUCCEEDED.")
 
 		// Pluck the thing that actually holds the path from the final state:
 		var/raw_final_result = updated_state[GOAP_KEY_SRC]
@@ -452,17 +456,10 @@ X================================================================X
 		if(total_cost < PLUS_INF)
 			var/datum/Quadruple/cand_tuple = new /datum/Quadruple(priority_key, total_cost, neigh, source)
 
-			if(cand_tuple in _pqueue)
-				to_world_log("Dropping candidate tuple for [neigh] @ [json_encode(source)] - already in queue")
+			_pqueue.Enqueue(cand_tuple)
 
-			else
-				_pqueue.Enqueue(cand_tuple)
-
-				if (!isnull(max_queue_size))
-					_pqueue.L.Cut(1, max_queue_size)
-
-		//else
-		//	to_world_log("Dropping candidate tuple for [neigh] @ [json_encode(source)] - infinite cost")
+			if (!isnull(max_queue_size))
+				_pqueue.L.Cut(1, max_queue_size)
 
 	if (_pqueue.L.len <= 0)
 		to_world_log("Exhausted all candidates before a path was found!")
@@ -474,10 +471,8 @@ X================================================================X
 
 	var/list/source_pos = next_cand_tuple.fourth
 
-	# ifdef DEBUG_LOGGING
-	MAYBE_LOG("CAND: [next_cand_tuple.third]")
-	MAYBE_LOG("CAND SRCp: [json_encode(source_pos)]")
-	# endif
+	GOAP_DEBUG_LOG("CAND: [next_cand_tuple.third]")
+	GOAP_DEBUG_LOG("CAND SRCp: [json_encode(source_pos)]")
 
 	var/list/action_stack = source_pos ? source_pos.Copy() : list()
 	action_stack.Add(cand_pos)
@@ -500,7 +495,7 @@ X================================================================X
 
 	# ifdef DEBUG_LOGGING
 	var/list/pathli = new_params
-	MAYBE_LOG("Result ([pathli.len]): ([json_encode(pathli)])")
+	GOAP_DEBUG_LOG("Result ([pathli.len]): ([json_encode(pathli)])")
 	# endif
 
 	return new_params
@@ -575,41 +570,31 @@ X================================================================X
 		// Reload params for the next iteration.
 		next_params = result
 
-		# ifdef DEBUG_LOGGING
-		MAYBE_LOG("next_params: [json_encode(next_params)]")
-		# endif
+		GOAP_DEBUG_LOG("next_params: [json_encode(next_params)]")
 
 		// Fix up the blackboard to account for start state!
 		var/list/source_pos = ("_source_pos" in next_params) ? next_params["_source_pos"]: null
 		var/list/action_stack = list()
 
 		if(!isnull(source_pos))
-			# ifdef DEBUG_LOGGING
-			MAYBE_LOG("source_pos: [json_encode(source_pos)]")
-			# endif
+			GOAP_DEBUG_LOG("source_pos: [json_encode(source_pos)]")
 			action_stack.Add(source_pos)
 
 		var/cand_pos = ("start" in next_params) ? next_params["start"] : null
 		if(!isnull(cand_pos))
-			# ifdef DEBUG_LOGGING
-			MAYBE_LOG("cand_pos: [cand_pos]")
-			# endif
+			GOAP_DEBUG_LOG("cand_pos: [cand_pos]")
 			action_stack.Add(cand_pos)
 
-		# ifdef DEBUG_LOGGING
-		MAYBE_LOG("ACTION_STACK: [json_encode(action_stack)]")
-		# endif
+		GOAP_DEBUG_LOG("ACTION_STACK: [json_encode(action_stack)]")
 
 		var/cand_blackboard = rebuild_effects(action_stack, start)
 		cand_blackboard[GOAP_KEY_SRC] = action_stack
 
-		# ifdef DEBUG_LOGGING
-		MAYBE_LOG("CAND_BLACKBOARD: [json_encode(cand_blackboard)]")
-		# endif
+		GOAP_DEBUG_LOG("CAND_BLACKBOARD: [json_encode(cand_blackboard)]")
 
 		next_params["blackboard"] = cand_blackboard
 
-	MAYBE_LOG("Broken out of the Plan loop!")
+	GOAP_DEBUG_LOG("Broken out of the Plan loop!")
 
 	if(custom_backtrack)
 		var/list/best_path = result

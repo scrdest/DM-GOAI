@@ -39,6 +39,10 @@
 	var/list/preconditions
 	var/list/effects
 
+	// Special marker used for GOAP/Utility integration only.
+	// If a positive int, nulls out a SmartPlan with that index upon success.
+	var/_terminates_plan = null
+
 
 /datum/utility_action_template/New(var/list/bound_considerations, var/handler = null, var/handlertype = null, var/context_fetchers = null, var/list/context_args = null, var/priority = null, var/charges = null, var/instant = null, var/list/hard_args = null, var/name_override = null, var/description_override = null, var/active = null, var/list/preconditions = null, var/list/effects = null)
 	SET_IF_NOT_NULL(bound_considerations, src.considerations)
@@ -136,5 +140,6 @@
 			action_args[key] = ctx_val
 
 	var/datum/utility_action/new_action = new(action_name, handler, handlertype, charges, instant, action_args)
+	new_action._terminates_plan = src._terminates_plan  // sneaky sneaky
 	return new_action
 
