@@ -13,7 +13,7 @@
 // Plain globals
 // NOTE: this macro is extra-weird looking, even by macro standards.
 # define GOAI_LIBBED_GLOB_PREFIX(operator)
-# define GOAI_LIBBED_GLOB_ATTR(globject) globject
+# define GOAI_LIBBED_GLOB_ATTR(globject) global.globject
 
 # else
 

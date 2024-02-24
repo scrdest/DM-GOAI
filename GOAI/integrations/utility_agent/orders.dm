@@ -1,5 +1,5 @@
 
-/mob/verb/CommanderGiveFollowOrder(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), mob/Trg in world)
+/mob/verb/CommanderGiveFollowOrder(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), mob/Trg in world)
 	set category = "Commander Orders"
 
 	if(!M)
@@ -17,7 +17,7 @@
 	return waypoint
 
 
-/mob/verb/CommanderGiveFleeOrder(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), mob/Trg in world)
+/mob/verb/CommanderGiveFleeOrder(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), mob/Trg in world)
 	set category = "Commander Orders"
 
 	if(!M)
@@ -35,7 +35,7 @@
 	return waypoint
 
 
-/mob/verb/CommanderGiveMoveOrder(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), posX as num, posY as num)
+/mob/verb/CommanderGiveMoveOrder(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), posX as num, posY as num)
 	set category = "Commander Orders"
 
 	if(!(M?.brain))
@@ -59,7 +59,7 @@
 	return waypoint
 
 
-/mob/verb/CommanderCancelOrders(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
+/mob/verb/CommanderCancelOrders(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
 	set category = "Commander Orders"
 
 	if(!(M?.brain))
@@ -73,7 +73,7 @@
 	return TRUE
 
 
-/mob/verb/CommanderSetForcedFriendTag(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
+/mob/verb/CommanderSetForcedFriendTag(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
 	set category = "Commander Orders"
 
 	if(!M)
@@ -86,7 +86,7 @@
 	return
 
 
-/mob/verb/CommanderSetForcedFoeTag(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
+/mob/verb/CommanderSetForcedFoeTag(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
 	set category = "Commander Orders"
 
 	if(!M)
@@ -99,7 +99,7 @@
 	return
 
 
-/mob/verb/CommanderDropRelationshipTag(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
+/mob/verb/CommanderDropRelationshipTag(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry), tag as text)
 	set category = "Commander Orders"
 
 	if(!M)

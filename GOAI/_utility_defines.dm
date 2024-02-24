@@ -92,10 +92,6 @@
 
 /* ============================================= */
 
-
-# define READ_JSON_FILE(FP) (fexists(FP) && json_decode(file2text(FP)))
-# define WRITE_JSON_FILE(Data, FP) ((!isnull(Data)) && text2file(json_encode(Data), FP))
-
 /* ====  SerDe JSON schemas  ==== */
 
 // Generic:

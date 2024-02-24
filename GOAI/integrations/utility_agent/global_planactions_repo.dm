@@ -64,7 +64,8 @@ var/global/list/global_plan_actions_repo = null
 
 
 /proc/RegisterGlobalPlanActionsFromJson(var/json_file)
-	var/list/json_data = READ_JSON_FILE(json_file)
+	var/list/json_data
+	READ_JSON_FILE_CACHED(json_file, json_data)
 	ASSERT(json_data)
 
 	for(var/action_key in json_data)

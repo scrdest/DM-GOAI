@@ -1,6 +1,7 @@
 /datum/utility_ai
 	var/name = "utility AI"
 	var/life = TRUE
+	var/paused = FALSE
 
 	var/list/needs
 

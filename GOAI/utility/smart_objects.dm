@@ -49,19 +49,19 @@
 	var/list/smartobject_last_fetched = null
 
 
-/datum/brain/utility/proc/GetActionSetsFromSmartObject(var/datum/smartobj, var/list/args = null)
+/datum/brain/utility/proc/GetActionSetsFromSmartObject(var/datum/smartobj, var/requester, var/list/args = null)
 	if(isnull(smartobj))
 		return null
 
 	if(isnull(src.smart_objects))
 		src.smart_objects = list()
 
-	if(isnull(smartobject_cache))
-		smartobject_cache = list()
+	SMARTOBJECT_CACHE_LAZY_INIT(0)
 
-	var/cache_key = (smartobj.smartobject_cache_key || smartobj.type)
+	var/cache_key = (smartobj.smartobject_cache_key || "[smartobj.type]")
 
 	var/list/so_actions = null
+
 	so_actions = smartobject_cache[cache_key]
 
 	if(!isnull(so_actions))
@@ -77,9 +77,12 @@
 		//so_actions.Refresh()
 		return so_actions
 
-	var/datum/action_set/subactions = smartobj.GetUtilityActions(src, args)
+	var/datum/action_set/subactions = smartobj.GetUtilityActions(requester, args)
 
-	so_actions = list(); so_actions[subactions.name] = subactions
+	so_actions = subactions
+	// old version, not sure why it was like this but it was misbehaving
+	//so_actions = list(); so_actions[subactions.name] = subactions
+
 	smartobject_cache[cache_key] = so_actions
 	src.smart_objects[cache_key] = so_actions
 

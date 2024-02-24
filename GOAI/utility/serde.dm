@@ -140,7 +140,7 @@
 /proc/ActionTemplateFromJsonFile(var/json_filepath) // str -> ActionTemplate
 	ASSERT(json_filepath)
 
-	var/list/json_data = READ_JSON_FILE(json_filepath)
+	var/list/json_data = null; READ_JSON_FILE_CACHED(json_filepath, json_data)
 	ASSERT(json_data)
 
 	var/datum/utility_action_template/new_template = ActionTemplateFromData(json_data)
@@ -197,7 +197,7 @@
 /proc/ActionSetFromJsonFile(var/json_filepath) // str -> ActionSet
 	ASSERT(json_filepath)
 
-	var/list/json_data = READ_JSON_FILE(json_filepath)
+	var/list/json_data = null; READ_JSON_FILE_CACHED(json_filepath, json_data)
 	ASSERT(json_data)
 
 	var/datum/action_set/new_actionset = ActionSetFromData(json_data)
@@ -220,7 +220,7 @@
 /proc/UtilitySenseFetcherFromJsonFile(var/json_filepath) // str -> ActionTemplate
 	ASSERT(json_filepath)
 
-	var/list/json_data = READ_JSON_FILE(json_filepath)
+	var/list/json_data = null; READ_JSON_FILE_CACHED(json_filepath, json_data)
 	ASSERT(json_data)
 
 	var/datum/action_set/new_actionset = UtilitySenseFetcherFromData(json_data)
@@ -346,7 +346,7 @@
 /proc/GoapActionFromJsonFile(var/json_filepath) // str -> GoaiAction
 	ASSERT(json_filepath)
 
-	var/list/json_data = READ_JSON_FILE(json_filepath)
+	var/list/json_data = null; READ_JSON_FILE_CACHED(json_filepath, json_data)
 	ASSERT(json_data)
 
 	var/datum/goai_action/new_goap_action = GoapActionFromData(json_data)
@@ -356,7 +356,8 @@
 /proc/GoapActionSetFromJsonFile(var/json_filepath) // str -> {str: GoaiAction}
 	ASSERT(json_filepath)
 
-	var/list/json_data = READ_JSON_FILE(json_filepath)
+	var/list/json_data = null
+	READ_JSON_FILE_CACHED(json_filepath, json_data)
 	ASSERT(json_data)
 
 	var/list/actionset = list()

@@ -144,7 +144,7 @@
 	if(isnull(jsondata))
 		return
 
-	var/datum/utility_ai/mob_commander/combat_commander/commander = src_client.blackboard["TargetCommander"]
+	var/datum/utility_ai/mob_commander/commander = src_client.blackboard["TargetCommander"]
 
 	if(isnull(commander))
 		to_chat(usr, "Commander for [src_client] is null! @ L[__LINE__] in [__FILE__]!")
@@ -173,7 +173,7 @@
 	return
 
 
-/mob/verb/CommanderGiveGOAPSolverOrder(datum/utility_ai/mob_commander/combat_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
+/mob/verb/CommanderGiveGOAPSolverOrder(datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
 	set category = "Commander Orders"
 
 	var/client/mobclient = src.client

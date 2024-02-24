@@ -23,7 +23,7 @@
 	var/list/plan_items = null
 
 	if(!isnull(planner))
-		var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing way too much I/O, but dev gonna dev
+		var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing a lot of constructor work, but the file I/O is optimized away by caching
 		var/_planning_budget = isnull(planning_budget) ? DEFAULT_GOAP_PLANNING_BUDGET : planning_budget
 		planner.graph = actions
 

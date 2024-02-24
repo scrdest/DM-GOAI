@@ -27,9 +27,13 @@
 #define LOAD_TEXT(fp) file2text(fp)
 #define SAVE_TEXT(txt, fp) text2file(txt, fp)
 
-#define LOAD_JSON(fp) json_decode(LOAD_TEXT(fp))
-#define SAVE_JSON(data, fp) SAVE_TEXT(json_encode(data), fp)
-#define SAVE_JSON_OVERWRITE(data, fp) fdel(fp); SAVE_TEXT(json_encode(data), fp)
+#define READ_JSON_FILE(FP) (fexists(FP) && json_decode(file2text(FP)))
+#define READ_JSON_FILE_CACHED(FP, TO_VAR) FILE_CACHE_LAZY_INIT(1); ##TO_VAR = filedata_cache[FP]; if(isnull(##TO_VAR)) { ##TO_VAR = READ_JSON_FILE(FP); filedata_cache[FP] = ##TO_VAR }
+
+#define UNCACHE_JSON_FILE(FP) FILE_CACHE_LAZY_INIT(1); filedata_cache[FP] = null
+
+#define SAVE_JSON_FILE(data, fp) SAVE_TEXT(json_encode(data), fp)
+#define SAVE_JSON_FILE_OVERWRITE(data, fp) fdel(fp); SAVE_TEXT(json_encode(data), fp)
 
 # ifdef DEBUG_LOGGING
 #define MAYBE_LOG(X) to_world_log(X)

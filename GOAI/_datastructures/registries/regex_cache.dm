@@ -7,7 +7,15 @@
 // Lazy init!
 // We need to do ifnull in case someone drops it by VV, so might as well.
 // This also provides a nice and safe way to invalidate the cache if it gets too big - just null it here and let GC clean it up
-var/global/list/regex_cache = null
 
-// The _Unused arg is just for call-like syntax
-# define REGEX_CACHE_LAZY_INIT(_Unused) if(isnull(global.regex_cache) || !islist(global.regex_cache)) { global.regex_cache = list() }
+# ifdef GOAI_LIBRARY_FEATURES
+var/global/list/regex_cache = null
+# endif
+
+# ifdef GOAI_SS13_SUPPORT
+GLOBAL_LIST_EMPTY(regex_cache)
+# endif
+
+
+// The _Unused arg is just for call-like syntax, pass in whatever
+# define REGEX_CACHE_LAZY_INIT(_Unused) if(isnull(GOAI_LIBBED_GLOB_ATTR(regex_cache)) || !islist(GOAI_LIBBED_GLOB_ATTR(regex_cache))) { GOAI_LIBBED_GLOB_ATTR(regex_cache) = list() }

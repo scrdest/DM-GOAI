@@ -20,6 +20,7 @@
 		to_chat(usr, "goal_state is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
 
+	// deliberately not cached so we can edit it quickly
 	var/list/start_state = READ_JSON_FILE("debug_start_state.json")
 
 	var/list/targ_curr_state = target.GetWorldstate()
@@ -34,7 +35,7 @@
 	var/list/plan_items = null
 
 	if(!isnull(planner))
-		var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing way too much I/O, but dev gonna dev
+		var/list/actions = GoapActionSetFromJsonFile(GOAPPLAN_METADATA_PATH) // this is doing a lot of constructor work, but the file I/O is optimized away by caching
 		var/_planning_budget = isnull(planning_budget) ? 500 : planning_budget
 		planner.graph = actions
 
@@ -53,6 +54,7 @@
 
 
 /mob/verb/test_hash_goap_state()
+	// deliberately not cached so we can edit it quickly
 	var/list/teststate = READ_JSON_FILE("debug_hash_goap_state.json")
 	var/statehash = hash_goap_state(teststate)
 	to_chat(usr, statehash)

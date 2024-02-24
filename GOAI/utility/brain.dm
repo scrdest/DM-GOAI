@@ -279,9 +279,9 @@ var/global/last_plan_time = null
 	if(!isnull(smartobjects))
 
 		for(var/datum/SO in smartobjects)
-			var/list/SO_actionsets = SO.GetUtilityActions(requester)
-			// prolly should be this instead, but had a weird bug:
-			//var/list/SO_actionsets = src.GetActionSetsFromSmartObject(SO)
+			//var/list/SO_actionsets = SO.GetUtilityActions(requester)
+			// prolly should be this instead, but had a weird bug: //restoring for test
+			var/list/SO_actionsets = src.GetActionSetsFromSmartObject(SO, requester)
 
 			if(!isnull(SO_actionsets))
 				world.log << "Found Actionsets for [SO] - len=[SO_actionsets.len]"

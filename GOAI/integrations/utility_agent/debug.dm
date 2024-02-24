@@ -1,5 +1,5 @@
 /mob/verb/PosessWithUtilityCommander()
-	set category = "Debug GOAI Commanders"
+	set category = "Debug Utility AI"
 
 	set src in view()
 

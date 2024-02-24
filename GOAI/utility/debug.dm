@@ -10,3 +10,15 @@
 
 	to_chat(usr, "Set global Utility AI tickrate to [rate]")
 	return
+
+
+/mob/verb/TogglePauseAi(var/datum/utility_ai/ai_target as null|anything in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
+	set category = "Debug Utility AI"
+
+	if(isnull(ai_target))
+		return
+
+	ai_target.paused = !(ai_target.paused)
+
+	to_chat(usr, "Set [ai_target] PAUSED to [ai_target.paused ? "TRUE" : "FALSE"]")
+	return
