@@ -50,6 +50,7 @@
 #include "_datastructures\registries\ai.dm"
 #include "_datastructures\registries\aibrain.dm"
 #include "_datastructures\registries\faction.dm"
+#include "_datastructures\registries\regex_cache.dm"
 #include "_datastructures\registries\smartobjects.dm"
 #include "basics\_cover.dm"
 #include "basics\_dir_blocker.dm"

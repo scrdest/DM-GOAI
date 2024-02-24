@@ -59,7 +59,7 @@
 
 #define SENSE_SIGHT "SenseSight"
 #define SENSE_SIGHT_CURR "SightCurr"
-#define SENSE_SIGHT_PREV "SightPrev"
+#define SENSE_SIGHT_PREV "SightPrev" // NOTE: currently disabled!
 
 // 1 (SOUTH) + 2 (NORTH) + 4 (EAST) + 8 (WEST) == 15
 #define ALL_CARDINAL_DIRS 15

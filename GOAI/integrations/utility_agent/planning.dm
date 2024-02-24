@@ -41,14 +41,41 @@
 		// a minimum of 1 for leading '?', 1 for colon, 1 for @ and 3 single-char vars
 		// if that's not there, this will never parse so there's no point building a regex
 		ASSERT(length(query) >= 6)
+		var/not_matched = TRUE
 
-		var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+		# ifdef USE_REGEX_CACHE
+		if(not_matched)
+			// lazy init in case it didn't happen/got nulled out
+			REGEX_CACHE_LAZY_INIT(0)
 
-		ASSERT(ws_query_regex.Find(query, Start=2))
+			var/list/uncached_match = global.regex_cache[query]
 
-		raw_querytype = ws_query_regex.group[1]
-		raw_typeval = ws_query_regex.group[2]
-		raw_targvar = ws_query_regex.group[3]
+			if(istype(uncached_match) && length(uncached_match) == 4)
+				raw_querytype = uncached_match[1]
+				raw_typeval = uncached_match[2]
+				raw_targvar = uncached_match[3]
+				// we don't need the fourth item here
+				not_matched = FALSE
+
+			else
+				to_world_log("DEBUG: Regex Cache miss for [query]: [uncached_match] ([length(uncached_match)])")
+		# endif
+
+		if(not_matched)
+			var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+
+			ASSERT(ws_query_regex.Find(query))
+
+			raw_querytype = ws_query_regex.group[1]
+			raw_typeval = ws_query_regex.group[2]
+			raw_targvar = ws_query_regex.group[3]
+
+			not_matched = FALSE
+
+			# ifdef USE_REGEX_CACHE
+			// update the cache
+			global.regex_cache[query] = list(raw_querytype, raw_typeval, raw_targvar, ws_query_regex.group[4])
+			# endif
 
 	var/typeval
 
@@ -103,16 +130,49 @@
 				if(query_key[1] == "?")
 					// question mark signifies a dynamic query
 					is_dynamic = TRUE
+					var/raw_querytype
+					var/raw_typeval
+					var/raw_targvar
+					var/raw_outkey
 
-					var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+					var/not_matched = TRUE
 
-					ASSERT(ws_query_regex.Find(query_key))
+					# ifdef USE_REGEX_CACHE
+					if(not_matched)
+						// lazy init in case it didn't happen/got nulled out
+						REGEX_CACHE_LAZY_INIT(0)
 
-					var/raw_querytype = ws_query_regex.group[1]
-					var/raw_typeval = ws_query_regex.group[2]
-					var/raw_targvar = ws_query_regex.group[3]
-					var/raw_outkey = ws_query_regex.group[4]
+						var/list/uncached_match = global.regex_cache[query_key]
 
+						if(istype(uncached_match) && length(uncached_match) == 4)
+							raw_querytype = uncached_match[1]
+							raw_typeval = uncached_match[2]
+							raw_targvar = uncached_match[3]
+							raw_outkey = uncached_match[4]
+							not_matched = FALSE
+
+						else
+							to_world_log("DEBUG: Regex Cache miss for [query_key]: [uncached_match] ([length(uncached_match)])")
+					# endif
+
+					if(not_matched)
+						var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+
+						ASSERT(ws_query_regex.Find(query_key))
+
+						raw_querytype = ws_query_regex.group[1]
+						raw_typeval = ws_query_regex.group[2]
+						raw_targvar = ws_query_regex.group[3]
+						raw_outkey = ws_query_regex.group[4]
+
+						not_matched = FALSE
+
+						# ifdef USE_REGEX_CACHE
+						// update the cache
+						global.regex_cache[query_key] = list(raw_querytype, raw_typeval, raw_targvar, raw_outkey)
+						# endif
+
+					ASSERT(!not_matched)
 					ASSERT(!isnull(raw_querytype))
 					ASSERT(!isnull(raw_typeval))
 					ASSERT(!isnull(raw_targvar))

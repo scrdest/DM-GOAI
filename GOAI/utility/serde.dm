@@ -265,9 +265,36 @@
 			var/out_precond_key = raw_precond_key
 			if(length(raw_precond_key) && (raw_precond_key[1] == "?"))
 				// dynamic query, extract the output key from the raw query
-				var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
-				ASSERT(ws_query_regex.Find(raw_precond_key))
-				out_precond_key = ws_query_regex.group[4]
+				var/not_matched = TRUE
+
+				# ifdef USE_REGEX_CACHE
+				if(not_matched)
+					// lazy init in case it didn't happen/got nulled out
+					REGEX_CACHE_LAZY_INIT(0)
+
+					var/list/uncached_match = global.regex_cache[raw_precond_key]
+
+					if(istype(uncached_match) && length(uncached_match) == 4)
+						out_precond_key = uncached_match[4]
+						// we don't need the first three items here
+						not_matched = FALSE
+
+					else
+						to_world_log("DEBUG: Regex Cache miss for [raw_precond_key]: [uncached_match] ([length(uncached_match)])")
+				# endif
+
+				if(not_matched)
+					var/regex/ws_query_regex = regex(DYNAMIC_WS_QUERY_REGEX)
+
+					ASSERT(ws_query_regex.Find(raw_precond_key))
+					out_precond_key = ws_query_regex.group[4]
+
+					not_matched = FALSE
+
+					# ifdef USE_REGEX_CACHE
+					// update the cache
+					global.regex_cache[raw_precond_key] = list(ws_query_regex.group[1], ws_query_regex.group[2], ws_query_regex.group[3], out_precond_key)
+					# endif
 
 			fixed_preconds[out_precond_key] = precond_val
 

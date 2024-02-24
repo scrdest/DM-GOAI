@@ -183,14 +183,12 @@
 				"?findtype:/obj/item/up_test_screwdriver@contents=>HasScrewdriver": 1
 			},
 			"target": {
-				"screwed": -1,
-				"_hackstage": -1
+				"screwed": -1
 			}
 		},
 		"effects": {
 			"target": {
-				"screwed": 1,
-				"_hackstage": 2
+				"screwed": 1
 			}
 		},
 		"target_key": "location",
@@ -206,14 +204,12 @@
 				"?findtype:/obj/item/up_test_screwdriver@contents=>HasScrewdriver": 1
 			},
 			"target": {
-				"screwed": 1,
-				"_hackstage": 2
+				"screwed": 1
 			}
 		},
 		"effects": {
 			"target": {
-				"screwed": 0,
-				"_hackstage": 1
+				"screwed": 0
 			}
 		},
 		"target_key": "location",

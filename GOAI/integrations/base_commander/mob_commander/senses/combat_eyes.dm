@@ -15,11 +15,14 @@
 		// We grab the view range from the owned mob, so we need it here
 		return
 
-	var/list/old_visual_range = owner_brain?.perceptions?[SENSE_SIGHT_CURR]
 	var/list/visual_range = view(pawn)
 
+	/*
+	// Disabled because it takes a lot of memory for not a lot of obvious benefit
+	var/list/old_visual_range = owner_brain?.perceptions?[SENSE_SIGHT_CURR]
 	if(old_visual_range)
 		owner_brain?.perceptions[SENSE_SIGHT_PREV] = old_visual_range
+	*/
 
 	if(visual_range)
 		owner_brain?.perceptions[SENSE_SIGHT_CURR] = visual_range
