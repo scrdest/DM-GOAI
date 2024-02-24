@@ -2,7 +2,7 @@
 /sense/combatant_commander_eyes
 
 
-/sense/combatant_commander_eyes/proc/UpdatePerceptions(var/datum/goai/mob_commander/combat_commander/owner)
+/sense/combatant_commander_eyes/proc/UpdatePerceptions(var/datum/utility_ai/mob_commander/combat_commander/owner)
 	var/datum/brain/owner_brain = owner.brain
 
 	if(isnull(owner_brain))
@@ -32,7 +32,7 @@
 	return
 
 
-/sense/combatant_commander_eyes/proc/SpotThreats(var/datum/goai/mob_commander/combat_commander/owner)
+/sense/combatant_commander_eyes/proc/SpotThreats(var/datum/utility_ai/mob_commander/combat_commander/owner)
 	if(isnull(owner))
 		return
 
@@ -121,7 +121,7 @@
 	return TRUE
 
 
-/sense/combatant_commander_eyes/proc/SpotWaypoint(var/datum/goai/mob_commander/combat_commander/owner)
+/sense/combatant_commander_eyes/proc/SpotWaypoint(var/datum/utility_ai/mob_commander/combat_commander/owner)
 	if(isnull(owner))
 		return
 

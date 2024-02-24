@@ -198,7 +198,7 @@
 	if(true_name)
 		M.name = true_name
 
-	var/datum/goai/mob_commander/combat_commander/new_commander = new()
+	var/datum/utility_ai/mob_commander/combat_commander/new_commander = new()
 
 	# ifdef GOAI_SS13_SUPPORT
 	new_commander.pawn_ref = weakref(M)

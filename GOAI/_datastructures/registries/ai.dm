@@ -18,7 +18,7 @@ GLOBAL_LIST_EMPTY(global_goai_registry)
 	if(!(IS_REGISTERED_AI(id)))
 		return
 
-	var/datum/goai/ai = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[id])
+	var/datum/utility_ai/ai = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[id])
 
 	/* We want only valid AIs here; if somehow we get a non-AI here,
 	// we want to null it out; regular nulls stay nulls.
@@ -37,27 +37,6 @@ GLOBAL_LIST_EMPTY(global_goai_registry)
 			qdel(ai)
 
 	return
-
-
-
-/datum/goai/proc/RegisterAI()
-	// Registry pattern, to facilitate querying all GOAI AIs in verbs
-
-	if(!GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
-		GOAI_LIBBED_GLOB_ATTR(global_goai_registry) = list()
-
-	if(src.registry_index)
-		// already done, fix up the registry to be sure and return
-		GOAI_LIBBED_GLOB_ATTR(global_goai_registry[src.registry_index]) = src
-		return GOAI_LIBBED_GLOB_ATTR(global_goai_registry)
-
-	GOAI_LIBBED_GLOB_ATTR(global_goai_registry) += src
-	src.registry_index = GOAI_LIBBED_GLOB_ATTR(global_goai_registry.len)
-
-	if(!(src.name))
-		src.name = src.registry_index
-
-	return GOAI_LIBBED_GLOB_ATTR(global_goai_registry)
 
 
 

@@ -19,7 +19,7 @@ GLOBAL_LIST_EMPTY(global_faction_registry)
 	if(!(IS_REGISTERED_FACTION(id)))
 		return
 
-	var/datum/goai/ai = GOAI_LIBBED_GLOB_ATTR(global_faction_registry[id])
+	var/datum/utility_ai/ai = GOAI_LIBBED_GLOB_ATTR(global_faction_registry[id])
 
 	/* We want only valid AIs here; if somehow we get a non-AI here,
 	// we want to null it out; regular nulls stay nulls.
@@ -35,7 +35,7 @@ GLOBAL_LIST_EMPTY(global_faction_registry)
 	return
 
 
-/datum/goai/proc/RegisterFaction()
+/datum/utility_ai/proc/RegisterFaction()
 	// Registry pattern, to facilitate querying all GOAI Brains in verbs
 	if(src.registry_index)
 		// already done, fix up the registry to be sure and return

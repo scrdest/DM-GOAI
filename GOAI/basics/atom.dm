@@ -20,9 +20,12 @@
 	shotby - a reference to who shot us (atom - to incl. turret objects etc.)
 	*/
 
+	/*
+	// TODO: PORT TO UTILITY
 	FetchAiControllerForObjIntoVar(src, var/datum/goai/mob_commander/commander)
 	if(commander)
 		commander.Hit(hit_angle, shotby)
+	*/
 
 	return
 

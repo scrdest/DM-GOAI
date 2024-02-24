@@ -35,8 +35,13 @@
 
 
 /mob/living/simple_animal/aitester/proc/SpawnCommander()
-	var/datum/goai/mob_commander/combat_commander/new_commander = new()
-	AttachCombatCommanderTo(src, new_commander)
+	var/datum/utility_ai/mob_commander/combat_commander/new_commander = new()
+	#ifdef UTILITY_SMARTOBJECT_SENSES
+	// Spec for Dev senses!
+	new_commander.sense_filepaths = DEFAULT_UTILITY_AI_SENSES
+	#endif
+	AttachUtilityCommanderTo(src, new_commander)
+	src.commander_id = new_commander.registry_index
 	return src
 
 
@@ -74,24 +79,11 @@
 /mob/living/simple_animal/aitester/utility
 
 
-/mob/living/simple_animal/aitester/utility/SpawnCommander()
-	var/datum/utility_ai/mob_commander/combat_commander/new_commander = new()
-	#ifdef UTILITY_SMARTOBJECT_SENSES
-	// Spec for Dev senses!
-	new_commander.sense_filepaths = DEFAULT_UTILITY_AI_SENSES
-	#endif
-	AttachUtilityCommanderTo(src, new_commander)
-	src.commander_id = new_commander.registry_index
-	return src
-
-
-
 /mob/living/simple_animal/aitester/utility/verb/ReloadAi()
 	set src in view()
 
 	if(!src.commander_id)
 		return
-
 
 	if(IS_REGISTERED_AI(src.commander_id))
 		var/datum/utility_ai/mob_commander/commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[src.commander_id])
