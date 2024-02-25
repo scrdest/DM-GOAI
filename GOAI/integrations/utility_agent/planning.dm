@@ -1,3 +1,32 @@
+/*
+//                            SPECIAL SAUCE
+//
+// I am not only enough of a madman to write an established AI architecture in *DM*, oh no.
+// I went and integrated Utility and GOAP as well to make both better. *In goddamn BYOND*.
+//
+// This module contains the core of the GOAP/Utility integration. The Serde module has a bit more.
+//
+// In short, IAUS Utility is the main driver, but we can make requests to GOAP to plan.
+// Preconds/Effects are largely shared between both AI subsystems (except for those
+// prefixed by an underscore, which are GOAP-only and used to give hints to the planner).
+//
+// The GOAP plan, if found, gets transformed into a SmartObject providing Utility actions.
+//
+// This means we get the long-term planning benefits of GOAP with the tactical flexibility of Utility.
+//
+// For instance, if our GOAP plan expected a door to be locked before opening it, but a friendly NPC
+// has handled unlocking for our agent, the unlocking step will be ignored and we'll jump straight to
+// getting the door open.
+//
+// Conversely, if the agent is merrily strolling to open the door and someone locks the door back,
+// this approach will allow the agent to backtrack to the unlocking step without requiring a replan.
+//
+// Considering the massive cost of GOAP replans, this implies a HUGE optimization for the AI system.
+// Furthermore, as the plan actions are no longer strictly sequential, we can prune equivalent GOAP
+// plans from consideration, further reducing the search space and accelerating planning.
+//
+// TL;DR - all the strategic power of GOAP with the speed and flexibility of Utility AI.
+*/
 
 # define GOAPPLAN_ACTIONSET_PATH "integrations/smartobject_definitions/goapplan.json"
 
@@ -48,7 +77,7 @@
 			// lazy init in case it didn't happen/got nulled out
 			REGEX_CACHE_LAZY_INIT(0)
 
-			var/list/uncached_match = global.regex_cache[query]
+			var/list/uncached_match = GOAI_LIBBED_GLOB_ATTR(regex_cache)[query]
 
 			if(istype(uncached_match) && length(uncached_match) == 4)
 				raw_querytype = uncached_match[1]
@@ -74,7 +103,7 @@
 
 			# ifdef USE_REGEX_CACHE
 			// update the cache
-			global.regex_cache[query] = list(raw_querytype, raw_typeval, raw_targvar, ws_query_regex.group[4])
+			GOAI_LIBBED_GLOB_ATTR(regex_cache)[query] = list(raw_querytype, raw_typeval, raw_targvar, ws_query_regex.group[4])
 			# endif
 
 	var/typeval
@@ -142,7 +171,7 @@
 						// lazy init in case it didn't happen/got nulled out
 						REGEX_CACHE_LAZY_INIT(0)
 
-						var/list/uncached_match = global.regex_cache[query_key]
+						var/list/uncached_match = GOAI_LIBBED_GLOB_ATTR(regex_cache)[query_key]
 
 						if(istype(uncached_match) && length(uncached_match) == 4)
 							raw_querytype = uncached_match[1]
@@ -169,7 +198,7 @@
 
 						# ifdef USE_REGEX_CACHE
 						// update the cache
-						global.regex_cache[query_key] = list(raw_querytype, raw_typeval, raw_targvar, raw_outkey)
+						GOAI_LIBBED_GLOB_ATTR(regex_cache)[query_key] = list(raw_querytype, raw_typeval, raw_targvar, raw_outkey)
 						# endif
 
 					ASSERT(!not_matched)
@@ -320,7 +349,7 @@
 	// Plan assumed to be a simple array-style list of action KEYS
 	// (meaning: just strings, no further metadata; we need to do a JOIN)
 
-	if(isnull(global.global_plan_actions_repo))
+	if(isnull(GOAI_LIBBED_GLOB_ATTR(global_plan_actions_repo)))
 		InitializeGlobalPlanActionsRepo()
 
 	var/list/planned_actions = list()
@@ -338,7 +367,7 @@
 
 	for(var/action_key in plan)
 		action_idx++
-		var/list/action_data = global.global_plan_actions_repo[action_key]
+		var/list/action_data = GOAI_LIBBED_GLOB_ATTR(global_plan_actions_repo)[action_key]
 		ASSERT(!isnull(action_data))
 
 		var/has_movement = action_data[JSON_KEY_PLANACTION_HASMOVEMENT]

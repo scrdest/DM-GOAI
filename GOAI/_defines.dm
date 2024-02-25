@@ -35,14 +35,6 @@
 #define SAVE_JSON_FILE(data, fp) SAVE_TEXT(json_encode(data), fp)
 #define SAVE_JSON_FILE_OVERWRITE(data, fp) fdel(fp); SAVE_TEXT(json_encode(data), fp)
 
-# ifdef DEBUG_LOGGING
-#define MAYBE_LOG(X) to_world_log(X)
-#define MAYBE_LOG_TOSTR(X) to_world_log(#X + ": [X]")
-# else
-#define MAYBE_LOG(X)
-#define MAYBE_LOG_TOSTR(X)
-# endif
-
 #define COORDS_TUPLE_2D(A) "([A?.x], [A?.y])"
 #define COORDS_TUPLE_3D(A) "([A?.x], [A?.y], [A?.z])"
 // defaulting:

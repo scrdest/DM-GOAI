@@ -29,3 +29,12 @@
 # else
 # define ACTION_RUNTIME_DEBUG_LOG(X)
 # endif
+
+
+# ifdef DEBUG_LOGGING
+#define MAYBE_LOG(X) to_world_log(X)
+#define MAYBE_LOG_TOSTR(X) to_world_log(#X + ": [X]")
+# else
+#define MAYBE_LOG(X)
+#define MAYBE_LOG_TOSTR(X)
+# endif

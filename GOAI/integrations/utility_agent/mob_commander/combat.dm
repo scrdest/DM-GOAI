@@ -1,3 +1,7 @@
+/*
+// Assorted procs for making mob AI handle combat
+*/
+
 /datum/utility_ai/mob_commander/proc/GetAimTime(var/atom/target)
 	if(isnull(target))
 		return

@@ -272,7 +272,7 @@
 					// lazy init in case it didn't happen/got nulled out
 					REGEX_CACHE_LAZY_INIT(0)
 
-					var/list/uncached_match = global.regex_cache[raw_precond_key]
+					var/list/uncached_match = GOAI_LIBBED_GLOB_ATTR(regex_cache)[raw_precond_key]
 
 					if(istype(uncached_match) && length(uncached_match) == 4)
 						out_precond_key = uncached_match[4]
@@ -293,7 +293,7 @@
 
 					# ifdef USE_REGEX_CACHE
 					// update the cache
-					global.regex_cache[raw_precond_key] = list(ws_query_regex.group[1], ws_query_regex.group[2], ws_query_regex.group[3], out_precond_key)
+					GOAI_LIBBED_GLOB_ATTR(regex_cache)[raw_precond_key] = list(ws_query_regex.group[1], ws_query_regex.group[2], ws_query_regex.group[3], out_precond_key)
 					# endif
 
 			fixed_preconds[out_precond_key] = precond_val

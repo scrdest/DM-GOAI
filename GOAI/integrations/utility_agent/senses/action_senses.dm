@@ -17,9 +17,6 @@
 //
 */
 
-// If this module is included, this will be defined and can be used to ifdef stuff
-# define UTILITY_SMARTOBJECT_SENSES 1
-
 
 
 /sense/utility_sense_fetcher
