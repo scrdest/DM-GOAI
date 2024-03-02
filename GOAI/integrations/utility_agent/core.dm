@@ -14,6 +14,8 @@
 
 	// Private-ish, generally only debug procs should touch these
 	var/ai_tick_delay = UTILITYAI_AI_TICK_DELAY
+	var/senses_tick_delay = COMBATAI_SENSE_TICK_DELAY
+
 	var/registry_index
 
 	// Optional - for map editor. Set this to force initial action. Must be valid (in available actions).

@@ -83,6 +83,7 @@
 #define FetchAiControllerForObjIntoVar(gameobj, VarPath) var/__commander_backref = gameobj?.attachments?.Get(ATTACHMENT_CONTROLLER_BACKREF); VarPath = IS_REGISTERED_AI(__commander_backref) && GOAI_LIBBED_GLOB_ATTR(global_goai_registry[__commander_backref])
 
 #define DEFAULT_UTILITY_AI_SENSES "dev_sense.json"
+#define DEFAULT_FACTION_AI_SENSES "faction_senses.json"
 
 // Size of the GOAI plan buffer; if we would exceed it, eject a plan.
 #define MAX_STORED_PLANS 1

@@ -35,7 +35,7 @@
 // - Typeval: what exactly are we searching for in this querytype, e.g. '/foo/bar' to find typesof /foo/bar'
 // - Target: var to search, e.g. 'contents'
 // - Outkey: key to write results to, e.g. 'HasBar'
-# define DYNAMIC_WS_QUERY_REGEX @"\?(\w+?):(.+?)@(\w+)=>(\w+)"
+# define DYNAMIC_WS_QUERY_REGEX @"\?(\w+?):(.+?)@(\w*?)=>(\w+)"
 
 
 /datum/utility_ai
@@ -110,7 +110,8 @@
 
 	// I'm building a DSL in BYOND. Truly the darkest timeline.
 	switch(raw_querytype)
-		if("findtype")
+		if("findtype_in_var")
+			// Query any var (indicated by the @<varname> syntax) for a matching type.
 			typeval = text2path(raw_typeval)
 			ASSERT(ispath(typeval))
 
@@ -126,6 +127,44 @@
 
 			else
 				return istype(searchval, typeval)
+
+		if("findtype_in_inventory")
+			// Query contents, recursively. Less flexible than findtype_in_var, but recursive.
+			// Because this is fairly heavy (modulo caching), it's best used for a 'retrieve from box'-type actions,
+			// so that you can get the item from findtype_in_var@contents later
+
+			typeval = text2path(raw_typeval)
+			ASSERT(ispath(typeval))
+
+			var/atom/curr_target = null
+			var/queue_pos = 1
+			// we are not using a PriorityQueue here because a list is cheaper and BFS/DFS likely doesn't make a serious difference
+			// (though I may regret saying that later)
+			var/list/queue = list(target)
+
+			while(queue_pos <= length(queue))
+				// cannot do a for-loop since we're mutating the queue
+				curr_target = queue[queue_pos++]
+
+				if(!istype(curr_target))
+					continue
+
+				var/list/searchlist = curr_target.contents
+
+				if(!islist(searchlist))
+					continue
+
+				for(var/itm in searchlist)
+					if(istype(itm, typeval))
+						// match, early return
+						return TRUE
+
+					if(istype(itm, /atom))
+						// no match, but might be a container
+						queue.Add(itm)
+
+			// ain't found nothing
+			return FALSE
 
 		else
 			// parsing error!
@@ -154,11 +193,9 @@
 			for(var/query_key in qry)
 				var/result
 				var/output_key = query_key
-				var/is_dynamic = FALSE // just for debug purposes
 
 				if(query_key[1] == "?")
 					// question mark signifies a dynamic query
-					is_dynamic = TRUE
 					var/raw_querytype
 					var/raw_typeval
 					var/raw_targvar
@@ -207,14 +244,48 @@
 					ASSERT(!isnull(raw_targvar))
 					ASSERT(!isnull(raw_outkey))
 
-					result = RunDynamicWorldStateQuery(trg_key, null, raw_querytype, raw_typeval, raw_targvar)
+					var/awaiting_result = TRUE
+
+					# ifdef USE_DYNAQUERY_CACHE
+					var/dynaquery_cache_key = "[trg_key]/[query_key]"
+
+					if(awaiting_result)
+						// TODO: TTL FOR CACHE!
+						DYNAQUERY_CACHE_LAZY_INIT(0)
+						var/cand_ttl = GOAI_LIBBED_GLOB_ATTR(dynamic_query_cache_ttls)[dynaquery_cache_key]
+						var/global_ttl = GOAI_LIBBED_GLOB_ATTR(dynamic_query_cache_ttls)["global_ttl"]
+
+						if(isnull(global_ttl))
+							// drop the whole cache periodically to avoid garbage accumulation
+							// we fuzz the TTL to avoid everything happening all at once
+							GOAI_LIBBED_GLOB_ATTR(dynamic_query_cache_ttls)["global_ttl"] = world.time + DYNAMIC_QUERY_CACHE_GLOBAL_TTL + rand(-DYNAMIC_QUERY_CACHE_GLOBAL_TTL_FUZZ, DYNAMIC_QUERY_CACHE_GLOBAL_TTL_FUZZ)
+						else
+							if(world.time >= global_ttl)
+								DYNAQUERY_CACHE_INVALIDATE(0)
+
+						if(!isnull(cand_ttl) && world.time < cand_ttl)
+							var/cand_result = GOAI_LIBBED_GLOB_ATTR(dynamic_query_cache)[dynaquery_cache_key]
+
+							if(!isnull(cand_result))
+								result = cand_result
+								awaiting_result = FALSE
+					# endif
+
+					if(awaiting_result)
+						result = RunDynamicWorldStateQuery(trg_key, null, raw_querytype, raw_typeval, raw_targvar)
+						awaiting_result = FALSE
+						# ifdef USE_DYNAQUERY_CACHE
+						DYNAQUERY_CACHE_LAZY_INIT(0)
+						GOAI_LIBBED_GLOB_ATTR(dynamic_query_cache)[dynaquery_cache_key] = result
+						GOAI_LIBBED_GLOB_ATTR(dynamic_query_cache_ttls)[dynaquery_cache_key] = world.time + DYNAMIC_QUERY_CACHE_TTL
+						# endif
+
 					//output_key = raw_outkey
 					output_key = query_key // I think this will work better; just use the outkey for GOAP
 
 				else
 					result = trg_key.GetWorldstateValue(query_key)
 
-				to_world_log("Setting result [result] for [trg_key]/[output_key] in Worldstate (dynamic: [is_dynamic ? "True" : "False"])")
 				worldstate[trg_key][output_key] = result
 
 	return worldstate
@@ -246,6 +317,8 @@
 	// Utility Considerations required to *plan*
 	// (i.e. separate from the Considerations of plan Actions themselves!)
 	var/list/planning_considerations = null
+
+	no_smartobject_caching = TRUE // caching causes pain here
 
 
 /datum/order_smartobject/New(var/list/new_goal_state, var/datum/new_target, var/list/new_planning_considerations, var/name = null)
@@ -332,6 +405,8 @@
 	// number of failed steps; if this is too high, invalidate the plan
 	var/frustration = 0
 
+	no_smartobject_caching = TRUE // caching causes pain here
+
 
 /datum/plan_smartobject/New(var/list/new_plan, var/list/new_bound_context, var/new_name = null)
 	if(!isnull(new_name))
@@ -342,7 +417,7 @@
 
 	if(!isnull(src.name))
 		// Potentially, cache by destination later.
-		src.smartobject_cache_key = src.name
+		src.smartobject_cache_key = "[json_encode(src.plan)]([json_encode(src.bound_context)])"
 
 
 /proc/ActionSetFromGoapPlan(var/list/plan, var/list/bound_context, var/name, var/requester = null) // [Action] -> ActionSet

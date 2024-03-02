@@ -118,7 +118,6 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value_array)
 		memory_val = list()
 
 		for(var/listitem in raw_memory_val)
-			to_world_log("Applying [filter_proc]([json_encode(filter_args)] to [listitem]...")
 			// apply filter
 			var/predicate_result = call(filter_proc)(listitem, filter_args)
 			if(predicate_result)

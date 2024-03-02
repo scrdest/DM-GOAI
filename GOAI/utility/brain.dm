@@ -240,9 +240,7 @@ var/global/last_plan_time = null
 	var/list/smartobjects = src.GetMemoryValue("SmartObjects", null)
 	var/list/smart_paths = src.GetMemoryValue("AbstractSmartPaths", null)
 	var/list/smart_plans = src.GetMemoryValue("SmartPlans", null)
-	to_world_log("--SmartPlans: [json_encode(smart_plans)]")
 	var/list/smart_orders = src.GetMemoryValue("SmartOrders", null)
-	to_world_log("--SmartOrders: [json_encode(smart_orders)]")
 
 	if(isnull(smartobjects))
 		smartobjects = list()
@@ -279,12 +277,9 @@ var/global/last_plan_time = null
 	if(!isnull(smartobjects))
 
 		for(var/datum/SO in smartobjects)
-			//var/list/SO_actionsets = SO.GetUtilityActions(requester)
-			// prolly should be this instead, but had a weird bug: //restoring for test
 			var/list/SO_actionsets = src.GetActionSetsFromSmartObject(SO, requester)
 
 			if(!isnull(SO_actionsets))
-				world.log << "Found Actionsets for [SO] - len=[SO_actionsets.len]"
 				actionsets.Add(SO_actionsets)
 
 	/*

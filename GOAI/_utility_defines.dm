@@ -156,3 +156,7 @@
 /* ============================================= */
 
 # define RETAIN_LAST_ACTIONS_TTL 300
+
+# define DYNAMIC_QUERY_CACHE_TTL 30
+# define DYNAMIC_QUERY_CACHE_GLOBAL_TTL 3000
+# define DYNAMIC_QUERY_CACHE_GLOBAL_TTL_FUZZ 20

@@ -18,6 +18,7 @@
 	// If an object instance has custom actions, set its cache key to something
 	// that will distinguish it from the generic instances of this object.
 	var/smartobject_cache_key = null  // implementation-defined on null
+	var/no_smartobject_caching = FALSE // some SOs need to be exempt because they are stateful
 
 
 /datum/proc/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
@@ -62,7 +63,7 @@
 
 	var/list/so_actions = null
 
-	so_actions = smartobject_cache[cache_key]
+	so_actions = smartobj.no_smartobject_caching ? null : smartobject_cache[cache_key]
 
 	if(!isnull(so_actions))
 		//for(var/so_actionset in so_actions)
@@ -71,7 +72,7 @@
 		src.smart_objects[cache_key] = so_actions
 		return so_actions
 
-	so_actions = src.smart_objects[cache_key]
+	so_actions = smartobj.no_smartobject_caching ? null : src.smart_objects[cache_key]
 
 	if(so_actions)
 		//so_actions.Refresh()
@@ -83,7 +84,8 @@
 	// old version, not sure why it was like this but it was misbehaving
 	//so_actions = list(); so_actions[subactions.name] = subactions
 
-	smartobject_cache[cache_key] = so_actions
-	src.smart_objects[cache_key] = so_actions
+	if(!smartobj.no_smartobject_caching)
+		smartobject_cache[cache_key] = so_actions
+		src.smart_objects[cache_key] = so_actions
 
 	return so_actions

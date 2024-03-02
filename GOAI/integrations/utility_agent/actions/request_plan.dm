@@ -72,7 +72,7 @@
 
 		if(eject_idx >= MAX_STORED_PLANS)
 			// if we went through all, eject at random
-			eject_idx = rand(1, MAX_STORED_PLANS)
+			eject_idx = MAX_STORED_PLANS == 1 ? 1 : rand(1, MAX_STORED_PLANS)
 
 		stored_plans[eject_idx] = returned_plan
 
@@ -111,6 +111,7 @@
 
 	UPSERT_ASSOC_LTR(target.worldstate, start_state)
 
+	to_world_log("Running _PlanForGenericGoal for target [target]...")
 	var/datum/plan_smartobject/returned_plan = src._PlanForGenericGoal(target, position, start_state, goal_state, planning_budget)
 
 	if(isnull(returned_plan))

@@ -13,6 +13,7 @@
 /datum/utility_ai/mob_commander
 	name = "utility AI commander"
 
+	// Tracking our pawn:
 	# ifdef GOAI_LIBRARY_FEATURES
 	var/atom/pawn
 	# endif
@@ -21,14 +22,18 @@
 	var/weakref/pawn_ref
 	# endif
 
+	// Moving stuff:
 	var/datum/ActivePathTracker/active_path
-
 	var/is_repathing = 0
 	var/is_moving = 0
 
+	// How slow stuff is getting moved (higher is slower):
+	var/move_tick_delay = COMBATAI_MOVE_TICK_DELAY
+
+	// Senses, if applicable:
 	#ifdef UTILITY_SMARTOBJECT_SENSES
 	// Semicolon-separated string (to imitate the PATH envvar);
-	// Will be split and parsed to a list at runtime.#
+	// Will be split and parsed to a list at runtime.
 	// We're doing it this weird way to avoid dealing with list defaults
 	var/sense_filepaths = DEFAULT_UTILITY_AI_SENSES
 	#endif
@@ -56,7 +61,7 @@
 	spawn(0)
 		while(src.life)
 			src.SensesSystem()
-			sleep(COMBATAI_SENSE_TICK_DELAY)
+			sleep(src.senses_tick_delay)
 	#endif
 
 
@@ -64,7 +69,7 @@
 	spawn(0)
 		while(src.life)
 			src.MovementSystem()
-			sleep(COMBATAI_MOVE_TICK_DELAY)
+			sleep(src.move_tick_delay)
 
 
 	// AI
