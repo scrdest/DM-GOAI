@@ -28,7 +28,7 @@
 // TL;DR - all the strategic power of GOAP with the speed and flexibility of Utility AI.
 */
 
-# define GOAPPLAN_ACTIONSET_PATH "integrations/smartobject_definitions/goapplan.json"
+# define GOAPPLAN_ACTIONSET_PATH "goai_data/smartobject_definitions/goapplan.json"
 
 // DYNAMIC QUERY SYNTAX: <Querytype>:<Typeval>@<Target>=><Outkey> WHERE
 // - Querytype: what kind of query this is, e.g. 'type' for type matching
@@ -424,7 +424,7 @@
 	// Plan assumed to be a simple array-style list of action KEYS
 	// (meaning: just strings, no further metadata; we need to do a JOIN)
 
-	if(isnull(GOAI_LIBBED_GLOB_ATTR(global_plan_actions_repo)))
+	if(isnull(GOAI_GLOBAL_LIST_PREFIX(global_plan_actions_repo)))
 		InitializeGlobalPlanActionsRepo()
 
 	var/list/planned_actions = list()
@@ -442,7 +442,7 @@
 
 	for(var/action_key in plan)
 		action_idx++
-		var/list/action_data = GOAI_LIBBED_GLOB_ATTR(global_plan_actions_repo)[action_key]
+		var/list/action_data = GOAI_GLOBAL_LIST_PREFIX(global_plan_actions_repo)[action_key]
 		ASSERT(!isnull(action_data))
 
 		var/has_movement = action_data[JSON_KEY_PLANACTION_HASMOVEMENT]

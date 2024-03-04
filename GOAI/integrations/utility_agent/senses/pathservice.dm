@@ -87,7 +87,7 @@
 */
 
 
-# define MOVEPATH_ACTIONSET_PATH "integrations/smartobject_definitions/movepath.json"
+# define MOVEPATH_ACTIONSET_PATH "goai_data/smartobject_definitions/movepath.json"
 
 /datum/path_smartobject
 	// optional-ish, identifier for debugging:

@@ -152,7 +152,7 @@
 
 # define DEFAULT_PLANACTION_PRIORITY 5
 
-# define GOAPPLAN_METADATA_PATH "integrations/goai_actions.json"
+# define GOAPPLAN_METADATA_PATH "goai_data/goai_actions.json"
 /* ============================================= */
 
 # define RETAIN_LAST_ACTIONS_TTL 300
