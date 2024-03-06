@@ -262,17 +262,16 @@ var/global/last_plan_time = null
 	var/requester = src.GetRequester()
 	ASSERT(!isnull(requester))
 
-	/*
 	// currently implicit since we always can see ourselves
 	// should prolly do a 'if X not in list already', but BYOOOOND
 
-	//var/datum/utility_ai/mob_commander/mob_controller = requester
+	var/datum/utility_ai/mob_commander/mob_controller = requester
 
-	if(!isnull(mob_controller))
+	if(istype(mob_controller))
 		// For Mob Controllers, the Pawn is a SmartObject too!
 		var/datum/pawn = mob_controller.GetPawn()
 		smartobjects.Add(pawn)
-	*/
+
 
 	if(!isnull(smartobjects))
 
@@ -311,11 +310,17 @@ var/global/last_plan_time = null
 		var/list/actionsets = GetAvailableActions()
 
 		var/PriorityQueue/utility_ranking = src.ScoreActions(actionsets)
-		var/best_act_res = utility_ranking.Dequeue()
-		var/datum/Triple/best_act_tup = best_act_res
+		var/datum/Triple/best_act_tup = null
+
+		while(utility_ranking.L)
+			var/best_act_res = utility_ranking.Dequeue()
+
+			best_act_tup = best_act_res
+			if(!isnull(best_act_tup))
+				break
 
 		if(!best_act_tup)
-			RUN_ACTION_DEBUG_LOG("ERROR: Best action tuple is null! [best_act_res] | <@[src]> | [__FILE__] -> L[__LINE__]")
+			RUN_ACTION_DEBUG_LOG("ERROR: Best action tuple is null! [best_act_tup] | <@[src]> | [__FILE__] -> L[__LINE__]")
 			return
 
 		var/datum/utility_action_template/best_action_template = best_act_tup.middle

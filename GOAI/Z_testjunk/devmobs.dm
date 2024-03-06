@@ -29,7 +29,7 @@
 
 
 /mob/living/simple_animal/aitester/proc/Equip()
-	var/obj/item/weapon/gun/mygun = new(src)
+	var/obj/item/gun/mygun = new(src)
 	to_chat(src, "You've received a [mygun]")
 	return src
 

@@ -6,7 +6,7 @@
 			"name": "Idle", 
 			"description": "Does literally nothing. Fallback behavior.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/Idle", 
-			"priority": 0.001,
+			"priority": 0.01,
 			"context_procs": ["/proc/ctxfetcher_null"], 
 			"considerations": [
 				{
@@ -14,7 +14,7 @@
 					"input_proc": "/proc/consideration_input_always",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
-					"curve_proc": "/proc/curve_binary"
+					"curve_proc": "/proc/curve_linear"
 				}
 			]
 		},
@@ -22,7 +22,7 @@
 			"name": "Flee", 
 			"description": "Bravely turn tail and run.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/FleeFrom", 
-			"priority": 3,
+			"priority": 5,
 			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
 			"context_args": [
 				{

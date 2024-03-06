@@ -20,7 +20,7 @@
 /sense/utility_smartobject_fetcher
 	var/sense_idx_key = null
 	var/in_memory_key = SENSE_SIGHT_CURR
-	var/out_memory_key = "SmartObject"
+	var/out_memory_key = "SmartObjects"
 	var/retention_time_dseconds = null
 
 
@@ -63,7 +63,7 @@
 		smartobjects.Add(cand)
 
 	if(smartobjects?.len)
-		var/retention_time = (src.retention_time_dseconds || owner.ai_tick_delay*60)
+		var/retention_time = (src.retention_time_dseconds || owner.ai_tick_delay)
 		owner_brain.SetMemory(out_mem_key, smartobjects, retention_time)
 
 	return smartobjects

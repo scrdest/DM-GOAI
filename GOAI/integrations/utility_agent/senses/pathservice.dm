@@ -102,6 +102,11 @@
 	// number of failed steps; if this is too high, invalidate the path
 	var/frustration = 0
 
+	// similar to frustration, but measures *freshness* rather than *severity* of pathing issues
+	// can be used as a consideration input
+	// null means never failed
+	var/last_failed_step_time = null
+
 
 /datum/path_smartobject/New(var/list/new_path, var/new_name = null)
 	if(!isnull(new_name))

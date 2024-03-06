@@ -438,10 +438,11 @@
 	//var/list/preconds_blackboard = list()
 
 	var/plan_len = length(plan)
-	var/action_idx = 0
+	var/action_idx = plan_len
 
-	for(var/action_key in plan)
-		action_idx++
+	while(action_idx)
+		var/action_key = plan[action_idx--]
+
 		var/list/action_data = GOAI_GLOBAL_LIST_PREFIX(global_plan_actions_repo)[action_key]
 		ASSERT(!isnull(action_data))
 
@@ -580,12 +581,22 @@
 		var/instant = FALSE
 		var/act_description = action_data[JSON_KEY_PLANACTION_DESCRIPTION]
 
-		var/list/preconds = action_data[JSON_KEY_PLANACTION_PRECONDITIONS]
+		var/list/raw_preconds = action_data[JSON_KEY_PLANACTION_PRECONDITIONS]
+		if(isnull(raw_preconds))
+			raw_preconds = list()
 
 		var/list/effects = action_data[JSON_KEY_PLANACTION_EFFECTS]
 
 		if(isnull(effects))
 			effects = list()
+
+
+		// This is meant to sequence actions better
+		// Commented out to try reversing the insertion order
+		//UPSERT_ASSOC_LTR(effects, preconds_blackboard)
+		//var/list/preconds = preconds_blackboard.Copy()
+		//UPSERT_ASSOC_LTR(raw_preconds, preconds)
+		var/list/preconds = raw_preconds
 
 		var/datum/utility_action_template/new_action_template = new(
 			considerations,

@@ -1,9 +1,9 @@
 
 # ifdef GOAI_LIBRARY_FEATURES
 
-# define GUN_ACTIONSET_PATH "integrations/smartobject_definitions/gun.json"
+# define GUN_ACTIONSET_PATH "goai_data/smartobject_definitions/gun.json"
 
-/obj/item/weapon/gun/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
+/obj/item/gun/GetUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
 	var/list/my_action_sets = list()
 
 	ASSERT(fexists(GUN_ACTIONSET_PATH))
@@ -15,7 +15,7 @@
 	return my_action_sets
 
 
-/obj/item/weapon/gun/HasUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
+/obj/item/gun/HasUtilityActions(var/requester, var/list/args = null) // (Any, assoc) -> [ActionSet]
 	return TRUE
 
 # endif
