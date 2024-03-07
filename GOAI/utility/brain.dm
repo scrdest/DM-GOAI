@@ -327,6 +327,8 @@ var/global/last_plan_time = null
 		var/list/best_action_ctx = best_act_tup.right
 		var/datum/utility_action/best_action = best_action_template.ToAction(best_action_ctx)
 
+		src.SetMemory("SelectedActionTemplate", best_action_template)
+
 		if(best_action)
 			PUT_EMPTY_LIST_IN(src.active_plan)
 			src.active_plan.Add(best_action)
@@ -470,6 +472,7 @@ var/global/last_plan_time = null
 	// Update the tracked Action stack for Considerations
 	src.SetMemory(MEM_ACTION_MINUS_TWO, src.GetMemoryValue(MEM_ACTION_MINUS_ONE), RETAIN_LAST_ACTIONS_TTL)
 	src.SetMemory(MEM_ACTION_MINUS_ONE, utility_act.name, RETAIN_LAST_ACTIONS_TTL)
+	src.SetMemory("LastActionEffects", utility_act.name, RETAIN_LAST_ACTIONS_TTL)
 
 	return new_actiontracker
 

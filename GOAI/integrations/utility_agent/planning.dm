@@ -454,6 +454,7 @@
 			"from_context" = TRUE
 		)
 
+		/*
 		var/datum/consideration/not_previous_consideration = new(
 			input_val_proc = /proc/consideration_input_action_in_brain,
 			curve_proc = /proc/curve_antilinear_leaky,
@@ -481,6 +482,20 @@
 				"memory_key" = MEM_ACTION_MINUS_TWO
 			)
 		)
+		*/
+
+		var/datum/consideration/not_cyclic_consideration = new(
+			input_val_proc = /proc/consideration_actiontemplate_effects_cycling,
+			curve_proc = /proc/curve_antilinear,
+			loMark = 0,
+			hiMark = 1,
+			noiseScale = 0,
+			name = "NotCyclic",
+			active = TRUE,
+			consideration_args = list(
+				"memory_key" = "SelectedActionTemplate"
+			)
+		)
 
 		var/datum/consideration/effects_consideration = new(
 			input_val_proc = /proc/consideration_actiontemplate_effects_not_all_met,
@@ -505,8 +520,9 @@
 		)
 
 		var/list/considerations = list(
-			not_previous_consideration,
-			not_preprevious_consideration,
+			//not_previous_consideration,
+			//not_preprevious_consideration,
+			not_cyclic_consideration,
 			effects_consideration,
 			preconds_consideration
 		)

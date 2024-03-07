@@ -19,7 +19,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_brain_data)
 
 	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_brain_data")
 
-	if(isnull(requesting_brain))
+	if(!istype(requesting_brain))
 		DEBUGLOG_MEMORY_FETCH("_cihelper_get_brain_data Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 

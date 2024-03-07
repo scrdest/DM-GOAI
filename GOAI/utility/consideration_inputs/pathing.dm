@@ -14,7 +14,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/_cihelper_get_planned_path)
 
 	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "_cihelper_get_planned_path")
 
-	if(isnull(requesting_brain))
+	if(!istype(requesting_brain))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("_cihelper_get_planned_path Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
