@@ -28,7 +28,7 @@
 		return
 
 	var/_max_node_depth = DEFAULT_IF_NULL(max_node_depth, 60)
-	var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, 1)
+	var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, DEFAULT_MIN_ASTAR_DIST)
 	var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 200)
 
 	var/list/path = owner.AiAStar(

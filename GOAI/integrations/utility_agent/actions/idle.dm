@@ -6,5 +6,7 @@
 	if(tracker.IsStopped())
 		return
 
+	src.allow_wandering = TRUE
+
 	tracker.SetDone()
 	return

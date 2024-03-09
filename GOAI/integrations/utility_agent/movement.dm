@@ -6,6 +6,13 @@
 /datum/utility_ai/mob_commander
 	var/pathing_dist_cutoff = 60
 
+	// Whether we allow the movement system to make small wandering steps
+	// This helps in path-following with tricky cases, but makes more deliberate moves
+	// such as homing in on an object to pick up or otherwise affect look ugly and jank.
+	//
+	// Rule of thumb: default to on when idle or going somewhere, off when doing stuff.
+	var/allow_wandering = TRUE
+
 
 /datum/utility_ai/mob_commander/proc/CurrentPositionAsTuple()
 	var/atom/pawn = src.GetPawn()

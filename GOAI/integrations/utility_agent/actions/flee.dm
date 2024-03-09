@@ -24,6 +24,8 @@
 		RUN_ACTION_DEBUG_LOG("curr_loc is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
 
+	src.allow_wandering = FALSE
+
 	var/turf/bestcand = curr_loc
 	var/bestdist = MANHATTAN_DISTANCE(curr_loc, position)
 

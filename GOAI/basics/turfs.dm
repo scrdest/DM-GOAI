@@ -317,13 +317,13 @@
 
 
 /proc/fTestObstacleDist(var/atom/start, var/atom/T)
-	if(!start)
+	if(!istype(start))
 		return PLUS_INF
 
-	if(!T)
+	if(!istype(T))
 		return PLUS_INF
 
-	var/cost = get_dist(start, T)
+	var/cost = MANHATTAN_DISTANCE(start, T)
 
 	var/turf/t = T
 
@@ -335,7 +335,7 @@
 			# ifdef GOAI_SS13_SUPPORT
 
 			var/obj/machinery/door/D = O
-			if(D && istype(D))
+			if(istype(D))
 				continue
 
 			# endif
@@ -347,7 +347,7 @@
 
 
 /proc/fTestObstacleDistFuzzed(var/atom/start, var/atom/T)
-	var/eps = (rand() / 2)
+	var/eps = ((rand() - 0.5) / 4)
 	var/cost = fTestObstacleDist(start, T) + eps
 	return cost
 

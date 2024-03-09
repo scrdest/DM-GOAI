@@ -454,36 +454,9 @@
 			"from_context" = TRUE
 		)
 
-		/*
-		var/datum/consideration/not_previous_consideration = new(
-			input_val_proc = /proc/consideration_input_action_in_brain,
-			curve_proc = /proc/curve_antilinear_leaky,
-			loMark = 0,
-			hiMark = 1,
-			noiseScale = 0,
-			name = "NotAction-1",
-			active = TRUE,
-			consideration_args = list(
-				"action_name" = action_key,
-				"memory_key" = MEM_ACTION_MINUS_ONE
-			)
-		)
-
-		var/datum/consideration/not_preprevious_consideration = new(
-			input_val_proc = /proc/consideration_input_action_in_brain,
-			curve_proc = /proc/curve_antilinear_leaky,
-			loMark = 0,
-			hiMark = 1,
-			noiseScale = 0,
-			name = "NotAction-2",
-			active = TRUE,
-			consideration_args = list(
-				"action_name" = action_key,
-				"memory_key" = MEM_ACTION_MINUS_TWO
-			)
-		)
-		*/
-
+		// Could override hiMark to slightly above 1 if cycling should be possible but heavily discouraged;
+		// the higher hiMark is, the more permissive this will be.
+		// Should probably be done using some optional JSON var; not gonna bother for now.
 		var/datum/consideration/not_cyclic_consideration = new(
 			input_val_proc = /proc/consideration_actiontemplate_effects_cycling,
 			curve_proc = /proc/curve_antilinear,
@@ -520,8 +493,6 @@
 		)
 
 		var/list/considerations = list(
-			//not_previous_consideration,
-			//not_preprevious_consideration,
 			not_cyclic_consideration,
 			effects_consideration,
 			preconds_consideration
@@ -633,7 +604,8 @@
 		)
 
 		if(action_idx == plan_len)
-			new_action_template._terminates_plan = TRUE
+			new_action_template._terminates_plan = 1 + length(planned_actions) // because we append after this
+			new_action_template._terminates_plan_hash = ref(plan)
 
 		// Package it up!
 		planned_actions.Add(new_action_template)

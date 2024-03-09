@@ -39,6 +39,7 @@
 		tracker.SetFailed()
 
 	var/success = FALSE
+	src.allow_wandering = FALSE
 
 	# ifdef GOAI_SS13_SUPPORT
 	for(var/obj/machinery/door/DtoOpen in available_doors)

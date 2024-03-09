@@ -28,14 +28,14 @@
 /obj/cover
 	pathing_obstacle_penalty = 800
 
-/*
+
 /obj/cover/door
 	pathing_obstacle_penalty = 10
 
 
 /obj/cover/autodoor
 	pathing_obstacle_penalty = 10
-*/
+
 
 
 /obj/cover/table
