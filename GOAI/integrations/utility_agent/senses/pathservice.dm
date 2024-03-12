@@ -28,8 +28,15 @@
 		return
 
 	var/_max_node_depth = DEFAULT_IF_NULL(max_node_depth, 60)
-	var/_min_target_dist = DEFAULT_IF_NULL(min_target_dist, DEFAULT_MIN_ASTAR_DIST)
 	var/_path_ttl = DEFAULT_IF_NULL(path_ttl, 200)
+
+	var/_min_target_dist = min_target_dist
+
+	if(isnull(_min_target_dist))
+		_min_target_dist = owner_brain.GetMemoryValue("ai_target_mindist", null, FALSE, TRUE, TRUE)
+
+	if(isnull(_min_target_dist))
+		_min_target_dist = DEFAULT_MIN_ASTAR_DIST
 
 	var/list/path = owner.AiAStar(
 		start = get_turf(pawn),

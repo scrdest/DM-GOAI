@@ -6,7 +6,7 @@
 
 	// Pathfinding/search
 	var/atom/_startpos = (startpos || get_turf(pawn))
-	var/list/_threats = (threats || list())
+	var/list/_threats = (threats || src.brain?.GetMemoryValue(MEM_ENEMIES) || list())
 	var/_min_safe_dist = (isnull(min_safe_dist) ? 0 : min_safe_dist)
 
 	var/turf/best_local_pos = null
@@ -86,7 +86,7 @@
 		if(!(istype(candidate_cover, /mob) || istype(candidate_cover, /obj/machinery) || istype(candidate_cover, /obj/mecha) || istype(candidate_cover, /obj/structure) || istype(candidate_cover, /obj/vehicle) || istype(candidate_cover, /turf)))
 			continue
 
-		if(unreachable && candidate_cover == unreachable)
+		if(!isnull(unreachable) && candidate_cover == unreachable)
 			continue
 
 		var/has_cover = candidate_cover?.HasCover(get_dir(candidate_cover, primary_threat), FALSE)
@@ -135,8 +135,10 @@
 			var/penalty = 0
 			penalty += same_chunk_penalty
 
+			penalty += cand.unreachable_penalty
+
 			if(cand == candidate_cover || cand == get_turf(candidate_cover))
-				penalty -= 50
+				penalty -= 100
 
 			if(prev_loc_memdata && prev_loc_memdata == cand)
 				penalty += MAGICNUM_DISCOURAGE_SOFT
@@ -144,9 +146,9 @@
 			var/threat_dist = PLUS_INF
 			var/invalid_tile = FALSE
 
-			for(var/dict/threat_ghost in _threats)
-				threat_dist = GetThreatDistance(cand, threat_ghost)
-				var/threat_angle = GetThreatAngle(cand, threat_ghost)
+			for(var/atom/enemy in _threats)
+				threat_dist = GetThreatDistance(cand, enemy)
+				var/threat_angle = GetThreatAngle(cand, enemy)
 				var/threat_dir = angle2dir(threat_angle)
 
 				var/tile_is_cover = (cand.IsCover(TRUE, threat_dir, FALSE))
@@ -157,9 +159,11 @@
 					invalid_tile = TRUE
 					break
 
-				if(threat_ghost && threat_dist < _min_safe_dist)
+				if(threat_dist < _min_safe_dist)
 					invalid_tile = TRUE
 					break
+
+				penalty += -threat_dist  // the further from a threat, the better
 
 			if(invalid_tile)
 				continue
@@ -181,8 +185,6 @@
 			if(!isnull(effective_waypoint_x) && !isnull(effective_waypoint_y))
 				targ_dist = ManhattanDistanceNumeric(cand.x, cand.y, effective_waypoint_x, effective_waypoint_y)
 
-			penalty += -targ_dist  // the closer to target, the better
-			//penalty += -threat_dist  // the further from a threat, the better
 			/*penalty += abs(open_lines-pick(
 				/*
 				This is a bit un-obvious:
@@ -216,13 +218,17 @@
 			*/
 			var/noisy_dist = targ_dist * RAND_PERCENT_MULT(30)
 
+			//penalty += -targ_dist  // the closer to target, the better
+			penalty += -noisy_dist // same but noisy
+
 			// Reminder to self: higher values are higher priority
 			// Smaller penalty => also higher priority
-			var/datum/Quadruple/cover_quad = new(-noisy_dist, -penalty, -cand_dist, cand)
+			var/datum/Quadruple/cover_quad = new(penalty, -noisy_dist, -cand_dist, cand)
 			cover_queue.Enqueue(cover_quad)
 			processed.Add(cand)
 
-	best_local_pos = ValidateWaypoint(cover_queue, trust_first, /proc/fCardinalTurfsNoblocksObjpermissive)
+	if(cover_queue.L?.len)
+		best_local_pos = ValidateWaypoint(cover_queue, trust_first, /proc/fCardinalTurfsNoblocksObjpermissive)
 	return best_local_pos
 
 
@@ -237,32 +243,13 @@
 		return
 
 	var/turf/startpos = tracker.BBSetDefault("startpos", get_turf(pawn))
-	var/list/threats = new()
+	var/list/threats = (src.brain?.GetMemoryValue(MEM_ENEMIES) || list())
 	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
 	var/turf/prev_loc_memdata = brain?.GetMemoryValue(MEM_PREVLOC, null, FALSE)
 
-	// Main threat:
-	var/dict/primary_threat_ghost = GetActiveThreatDict()
-	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
-	var/atom/primary_threat = null
-	if(!(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, pawn.z)
-
-	if(primary_threat_ghost)
-		threats[primary_threat_ghost] = primary_threat
-
-	// Secondary threat:
-	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
-	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
-	var/atom/secondary_threat = null
-	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, pawn.z)
-
-	if(secondary_threat_ghost)
-		threats[secondary_threat_ghost] = secondary_threat
-
 	// Run pathfind
-	best_local_pos = ChooseCoverleapLandmark(startpos, primary_threat, prev_loc_memdata, threats, min_safe_dist)
+	var/main_threat = length(threats) ? threats[1] : null
+	best_local_pos = ChooseCoverleapLandmark(startpos, main_threat, prev_loc_memdata, threats, min_safe_dist)
 
 	if(best_local_pos)
 		tracker.BBSet("bestpos", best_local_pos)
@@ -294,28 +281,7 @@
 	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, null) || 2)
 	var/frustration_repath_maxthresh = (brain?.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || 3)
 
-	var/list/threats = new()
-
-	// Main threat:
-	var/dict/primary_threat_ghost = GetActiveThreatDict()
-	var/datum/Tuple/primary_threat_pos_tuple = GetThreatPosTuple(primary_threat_ghost)
-	var/atom/primary_threat = threat
-
-	if(isnull(primary_threat) && !(isnull(primary_threat_pos_tuple?.left) || isnull(primary_threat_pos_tuple?.right)))
-		primary_threat = locate(primary_threat_pos_tuple.left, primary_threat_pos_tuple.right, pawn.z)
-
-	if(primary_threat_ghost)
-		threats[primary_threat_ghost] = primary_threat
-
-	// Secondary threat:
-	var/dict/secondary_threat_ghost = GetActiveSecondaryThreatDict()
-	var/datum/Tuple/secondary_threat_pos_tuple = GetThreatPosTuple(secondary_threat_ghost)
-	var/atom/secondary_threat = null
-	if(!(isnull(secondary_threat_pos_tuple?.left) || isnull(secondary_threat_pos_tuple?.right)))
-		secondary_threat = locate(secondary_threat_pos_tuple.left, secondary_threat_pos_tuple.right, pawn.z)
-
-	if(secondary_threat_ghost)
-		threats[secondary_threat_ghost] = secondary_threat
+	var/list/threats = brain.GetMemoryValue(MEM_ENEMIES)
 
 	// Previous position
 	var/turf/prev_loc_memdata = brain?.GetMemoryValue(MEM_PREVLOC, null, FALSE)
@@ -335,14 +301,10 @@
 	var/atom/next_step = ((src.active_path && src.active_path.path && src.active_path.path.len) ? src.active_path.path[1] : null)
 
 	// Bookkeeping around threats
-	for(var/dict/threat_ghost in threats)
-		if(isnull(threat_ghost))
-			continue
-
-		var/atom/curr_threat = threats[threat_ghost]
-		var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, threat_ghost, PLUS_INF) : PLUS_INF)
-		var/curr_threat_distance = GetThreatDistance(pawn, threat_ghost, PLUS_INF)
-		var/bestpos_threat_distance = GetThreatDistance(best_local_pos, threat_ghost, PLUS_INF)
+	for(var/atom/curr_threat in threats)
+		var/next_step_threat_distance = (next_step ? GetThreatDistance(next_step, curr_threat, PLUS_INF) : PLUS_INF)
+		var/curr_threat_distance = GetThreatDistance(pawn, curr_threat, PLUS_INF)
+		var/bestpos_threat_distance = GetThreatDistance(best_local_pos, curr_threat, PLUS_INF)
 
 		var/atom/bestpos_threat_neighbor = (curr_threat ? get_step_towards(best_local_pos, curr_threat) : null)
 
@@ -363,16 +325,33 @@
 
 	// Pathfinding/search
 	if(isnull(best_local_pos))
-		best_local_pos = ChooseCoverleapLandmark(startpos, primary_threat, prev_loc_memdata, threats, min_safe_dist)
+		var/main_threat = length(threats) ? threats[1] : null
+		best_local_pos = ChooseCoverleapLandmark(startpos, main_threat, prev_loc_memdata, threats, min_safe_dist)
 		best_local_pos?.pDrawVectorbeam(pawn, best_local_pos, "n_beam")
 
 		tracker?.BBSet("bestpos", best_local_pos)
 		tracker?.BBSet("StartDist", (ManhattanDistance(get_turf(pawn), best_local_pos) || 0))
 		ACTION_RUNTIME_DEBUG_LOG((isnull(best_local_pos) ? "[src]: Best local pos: null" : "[src]: Best local pos ([best_local_pos?.x], [best_local_pos?.y])"))
 
-
 	if(best_local_pos && (!src.active_path || src.active_path.target != best_local_pos))
-		StartNavigateTo(best_local_pos, 0, null)
+		var/list/path = src.AiAStar(
+			start = get_turf(pawn),
+			end = get_turf(best_local_pos),
+			adjacent = /proc/fCardinalTurfsNoblocks,
+			dist = DEFAULT_GOAI_DISTANCE_PROC,
+			max_nodes = 0,
+			max_node_depth = null,
+			min_target_dist = 0,
+			min_node_dist = null,
+			adj_args = null,
+			exclude = null
+		)
+
+		if(isnull(path))
+			src.brain?.SetMemory("UnreachableTile", best_local_pos)
+			best_local_pos.unreachable_penalty += 10
+		else
+			src.brain?.SetMemory(MEM_PATH_ACTIVE, path)
 
 	if(best_local_pos)
 		var/dist_to_pos = ManhattanDistance(get_turf(pawn), best_local_pos)
@@ -404,5 +383,3 @@
 		tracker.SetFailed()
 
 	return
-
-

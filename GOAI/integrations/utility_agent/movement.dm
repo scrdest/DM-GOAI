@@ -77,7 +77,7 @@
 		var/datum/Quadruple/best_cand_quad = queue.Dequeue()
 
 		if(!best_cand_quad)
-			to_world_log("[src.name]: No Quad found, breaking the ValidateWaypoint loop!")
+			MAYBE_LOG("[src.name]: No Quad found, breaking the ValidateWaypoint loop!")
 			break
 
 		best_local_pos = best_cand_quad.fourth
@@ -98,7 +98,6 @@
 	if(found_path)
 		var/obstacle_idx = src.CheckForObstacles(found_path)
 		if(obstacle_idx)
-			world.log << "OBSTACLE = [obstacle_idx]"
 			if(obstacle_idx > 1)
 				best_local_pos = found_path[obstacle_idx - 1]
 
@@ -168,7 +167,6 @@
 
 			break
 
-	world.log << "OBSTRUCTION [obstruction] @ IDX [path_pos] ([dirty_path[path_pos]])"
 	obstruction_pos = path_pos
 
 	return obstruction_pos
@@ -216,6 +214,7 @@
 
 	if(pathtracker)
 		src.active_path = pathtracker
+		src.brain.SetMemory(MEM_PATH_ACTIVE, pathtracker.path)
 
 	else
 		var/turf/curr_loc = get_turf(pawn)

@@ -123,7 +123,7 @@
 		if(At.attachments)
 			var/datum/event_queue/hit/hitqueue = At.attachments.Get(ATTACHMENT_EVTQUEUE_HIT)
 
-			if(hitqueue)
+			if(istype(hitqueue))
 				var/datum/event/hit/hit_evt = new("Hit @ [world.time]", angle, From)
 				hitqueue.Add(hit_evt)
 

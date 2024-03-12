@@ -122,3 +122,10 @@
 // These should effectively force other tags to be ignored entirely.
 # define GOAI_REL_LUDICROUS_WEIGHT 10000
 # define GOAI_REL_LUDICROUS_VALUE 10000
+
+
+/* Raycast blocking */
+# define RAYCAST_BLOCK_ALL 1
+# define RAYCAST_BLOCK_NONE -1
+# define RAYCAST_BLOCK_CALLPROC 0
+

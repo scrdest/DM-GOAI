@@ -54,8 +54,13 @@
 		RAYTRACE_DEBUG_LOG("([currX], [currY]) @ [n], [error]")
 		sleep(-1)
 
+
+		var/dx_for_angle = (currX - startX)
+		var/dy_for_angle = (currY - startY)
+		var/curr_angle = arctan(dx_for_angle, dy_for_angle)
+
 		if(!isnull(CheckBlock))
-			blocker = call(CheckBlock)(currX, currY, From.z, ignore)
+			blocker = call(CheckBlock)(currX, currY, From.z, curr_angle, ignore)
 
 		if(blocker)
 			RAYTRACE_DEBUG_LOG("Blocker [blocker] @ ([currX], [currY]) / [absSlope] == [arctan(absSlope)]")
@@ -119,7 +124,7 @@
 	return ((reachedX && reachedY) ? To : blocker)
 
 
-/proc/basicBlockCheck(var/x, var/y, var/z, var/list/ignored = null)
+/proc/basicBlockCheck(var/x, var/y, var/z, var/angle, var/list/ignored = null)
 	var/turf/blockturf = locate(x, y, z)
 	var/has_ignored = !(isnull(ignored) && istype(ignored) && ignored.len)
 
@@ -130,11 +135,11 @@
 	return FALSE
 
 
-/proc/denseCheck(var/x, var/y, var/z, var/list/ignored = null)
+/proc/denseCheck(var/x, var/y, var/z, var/angle, var/list/ignored = null)
 	var/turf/blockturf = locate(x, y, z)
-	var/has_ignored = !(isnull(ignored) && istype(ignored) && ignored.len)
+	var/has_ignored = !(istype(ignored) && ignored.len)
 
-	if(blockturf && istype(blockturf))
+	if(istype(blockturf))
 		if(blockturf.density > 0)
 			// Optimization: only check membership if we NEED to potentially ignore it
 			// Non-dense items are ignored regardless!
@@ -142,10 +147,14 @@
 				return blockturf
 
 		for(var/atom/movable/A in blockturf)
-			if(A?.density > 0)
+			if(A.density)
 				// Optimization: only check membership if we NEED to potentially ignore it
 				// Non-dense items are ignored regardless!
 				if(has_ignored && (A in ignored))
+					continue
+
+				if(!(A.GetRaycastCoverage(angle)))
+					// Atoms can have a random %chance to act as a blocker.
 					continue
 
 				return A

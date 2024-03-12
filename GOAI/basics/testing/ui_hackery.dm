@@ -31,7 +31,11 @@
 	if(src.mode & MODE_JUMPMOB)
 		// Make double-clicking an atom jump the mob there
 		var/atom/trg = object
-		if(trg && src.mob)
+		if(istype(trg) && src.mob)
+			if(istype(trg, /obj/vectorbeam))
+				// those are ephemeral, if you jump to them you'll crash
+				return
+
 			Move(trg, get_dir(src.mob, trg))
 
 
@@ -230,6 +234,8 @@
 		return
 
 	var/datum/memory/created_mem = commander_brain.SetMemory("ai_target", position, PLUS_INF)
+	commander_brain.SetMemory("ai_target_mindist", 1, PLUS_INF)
+
 	var/atom/waypoint = created_mem?.val
 
 	to_chat(usr, (waypoint ? "[commander] now tracking [waypoint]" : "[commander] not tracking waypoints"))

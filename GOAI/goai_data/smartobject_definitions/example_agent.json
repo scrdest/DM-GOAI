@@ -20,13 +20,119 @@
 		},
 		{
 			"name": "Flee", 
-			"description": "Bravely turn tail and run.", 
+			"description": "Bravely turn tail and run because you're scared.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/FleeFrom", 
-			"priority": 5,
+			"priority": 16,
 			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
 			"context_args": [
 				{
-					"key": "fleethreat",
+					"key": "mainthreat",
+					"output_context_key": "position"
+				}
+			],
+			"considerations": [
+				{
+					"name": "HasThreat",
+					"input_proc": "/proc/consideration_input_arg_not_null",
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "PanicLevel",
+					"input_proc": "/proc/consideration_input_get_need_perc",
+					"input_args": {
+						"input_key": "composure"
+					},
+					"lo_mark": 0.2, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_antisquare"
+				},
+				{
+					"name": "BraveryTrait",
+					"input_proc": "/proc/consideration_input_get_personality_trait",
+					"input_args": {
+						"input_key": "bravery",
+						"default": 0
+					},
+					"lo_mark": 0, 
+					"hi_mark": 1.2, 
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "ClDistanceToThreat",
+					"lo_mark": 2, 
+					"hi_mark": 8, 
+					"noise_scale": 10,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antisquare"
+				}
+			]
+		},
+		{
+			"name": "GetToCover", 
+			"description": "Duck and cover.", 
+			"handler": "/datum/utility_ai/mob_commander/proc/HandleDirectionalCoverLeapfrog", 
+			"priority": 8,
+			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
+			"context_args": [
+				{
+					"input_key": "Enemies",
+					"output_context_key": "threat"
+				}
+			],
+			"considerations": [
+				{
+					"name": "ClDistanceToThreat",
+					"lo_mark": 2, 
+					"hi_mark": 8, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antisquare"
+				},
+				{
+					"name": "OutInTheOpen",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_in_line_of_sight", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "Random",
+					"lo_mark": 25, 
+					"hi_mark": 150, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_urand", 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "FleeOrdered", 
+			"description": "Bravely turn tail and run as ordered.", 
+			"handler": "/datum/utility_ai/mob_commander/proc/FleeFrom", 
+			"priority": 8,
+			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
+			"context_args": [
+				{
+					"key": "forced_fleethreat",
 					"output_context_key": "position"
 				}
 			],

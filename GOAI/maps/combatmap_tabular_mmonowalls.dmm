@@ -1,0 +1,40 @@
+"a" = (/turf/wall,/area)
+"b" = (/turf/ground,/area)
+"c" = (/mob/living/simple_animal/aitester/utility{faction = "ANTAG"; name = "ANTAG D"; real_name = "ANTAG D"},/turf/ground,/area)
+"d" = (/mob/living/simple_animal/aitester/utility{faction = "B"; icon_state = "terran_marine"; name = "Terran B"; real_name = "Terran B"},/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester/utility{faction = "ANTAG"; name = "ANTAG C"; real_name = "ANTAG C"},/turf/ground,/area)
+"f" = (/obj/cover/barricade,/turf/ground,/area)
+"g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
+"h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)
+"i" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
+"j" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
+"k" = (/mob/living/simple_animal/aitester/utility{faction = "B"; icon_state = "terran_marine"; name = "Terran A"; real_name = "Terran A"},/turf/ground,/area)
+"l" = (/mob/living/simple_animal/aitester/utility{faction = "B"; icon_state = "terran_marine"; name = "Terran D"; real_name = "Terran D"},/turf/ground,/area)
+"m" = (/mob/living/simple_animal/aitester/utility{faction = "B"; icon_state = "terran_marine"; name = "Terran C"; real_name = "Terran C"},/turf/ground,/area)
+"n" = (/mob/living/simple_animal/aitester/utility{faction = "ANTAG"; name = "ANTAG B"; real_name = "ANTAG B"},/turf/ground,/area)
+"o" = (/mob/living/simple_animal/aitester/utility{faction = "ANTAG"; name = "ANTAG A"; real_name = "ANTAG A"},/turf/ground,/area)
+"p" = (/mob/living/simple_animal/aitester/utility{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist A"; real_name = "Skrellorist A"},/turf/ground,/area)
+"q" = (/mob/living/simple_animal/aitester/utility{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist C"; real_name = "Skrellorist C"},/turf/ground,/area)
+"r" = (/mob/living/simple_animal/aitester/utility{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist B"; real_name = "Skrellorist B"},/turf/ground,/area)
+"s" = (/mob/living/simple_animal/aitester/utility{faction = "Skrell"; icon_state = "skrellorist"; name = "Skrellorist D"; real_name = "Skrellorist D"},/turf/ground,/area)
+
+(1,1,1) = {"
+abbaaaaaaaaaaaaaaa
+abbabbbbbbbbbbbbba
+aababgbbibbbbbhbba
+abbabbbbcbbbbbhbbb
+abbaiibbbbibbbbbba
+abbabbbebnbbbbbibb
+abbabbbbobbbfdbbba
+abbabbbbbbbkbbbljb
+abbaijbbbbbbbmbbbb
+abbabbbbbbbibbbhba
+abaabbbbbpbbbbbhbb
+abbabbbqbbbrbbbhbb
+abbajjbbbsbbbbbbbb
+abbabbbbbbfjjbbbja
+aaaabgbbbbbbbbbbbb
+abbhbbbjbbbbbbbbbb
+abbbbabbbbbbbbbbbb
+aaaaaaaaaaaaaaaaaa
+"}

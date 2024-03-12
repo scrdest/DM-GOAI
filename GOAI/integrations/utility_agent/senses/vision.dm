@@ -1,5 +1,7 @@
 
 /sense/combatant_commander_eyes
+	// max length of stored enemies
+	var/max_enemies = 5
 
 
 /sense/combatant_commander_eyes/proc/UpdatePerceptions(var/datum/utility_ai/mob_commander/owner)
@@ -66,11 +68,8 @@
 		if (enemy_dist <= 0)
 			continue
 
-		enemies.Add(enemy)
 		var/datum/Tuple/enemy_tup = new(enemy_dist, enemy)
 		target_queue.Enqueue(enemy_tup)
-
-	owner_brain.SetMemory("Enemies", enemies, owner.ai_tick_delay*20)
 
 	var/tries = 0
 	var/maxtries = 3
@@ -81,15 +80,13 @@
 		target = best_target_tup.right
 		tries++
 
+		if(length(enemies) < src.max_enemies)
+			enemies.Add(target)
+
 	if(istype(target))
-		var/list/threat_memory_data = list(
-			KEY_GHOST_X = target.x,
-			KEY_GHOST_Y = target.y,
-			KEY_GHOST_Z = target.z,
-			KEY_GHOST_POS_TUPLE = target.CurrentPositionAsTuple(),
-		)
-		var/dict/threat_memory_ghost = new(threat_memory_data)
-		owner_brain.SetMemory(MEM_THREAT, threat_memory_ghost, owner.ai_tick_delay*20)
+		var/turf/threat_pos = get_turf(target)
+		if(istype(threat_pos))
+			owner_brain.SetMemory(MEM_THREAT, threat_pos, owner.ai_tick_delay*20)
 
 		// forecast-raycast goes here once I find it
 
@@ -108,15 +105,20 @@
 		target = best_sec_target_tup.right
 		secondary_tries++
 
+		if(length(enemies) < src.max_enemies)
+			enemies.Add(target)
+
 	if(istype(secondary_threat))
-		var/list/secondary_threat_memory_data = list(
-			KEY_GHOST_X = secondary_threat.x,
-			KEY_GHOST_Y = secondary_threat.y,
-			KEY_GHOST_Z = secondary_threat.z,
-			KEY_GHOST_POS_TUPLE = secondary_threat.CurrentPositionAsTuple(),
-		)
-		var/dict/secondary_threat_memory_ghost = new(secondary_threat_memory_data)
-		owner_brain.SetMemory(MEM_THREAT_SECONDARY, secondary_threat_memory_ghost, owner.ai_tick_delay*20)
+		var/turf/secondary_threat_pos = get_turf(target)
+		if(istype(secondary_threat_pos))
+			owner_brain.SetMemory(MEM_THREAT_SECONDARY, secondary_threat_pos, owner.ai_tick_delay*20)
+
+	while(length(target_queue.L) && length(enemies) < src.max_enemies)
+		var/datum/Tuple/next_enemy_tuple = target_queue.Dequeue()
+		var/nme = next_enemy_tuple.right
+		enemies.Add(nme)
+
+	owner_brain.SetMemory(MEM_ENEMIES, enemies, owner.ai_tick_delay*5)
 
 	return TRUE
 

@@ -5,13 +5,6 @@
 */
 
 
-# ifdef MOTIVES_DEBUG_LOGGING
-# define MOTIVES_DEBUG_LOG(X) to_world_log(X)
-# else
-# define MOTIVES_DEBUG_LOG(X)
-# endif
-
-
 /datum/brain/concrete
 
 

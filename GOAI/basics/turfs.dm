@@ -1,3 +1,10 @@
+/turf
+	// Used by AI.
+	// Any AI that fails to path to this turf will bump the penalty a bit,
+	// discouraging future AIs from trying to path here.
+	// This is fuzzy and incremental, so a one-off failure should disqualify a turf forever.
+	var/unreachable_penalty = 0
+
 # ifdef GOAI_LIBRARY_FEATURES
 
 /turf/ground

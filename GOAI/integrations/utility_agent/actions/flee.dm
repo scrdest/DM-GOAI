@@ -24,12 +24,10 @@
 		RUN_ACTION_DEBUG_LOG("curr_loc is null | <@[src]> | [__FILE__] -> L[__LINE__]")
 		return
 
-	src.allow_wandering = FALSE
-
 	var/turf/bestcand = curr_loc
 	var/bestdist = MANHATTAN_DISTANCE(curr_loc, position)
 
-	for(var/i = 0, i < 5, i++)
+	for(var/i = 0, i < 3, i++)
 		var/new_bestcand = null
 		var/list/cardinals = fCardinalTurfsNoblocksObjpermissive(curr_loc)
 
@@ -51,6 +49,8 @@
 
 	if((!src.active_path || src.active_path.target != position))
 		src.brain?.SetMemory("ai_target", bestcand)
+		src.brain?.SetMemory("ai_target_mindist", 0, PLUS_INF)
+
 		var/datum/ActivePathTracker/stored_path = StartNavigateTo(bestcand, min_dist, null)
 
 		if(isnull(stored_path))
@@ -66,6 +66,11 @@
 		else
 			src.brain?.SetMemory(MEM_PATH_ACTIVE, stored_path.path, 100)
 			tracker.SetDone()
+
+			var/datum/brain/concrete/needybrain = src.brain
+			if(istype(needybrain))
+				needybrain.AddMotive(NEED_COMPOSURE, MAGICNUM_COMPOSURE_GAIN_FLEED)
+
 			return
 
 	var/pathing_timeout = DEFAULT_IF_NULL(timeout, 30)
