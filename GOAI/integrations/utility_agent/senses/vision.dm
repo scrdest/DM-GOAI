@@ -54,6 +54,7 @@
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 	var/list/enemies = list()
+	var/list/enemy_positions = list()
 
 	// TODO: Refactor to accept objects/structures as threats (turrets, grenades...).
 	for(var/mob/enemy in true_searchspace)
@@ -80,8 +81,11 @@
 		target = best_target_tup.right
 		tries++
 
-		if(length(enemies) < src.max_enemies)
+		if(istype(target) && length(enemies) < src.max_enemies)
 			enemies.Add(target)
+			var/turf/trgTurf = get_turf(target)
+			if(istype(trgTurf))
+				enemy_positions.Add(trgTurf)
 
 	if(istype(target))
 		var/turf/threat_pos = get_turf(target)
@@ -105,8 +109,11 @@
 		target = best_sec_target_tup.right
 		secondary_tries++
 
-		if(length(enemies) < src.max_enemies)
+		if(istype(target) && length(enemies) < src.max_enemies)
 			enemies.Add(target)
+			var/turf/trgTurf = get_turf(target)
+			if(istype(trgTurf))
+				enemy_positions.Add(trgTurf)
 
 	if(istype(secondary_threat))
 		var/turf/secondary_threat_pos = get_turf(target)
@@ -115,10 +122,15 @@
 
 	while(length(target_queue.L) && length(enemies) < src.max_enemies)
 		var/datum/Tuple/next_enemy_tuple = target_queue.Dequeue()
-		var/nme = next_enemy_tuple.right
-		enemies.Add(nme)
+		var/atom/nme = next_enemy_tuple.right
+		if(istype(nme))
+			enemies.Add(nme)
+			var/turf/nmeT = get_turf(nme)
+			if(istype(nmeT))
+				enemy_positions.Add(nmeT)
 
 	owner_brain.SetMemory(MEM_ENEMIES, enemies, owner.ai_tick_delay*5)
+	owner_brain.SetMemory(MEM_ENEMIES_POSITIONS, enemy_positions, owner.ai_tick_delay*5)
 
 	return TRUE
 

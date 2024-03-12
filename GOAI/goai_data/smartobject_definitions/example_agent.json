@@ -23,33 +23,58 @@
 			"description": "Bravely turn tail and run because you're scared.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/FleeFrom", 
 			"priority": 16,
-			"context_procs": ["/proc/ctxfetcher_get_memory_value"], 
+			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
 			"context_args": [
 				{
-					"key": "mainthreat",
-					"output_context_key": "position"
+					"input_key": "Enemies",
+					"output_context_key": "threat"
 				}
 			],
 			"considerations": [
 				{
-					"name": "HasThreat",
-					"input_proc": "/proc/consideration_input_arg_not_null",
+					"name": "Panic",
+					"input_proc": "/proc/consideration_input_get_need_perc",
 					"input_args": {
-						"input_key": "position",
-						"from_context": 1
+						"input_key": "composure",
+						"default": 1
 					},
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"curve_proc": "/proc/curve_linear"
+					"lo_mark": 0.0, 
+					"hi_mark": 0.5, 
+					"curve_proc": "/proc/curve_antibinary"
 				},
 				{
 					"name": "PanicLevel",
 					"input_proc": "/proc/consideration_input_get_need_perc",
 					"input_args": {
-						"input_key": "composure"
+						"input_key": "composure",
+						"default": 1
 					},
-					"lo_mark": 0.2, 
-					"hi_mark": 1, 
+					"lo_mark": 0.0, 
+					"hi_mark": 1.0, 
+					"curve_proc": "/proc/curve_antisquare"
+				},
+				{
+					"name": "IsFoe",
+					"lo_mark": -50, 
+					"hi_mark": 0, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_relationship_score", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antibinary"
+				},
+				{
+					"name": "ClDistanceToThreat",
+					"lo_mark": 2, 
+					"hi_mark": 20, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
 					"curve_proc": "/proc/curve_antisquare"
 				},
 				{
@@ -64,16 +89,12 @@
 					"curve_proc": "/proc/curve_antilinear"
 				},
 				{
-					"name": "ClDistanceToThreat",
-					"lo_mark": 2, 
-					"hi_mark": 8, 
-					"noise_scale": 10,
-					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1
-					},
-					"curve_proc": "/proc/curve_antisquare"
+					"name": "Random",
+					"lo_mark": -10, 
+					"hi_mark": 140, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_urand", 
+					"curve_proc": "/proc/curve_linear"
 				}
 			]
 		},
@@ -91,9 +112,21 @@
 			],
 			"considerations": [
 				{
+					"name": "IsFoe",
+					"lo_mark": -50, 
+					"hi_mark": 0, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_relationship_score", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antibinary"
+				},
+				{
 					"name": "ClDistanceToThreat",
 					"lo_mark": 2, 
-					"hi_mark": 8, 
+					"hi_mark": 11, 
 					"noise_scale": 0,
 					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
 					"input_args": {
@@ -112,12 +145,12 @@
 						"input_key": "threat",
 						"from_context": 1
 					},
-					"curve_proc": "/proc/curve_antilinear"
+					"curve_proc": "/proc/curve_linear"
 				},
 				{
 					"name": "Random",
-					"lo_mark": 25, 
-					"hi_mark": 150, 
+					"lo_mark": -50, 
+					"hi_mark": 50, 
 					"noise_scale": 0,
 					"input_proc": "/proc/consideration_input_urand", 
 					"curve_proc": "/proc/curve_linear"
@@ -133,21 +166,10 @@
 			"context_args": [
 				{
 					"key": "forced_fleethreat",
-					"output_context_key": "position"
+					"output_context_key": "threat"
 				}
 			],
 			"considerations": [
-				{
-					"name": "Has threat",
-					"input_proc": "/proc/consideration_input_arg_not_null",
-					"input_args": {
-						"input_key": "position",
-						"from_context": 1
-					},
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"curve_proc": "/proc/curve_binary"
-				},
 				{
 					"name": "ClDistanceToThreat",
 					"lo_mark": 1, 

@@ -129,3 +129,48 @@
 # define RAYCAST_BLOCK_NONE -1
 # define RAYCAST_BLOCK_CALLPROC 0
 
+// bitflag-encoding:
+
+// stopped by dense turfs, e.g. walls
+// 00000001
+# define RAYFLAG_TURFBLOCK 1
+
+// stopped by non-transparent dense objects, e.g. doors but not windoors (unless the RAYFLAGE_TRANSPARENTBLOCK flag is set)
+// 00000010
+# define RAYFLAG_OPAQUEBLOCK 2
+
+// stopped by transparent dense objects, e.g. windoors but not doors (unless the RAYFLAG_OPAQUEBLOCK flag is set)
+// 00000100
+# define RAYFLAG_TRANSPARENTBLOCK 4
+
+// stopped by stochastic coverage checks on partial cover, e.g. tables
+// this is additive with RAYFLAG_OPAQUEBLOCK / RAYFLAGE_TRANSPARENTBLOCK,
+// so if both of those are unset, this won't do much
+// 00001000
+# define RAYFLAG_RANDCOVERBLOCK 8
+
+// WILL hit the target if it's on the line
+// 00000000
+# define RAYTYPE_UNSTOPPABLE 0
+
+// Line-of-Sight, for checking if it's even worth aiming
+// (RAYFLAG_TURFBLOCK | RAYFLAG_OPAQUEBLOCK)
+// 00000011
+# define RAYTYPE_LOS 3
+
+// Similar to LoS, but for actual shooting - check if we hit covers too. Good for lasers etc.
+// (RAYFLAGE_RANDCOVERBLOCK | RAYFLAG_OPAQUEBLOCK | RAYFLAG_TURFBLOCK)
+// 00001011
+# define RAYTYPE_BEAM 11
+
+// Blocked by anything dense. As the name indicates, meant for boolets etc.
+// (RAYFLAGE_RANDCOVERBLOCK | RAYFLAG_TRANSPARENTBLOCK | RAYFLAG_OPAQUEBLOCK | RAYFLAG_TURFBLOCK)
+// 00001111
+# define RAYTYPE_PROJECTILE 15
+
+// Like RAYTYPE_PROJECTILE, but ignores cover checks - use for checking if it's worth aiming at the target or armor-piercing projectiles
+// (RAYFLAG_TRANSPARENTBLOCK | RAYFLAG_OPAQUEBLOCK | RAYFLAG_TURFBLOCK)
+// 00000111
+# define RAYTYPE_PROJECTILE_NOCOVER 7
+
+# define DEFAULT_RAYTYPE RAYTYPE_UNSTOPPABLE

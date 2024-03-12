@@ -7,7 +7,7 @@
 	// Pathfinding/search
 	var/atom/_startpos = (startpos || get_turf(pawn))
 	var/list/_threats = (threats || src.brain?.GetMemoryValue(MEM_ENEMIES) || list())
-	var/_min_safe_dist = (isnull(min_safe_dist) ? 0 : min_safe_dist)
+	var/_min_safe_dist = (isnull(min_safe_dist) ? 2 : min_safe_dist)
 
 	var/turf/best_local_pos = null
 	//var/list/processed = list(_startpos)
@@ -32,6 +32,8 @@
 
 	var/atom/waypoint_ident = brain?.GetMemoryValue(MEM_WAYPOINT_IDENTITY, null, FALSE, TRUE)
 	var/datum/chunk/waypointchunk = null
+
+	var/half_worldview = (0.5 * world.view)
 
 	if(waypoint_ident)
 		// This only applies to the case where the brain has a Waypoint stored, i.e. when we're
@@ -108,14 +110,15 @@
 
 		var/same_chunk_penalty = 0
 
-		var/datum/chunk/candchunk = chunkserver.ChunkForAtom(candidate_cover)
+		if(!isnull(waypointchunk))
+			var/datum/chunk/candchunk = chunkserver.ChunkForAtom(candidate_cover)
 
-		// We want substantial progress and not just oscillations around the same bad position...
-		if(candchunk == startchunk)
-			// ... unless we're close to the target - then we can make small adjustments.
-			if(candchunk != waypointchunk)
-				continue
-				//same_chunk_penalty = MAGICNUM_DISCOURAGE_SOFT
+			// We want substantial progress and not just oscillations around the same bad position...
+			if(candchunk == startchunk)
+				// ... unless we're close to the target - then we can make small adjustments.
+				if(candchunk != waypointchunk)
+					continue
+					//same_chunk_penalty = MAGICNUM_DISCOURAGE_SOFT
 
 		for(var/turf/cand in adjacents)
 			if(unreachable && cand == unreachable)
@@ -140,8 +143,10 @@
 			if(cand == candidate_cover || cand == get_turf(candidate_cover))
 				penalty -= 100
 
+			/*
 			if(prev_loc_memdata && prev_loc_memdata == cand)
 				penalty += MAGICNUM_DISCOURAGE_SOFT
+			*/
 
 			var/threat_dist = PLUS_INF
 			var/invalid_tile = FALSE
@@ -163,13 +168,15 @@
 					invalid_tile = TRUE
 					break
 
-				penalty += -threat_dist  // the further from a threat, the better
+				penalty += max(0, (half_worldview - threat_dist)) * 15  // the further from a threat, the better
 
 			if(invalid_tile)
 				continue
 
 			var/cand_dist = ManhattanDistance(cand, pawn)
-			if(cand_dist < 3)
+
+
+			if(waypoint_ident && cand_dist < 3)
 				// we want substantial moves only
 				penalty += MAGICNUM_DISCOURAGE_SOFT
 				//continue
@@ -223,7 +230,7 @@
 
 			// Reminder to self: higher values are higher priority
 			// Smaller penalty => also higher priority
-			var/datum/Quadruple/cover_quad = new(penalty, -noisy_dist, -cand_dist, cand)
+			var/datum/Quadruple/cover_quad = new(penalty, noisy_dist, cand_dist, cand)
 			cover_queue.Enqueue(cover_quad)
 			processed.Add(cand)
 
@@ -243,7 +250,7 @@
 		return
 
 	var/turf/startpos = tracker.BBSetDefault("startpos", get_turf(pawn))
-	var/list/threats = (src.brain?.GetMemoryValue(MEM_ENEMIES) || list())
+	var/list/threats = (src.brain?.GetMemoryValue(MEM_ENEMIES_POSITIONS) || list())
 	var/min_safe_dist = brain.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, 2)
 	var/turf/prev_loc_memdata = brain?.GetMemoryValue(MEM_PREVLOC, null, FALSE)
 
@@ -276,15 +283,15 @@
 	var/turf/best_local_pos = null
 	best_local_pos = best_local_pos || tracker?.BBGet("bestpos", null)
 	if(brain && isnull(best_local_pos))
-		best_local_pos = brain.GetMemoryValue(MEM_DIRLEAP_BESTPOS, best_local_pos)
+		best_local_pos = src.brain.GetMemoryValue(MEM_DIRLEAP_BESTPOS, best_local_pos)
 
-	var/min_safe_dist = (brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, null) || 2)
+	var/min_safe_dist = (src.brain?.GetPersonalityTrait(KEY_PERS_MINSAFEDIST, null) || 2)
 	var/frustration_repath_maxthresh = (brain?.GetPersonalityTrait(KEY_PERS_FRUSTRATION_THRESH, null) || 3)
 
-	var/list/threats = brain.GetMemoryValue(MEM_ENEMIES)
+	var/list/threats = src.brain.GetMemoryValue(MEM_ENEMIES_POSITIONS) || list()
 
 	// Previous position
-	var/turf/prev_loc_memdata = brain?.GetMemoryValue(MEM_PREVLOC, null, FALSE)
+	var/turf/prev_loc_memdata = src.brain?.GetMemoryValue(MEM_PREVLOC, null, FALSE)
 
 	// Shot-at logic (avoid known currently unsafe positions):
 	/*
@@ -320,7 +327,7 @@
 			CancelNavigate()
 			best_local_pos = null
 			tracker.BBSet("bestpos", null)
-			brain?.DropMemory(MEM_DIRLEAP_BESTPOS)
+			src.brain?.DropMemory(MEM_DIRLEAP_BESTPOS)
 			break
 
 	// Pathfinding/search
@@ -361,22 +368,22 @@
 		tracker.SetFailed()
 
 	var/walk_dist = (tracker?.BBGet("StartDist") || 0)
-	var/datum/brain/concrete/needybrain = brain
+	var/datum/brain/utility/needybrain = brain
 
 	if(tracker.IsTriggered() && !tracker.is_done)
 		if(tracker.TriggeredMoreThan(1))
 			tracker.SetDone()
-			brain?.SetMemory(MEM_PREVLOC, startpos, MEM_TIME_LONGTERM)
+			src.brain?.SetMemory(MEM_PREVLOC, startpos, MEM_TIME_LONGTERM)
 
 	else if(src.active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * (20 + walk_dist)))
-		if(needybrain)
+		if(istype(needybrain))
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
 		tracker.SetFailed()
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * (10 + walk_dist)))
-		if(needybrain)
+		if(istype(needybrain))
 			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()

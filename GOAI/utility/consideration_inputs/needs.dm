@@ -21,7 +21,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_need_perc)
 		default = consideration_args["default"]
 
 	if(isnull(default))
-		default = NEED_MINIMUM
+		default = NEED_MAXIMUM
 
 	var/value = requesting_brain.needs[input_key]
 	if(isnull(value))

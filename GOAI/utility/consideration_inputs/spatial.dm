@@ -219,6 +219,11 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_in_line_of_sight)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_in_line_of_sight Candidate is null @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
-	var/forecasted_impactee = AtomDensityRaytrace(pawn, candidate, list(pawn))
+	var/raytype = consideration_args?["raytype"]
+	if(isnull(raytype))
+		raytype = RAYTYPE_LOS
 
-	return ( (forecasted_impactee == candidate) )
+	var/forecasted_impactee = AtomDensityRaytrace(pawn, candidate, list(pawn), raytype)
+	var/result = ( (forecasted_impactee == candidate) )
+
+	return result

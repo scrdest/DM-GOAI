@@ -254,7 +254,7 @@
 	if(isnull(by_whom))
 		return
 
-	var/datum/brain/concrete/needybrain = src.brain
+	var/datum/brain/utility/needybrain = src.brain
 	if(istype(needybrain))
 		needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_ONHIT)
 

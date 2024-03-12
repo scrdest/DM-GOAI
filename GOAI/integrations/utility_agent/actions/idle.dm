@@ -8,7 +8,7 @@
 
 	src.allow_wandering = TRUE
 
-	var/datum/brain/concrete/needybrain = src.brain
+	var/datum/brain/utility/needybrain = src.brain
 	if(istype(needybrain))
 		needybrain.AddMotive(NEED_COMPOSURE, MAGICNUM_COMPOSURE_GAIN_IDLE)
 

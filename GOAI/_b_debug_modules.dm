@@ -75,3 +75,9 @@
 # else
 	# define MOTIVES_DEBUG_LOG(X)
 # endif
+
+# ifdef RAYTRACE_DEBUG_LOGGING
+	# define RAYTRACE_DEBUG_LOG(X) to_world_log(X)
+# else
+	# define RAYTRACE_DEBUG_LOG(X)
+# endif

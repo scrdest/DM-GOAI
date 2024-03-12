@@ -30,10 +30,10 @@
 		if(!(M?.brain))
 			continue
 
-		M.brain.SetMemory("ai_target", Trg, M.ai_tick_delay * 10)
-		M.brain.SetMemory("ai_target_mindist", 2, M.ai_tick_delay * 10)
-		M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, Trg, M.ai_tick_delay * 10)
-		M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
+		M.brain.SetMemory("ai_target", Trg, M.ai_tick_delay * 20)
+		M.brain.SetMemory("ai_target_mindist", 2, M.ai_tick_delay * 20)
+		M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, Trg, M.ai_tick_delay * 20)
+		M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 3)
 
 	return
 
@@ -145,6 +145,7 @@
 		for(var/other_faction in active_factions)
 			var/list/members = active_factions[other_faction]
 			if(!(MC in members))
+				to_chat(usr, "[MC] now hates [other_faction]")
 				MC.SetRelationshipTag(other_faction, -GOAI_REL_LUDICROUS_VALUE, GOAI_REL_LUDICROUS_WEIGHT)
 
 	return

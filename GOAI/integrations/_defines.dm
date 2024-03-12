@@ -29,6 +29,7 @@
 // Keys for the memory dict
 # define MEM_SHOTAT "ShotAt"
 # define MEM_ENEMIES "Enemies"
+# define MEM_ENEMIES_POSITIONS "EnemyPositions"
 # define MEM_THREAT "Threat"
 # define MEM_THREAT_SECONDARY "ThreatSecondary"
 # define MEM_WAYPOINT_IDENTITY "WaypointRef"
@@ -49,16 +50,16 @@
 # define MAGICNUM_DISCOURAGE_SOFT 10000
 
 // How much getting shot decays the AI's COMPOSURE need.
-# define MAGICNUM_COMPOSURE_LOSS_ONHIT 30
+# define MAGICNUM_COMPOSURE_LOSS_ONHIT 20
 
 // How much failing a movement decays the AI's COMPOSURE need.
 # define MAGICNUM_COMPOSURE_LOSS_FAILMOVE 1
 
 // How much relaxing increases the AI's COMPOSURE need
-# define MAGICNUM_COMPOSURE_GAIN_IDLE 15
+# define MAGICNUM_COMPOSURE_GAIN_IDLE 5
 
 // How much fleeing increases the AI's COMPOSURE need
-# define MAGICNUM_COMPOSURE_GAIN_FLEED 20
+# define MAGICNUM_COMPOSURE_GAIN_FLEED 30
 
 
 # define PANIC_SENSE_THROTTLE (1 * COMBATAI_AI_TICK_DELAY)
