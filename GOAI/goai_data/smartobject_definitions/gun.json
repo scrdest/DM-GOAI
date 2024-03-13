@@ -41,7 +41,7 @@
 				},
 				{
 					"name": "ThreatRNG",
-					"lo_mark": -150, 
+					"lo_mark": -250, 
 					"hi_mark": 50, 
 					"noise_scale": 0,
 					"input_proc": "/proc/consideration_input_urand", 

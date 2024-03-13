@@ -1,7 +1,12 @@
 
 /sense/combatant_commander_eyes
 	// max length of stored enemies
-	var/max_enemies = 5
+	var/max_enemies = DEFAULT_MAX_ENEMIES
+
+	// max length of stored friends
+	var/max_friends = DEFAULT_MAX_ENEMIES
+	// max distance to count friendlies
+	var/friend_dist_cutoff = 4
 
 
 /sense/combatant_commander_eyes/proc/UpdatePerceptions(var/datum/utility_ai/mob_commander/owner)
@@ -34,7 +39,7 @@
 	return
 
 
-/sense/combatant_commander_eyes/proc/SpotThreats(var/datum/utility_ai/mob_commander/owner)
+/sense/combatant_commander_eyes/proc/AssessThreats(var/datum/utility_ai/mob_commander/owner)
 	if(isnull(owner))
 		return
 
@@ -53,6 +58,8 @@
 		return
 
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
+
+	var/list/friends = list()
 	var/list/enemies = list()
 	var/list/enemy_positions = list()
 
@@ -61,12 +68,15 @@
 		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal) || istype(enemy, /mob/living/bot)))
 			continue
 
-		if(!(owner.IsEnemy(enemy)))
-			continue
-
 		var/enemy_dist = ManhattanDistance(my_loc, enemy)
 
 		if (enemy_dist <= 0)
+			continue
+
+		if(!(owner.IsEnemy(enemy)))
+			if(length(friends) < src.max_friends && enemy_dist < friend_dist_cutoff && owner.IsFriend(enemy))
+				friends.Add(enemy)
+
 			continue
 
 		var/datum/Tuple/enemy_tup = new(enemy_dist, enemy)
@@ -90,7 +100,7 @@
 	if(istype(target))
 		var/turf/threat_pos = get_turf(target)
 		if(istype(threat_pos))
-			owner_brain.SetMemory(MEM_THREAT, threat_pos, owner.ai_tick_delay*20)
+			owner_brain.SetMemory(MEM_THREAT, threat_pos, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
 
 		// forecast-raycast goes here once I find it
 
@@ -118,7 +128,7 @@
 	if(istype(secondary_threat))
 		var/turf/secondary_threat_pos = get_turf(target)
 		if(istype(secondary_threat_pos))
-			owner_brain.SetMemory(MEM_THREAT_SECONDARY, secondary_threat_pos, owner.ai_tick_delay*20)
+			owner_brain.SetMemory(MEM_THREAT_SECONDARY, secondary_threat_pos, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
 
 	while(length(target_queue.L) && length(enemies) < src.max_enemies)
 		var/datum/Tuple/next_enemy_tuple = target_queue.Dequeue()
@@ -129,8 +139,27 @@
 			if(istype(nmeT))
 				enemy_positions.Add(nmeT)
 
-	owner_brain.SetMemory(MEM_ENEMIES, enemies, owner.ai_tick_delay*5)
-	owner_brain.SetMemory(MEM_ENEMIES_POSITIONS, enemy_positions, owner.ai_tick_delay*5)
+	// Just the currently visible mobs
+	// Short-term - otherwise AI will be clairvoyant
+	owner_brain.SetMemory(MEM_FRIENDS, friends, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+	owner_brain.SetMemory(MEM_ENEMIES, enemies, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+
+	if(length(enemy_positions))
+		// Copy the previous latest
+		var/list/current_stored_enemy_positions = owner_brain.GetMemoryValue(MEM_ENEMIES_POSITIONS_LATEST) || list()
+
+		// Update with new
+		owner_brain.SetMemory(MEM_ENEMIES_POSITIONS_LATEST, enemy_positions.Copy(), owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+
+		// shift previous tick's positions to another slot
+		if(length(current_stored_enemy_positions))
+			owner_brain.SetMemory(MEM_ENEMIES_POSITIONS_RETAINED, current_stored_enemy_positions, owner.ai_tick_delay * MEM_AITICK_MULT_MIDTERM)
+
+			// merge in previous for a separate memory of both ticks
+			enemy_positions.Add(current_stored_enemy_positions)
+
+		// Store the two lists merged
+		owner_brain.SetMemory(MEM_ENEMIES_POSITIONS, enemy_positions, owner.ai_tick_delay * MEM_AITICK_MULT_MIDTERM)
 
 	return TRUE
 
@@ -178,7 +207,7 @@
 	processing = TRUE
 
 	UpdatePerceptions(owner)
-	SpotThreats(owner)
+	AssessThreats(owner)
 	//SpotWaypoint(owner)
 
 	spawn(src.GetOwnerAiTickrate(owner) * 3)

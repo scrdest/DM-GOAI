@@ -174,8 +174,6 @@
 	success = (
 		step_result || (
 			(pawn.x == bestcand.x) && (pawn.y == bestcand.y)
-		) || (
-			(pawn.x == bestcand.x) && (pawn.y == bestcand.y)
 		)
 	)
 

@@ -143,6 +143,7 @@
 #include "utility\serde.dm"
 #include "utility\smart_objects.dm"
 #include "utility\consideration_inputs\abstract.dm"
+#include "utility\consideration_inputs\aggregate.dm"
 #include "utility\consideration_inputs\health.dm"
 #include "utility\consideration_inputs\memory.dm"
 #include "utility\consideration_inputs\needs.dm"

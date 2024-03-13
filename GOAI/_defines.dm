@@ -48,7 +48,7 @@
 
 # endif
 
-#define GUN_DISPERSION 5
+#define GUN_DISPERSION 10
 #define DEFAULT_ORPHAN_CLEANUP_THRESHOLD 3
 
 #define SENSE_SIGHT "SenseSight"
@@ -85,6 +85,8 @@
 
 // Size of the GOAI plan buffer; if we would exceed it, eject a plan.
 #define MAX_STORED_PLANS 1
+
+#define DEFAULT_MAX_ENEMIES 8
 
 #define MEM_ACTION_MINUS_ONE "action-1"
 #define MEM_ACTION_MINUS_TWO "action-2"

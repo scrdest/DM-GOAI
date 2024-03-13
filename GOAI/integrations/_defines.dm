@@ -26,10 +26,16 @@
 // Memory system constants
 # define MEM_TIME_LONGTERM 1000000
 
+# define MEM_AITICK_MULT_SHORTTERM 8
+# define MEM_AITICK_MULT_MIDTERM 16
+
 // Keys for the memory dict
 # define MEM_SHOTAT "ShotAt"
+# define MEM_FRIENDS "Friendlies"
 # define MEM_ENEMIES "Enemies"
 # define MEM_ENEMIES_POSITIONS "EnemyPositions"
+# define MEM_ENEMIES_POSITIONS_LATEST "EnemyPositionsLatest"
+# define MEM_ENEMIES_POSITIONS_RETAINED "EnemyPositionsRetained"
 # define MEM_THREAT "Threat"
 # define MEM_THREAT_SECONDARY "ThreatSecondary"
 # define MEM_WAYPOINT_IDENTITY "WaypointRef"

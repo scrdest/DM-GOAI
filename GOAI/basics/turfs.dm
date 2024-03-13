@@ -158,10 +158,14 @@
 			continue
 
 		if(check_objects_permissive)
+			var/mob/M = object
+			if(istype(M))
+				continue
+
 			# ifdef GOAI_SS13_SUPPORT
 
 			var/obj/machinery/door/D = object
-			if(D && istype(D))
+			if(istype(D))
 				continue
 
 			# endif
@@ -169,15 +173,15 @@
 			# ifdef GOAI_LIBRARY_FEATURES
 
 			var/obj/cover/door/D = object
-			if(D && istype(D))
+			if(istype(D))
 				continue
 
 			var/obj/cover/autodoor/AD = object
-			if(AD && istype(AD))
+			if(istype(AD))
 				continue
 
 			var/obj/cover/table/T = object
-			if(T && istype(T))
+			if(istype(T))
 				continue
 
 			# endif

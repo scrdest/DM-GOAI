@@ -348,5 +348,5 @@
 	if(isnull(motive_key))
 		return
 
-	var/curr_val = needs[motive_key] || NEED_MINIMUM
+	var/curr_val = needs[motive_key] || ((NEED_MAXIMUM - NEED_MINIMUM) / 2)
 	ChangeMotive(motive_key, curr_val + amt)

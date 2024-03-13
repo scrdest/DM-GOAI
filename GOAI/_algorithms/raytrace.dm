@@ -150,7 +150,11 @@
 		return null
 
 	var/has_ignored = !(isnull(ignored) && istype(ignored) && ignored.len)
-	var/turf/blockturf = locate(x, y, z)
+
+	var/baseX = round(x, 1)
+	var/baseY = round(y, 1)
+
+	var/turf/blockturf = locate(baseX, baseY, z)
 
 	if(blockturf && istype(blockturf))
 		if(has_ignored && !(blockturf in ignored) && blockturf.density > 0)
@@ -166,7 +170,11 @@
 		// no point checking the rest
 		return FALSE
 
-	var/turf/blockturf = locate(x, y, z)
+	var/baseX = round(x, 1)
+	var/baseY = round(y, 1)
+
+	var/turf/blockturf = locate(baseX, baseY, z)
+
 	var/has_ignored = !(istype(ignored) && ignored.len)
 
 	var/check_opaque = _raytype & RAYFLAG_OPAQUEBLOCK

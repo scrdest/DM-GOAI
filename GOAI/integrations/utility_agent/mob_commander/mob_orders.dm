@@ -26,13 +26,17 @@
 /mob/verb/AllCommandersGiveFollowOrder(mob/Trg in world)
 	set category = "Commander Orders"
 
+	var/turf/trgturf = get_turf(Trg)
+	if(isnull(trgturf))
+		to_chat(usr, "[Trg] physical location not found")
+
 	for(var/datum/utility_ai/mob_commander/M in GOAI_LIBBED_GLOB_ATTR(global_goai_registry))
 		if(!(M?.brain))
 			continue
 
-		M.brain.SetMemory("ai_target", Trg, M.ai_tick_delay * 20)
+		M.brain.SetMemory("ai_target", trgturf, M.ai_tick_delay * 20)
 		M.brain.SetMemory("ai_target_mindist", 2, M.ai_tick_delay * 20)
-		M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, Trg, M.ai_tick_delay * 20)
+		M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, trgturf, M.ai_tick_delay * 20)
 		M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 3)
 
 	return
