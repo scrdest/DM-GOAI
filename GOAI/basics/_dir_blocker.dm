@@ -119,14 +119,23 @@
 /atom/proc/GetBlockerData(var/generate_if_missing = FALSE, var/log_on_missing = FALSE)
 	var/datum/directional_blocker/myblocker = src.directional_blocker
 
-	if(!myblocker)
-		if(src.blocker_gen_enabled)
-			if(generate_if_missing)
-				spawn(0)
-					myblocker = src.GenerateCover()
-					src.directional_blocker = myblocker
+	if(src.ShouldHaveBlocker())
+		if(istype(myblocker))
+			to_world_log("[src] has a blocker... but it shouldn't!")
 
-			if(log_on_missing)
-				to_world_log("Failed to get blocker for [src] - no blocker data!")
+		else
+			if(src.blocker_gen_enabled)
+				// so we don't log every first encounter
+				var/generated = FALSE
+
+				if(generate_if_missing)
+					generated = TRUE
+
+					spawn(0)
+						myblocker = src.GenerateCover()
+						src.directional_blocker = myblocker
+
+				if(!generated && log_on_missing)
+					to_world_log("Failed to get blocker for [src] - no blocker data!")
 
 	return src.directional_blocker
