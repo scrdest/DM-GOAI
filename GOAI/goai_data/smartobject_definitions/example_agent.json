@@ -221,15 +221,67 @@
 			]
 		},
 		{
+			"name": "Punch", 
+			"description": "Throw a punch", 
+			"handler": "/datum/utility_ai/mob_commander/proc/PunchSimple", 
+			"priority": 8,
+			"context_procs": ["/proc/ctxfetcher_get_memory_value_array"], 
+			"context_args": [
+				{
+					"input_key": "Enemies",
+					"output_context_key": "threat"
+				}
+			],
+			"considerations": [
+				{
+					"name": "MeleeAffinity",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_get_personality_trait", 
+					"input_args": {
+						"input_key": "MeleeAffinity",
+						"default": 0
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "ClDistanceToThreat",
+					"lo_mark": 1, 
+					"hi_mark": 2, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_chebyshev_distance_to_requester", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "IsFoe",
+					"lo_mark": -50, 
+					"hi_mark": 0, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_relationship_score", 
+					"input_args": {
+						"input_key": "threat",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				}
+			]
+		},
+		{
 			"name": "Grenade", 
 			"description": "Throws an (entirely fake) grenade", 
 			"handler": "/datum/utility_ai/mob_commander/proc/FakeGrenadeThrow", 
-			"priority": 19,
+			"priority": 80,
 			"context_procs": ["/proc/ctxdeco_bounding_box_turfs"], 
 			"context_args": [
 				{
 					"wrapped_proc": "/proc/ctxfetcher_get_memory_value_array",
-					"max_area": 40,
+					"padding": 1,
+					"max_area": 50,
 					"wrapped_proc_args": {
 						"input_key": "Enemies",
 						"output_context_key": "output"
@@ -240,7 +292,32 @@
 			],
 			"considerations": [
 				{
-					"name": "Don't drop it on ourselves",
+					"name": "NotWall",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_read_var", 
+					"input_args": {
+						"input_key": "target",
+						"from_context": 1,
+						"variable": "density"
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				},
+				{
+					"name": "GrenadeUsageAffinity",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_get_personality_trait", 
+					"input_args": {
+						"input_key": "GrenadeAffinity",
+						"default": 0
+					},
+					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "NotHurtingOurselves",
 					"lo_mark": 3, 
 					"hi_mark": 8, 
 					"noise_scale": 0,
@@ -252,7 +329,7 @@
 					"curve_proc": "/proc/curve_antibinary"
 				},
 				{
-					"name": "MeanDistanceToFriends",
+					"name": "NotHurtingFriends",
 					"lo_mark": 2, 
 					"hi_mark": 6, 
 					"noise_scale": 0,
@@ -274,7 +351,7 @@
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
-					"name": "MeanDistanceToThreat",
+					"name": "EnemiesHurt",
 					"lo_mark": 1, 
 					"hi_mark": 3, 
 					"noise_scale": 0,
@@ -304,7 +381,8 @@
 					"input_args": {
 						"input_key": "target",
 						"from_context": 1,
-						"raytype": 15
+						"ignore_enemies": 1,
+						"raytype": 7
 					},
 					"curve_proc": "/proc/curve_linear"
 				}

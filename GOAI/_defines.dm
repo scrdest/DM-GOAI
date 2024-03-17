@@ -46,7 +46,7 @@
 
 # endif
 
-#define GUN_DISPERSION 10
+#define GUN_DISPERSION 5
 #define DEFAULT_ORPHAN_CLEANUP_THRESHOLD 3
 
 #define SENSE_SIGHT "SenseSight"
