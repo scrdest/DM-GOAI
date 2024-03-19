@@ -144,6 +144,7 @@
 					"input_args": {
 						"input_key": "threat",
 						"from_context": 1,
+						"default": 999, 
 						"aggregated_proc": "/proc/consideration_input_manhattan_distance_to_requester",
 						"aggregated_proc_args": {
 							"input_key": "threat",
@@ -165,18 +166,21 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"noise_scale": 0,
-					"input_proc": "/proc/consideration_decorator_max", 
+					"input_proc": "/proc/consideration_decorator_min", 
 					"input_args": {
 						"input_key": "threat",
 						"from_context": 1,
-						"cutoff": 1,
-						"aggregated_proc": "/proc/consideration_input_in_line_of_sight",
+						"default": 999,
+						"aggregated_proc": "/proc/consideration_input_raytrace_impactee_distance_to_target",
 						"aggregated_proc_args": {
 							"input_key": "threat",
+							"reverse": 1,
+							"raytype": 7,
+							"default": 999,
 							"from_context": 1
 						}
 					},
-					"curve_proc": "/proc/curve_linear"
+					"curve_proc": "/proc/curve_antilinear"
 				},
 				{
 					"name": "NumericalAdvantage",
@@ -275,8 +279,8 @@
 			"name": "Grenade", 
 			"description": "Throws an (entirely fake) grenade", 
 			"handler": "/datum/utility_ai/mob_commander/proc/FakeGrenadeThrow", 
-			"priority": 80,
-			"context_procs": ["/proc/ctxdeco_bounding_box_turfs"], 
+			"priority": 9,
+			"context_procs": ["/proc/ctxdeco_bounding_box_turfs_around_objects"], 
 			"context_args": [
 				{
 					"wrapped_proc": "/proc/ctxfetcher_get_memory_value_array",
@@ -292,19 +296,6 @@
 			],
 			"considerations": [
 				{
-					"name": "NotWall",
-					"lo_mark": 0, 
-					"hi_mark": 1, 
-					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_read_var", 
-					"input_args": {
-						"input_key": "target",
-						"from_context": 1,
-						"variable": "density"
-					},
-					"curve_proc": "/proc/curve_antilinear"
-				},
-				{
 					"name": "GrenadeUsageAffinity",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
@@ -318,22 +309,22 @@
 				},
 				{
 					"name": "NotHurtingOurselves",
-					"lo_mark": 3, 
-					"hi_mark": 8, 
+					"lo_mark": 0, 
+					"hi_mark": 2, 
 					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_proc": "/proc/consideration_input_chebyshev_distance_to_requester", 
 					"input_args": {
 						"input_key": "target",
 						"from_context": 1
 					},
-					"curve_proc": "/proc/curve_antibinary"
+					"curve_proc": "/proc/curve_binary"
 				},
 				{
 					"name": "NotHurtingFriends",
-					"lo_mark": 2, 
-					"hi_mark": 6, 
+					"lo_mark": 0, 
+					"hi_mark": 2, 
 					"noise_scale": 0,
-					"input_proc": "/proc/consideration_decorator_mean", 
+					"input_proc": "/proc/consideration_decorator_min", 
 					"input_args": {
 						"from_memory": "Friendlies",
 						"input_key": "friend",
@@ -348,7 +339,7 @@
 							"to_from_context": 1
 						}
 					},
-					"curve_proc": "/proc/curve_linear"
+					"curve_proc": "/proc/curve_binary"
 				},
 				{
 					"name": "EnemiesHurt",
@@ -370,21 +361,21 @@
 							"to_from_context": 1
 						}
 					},
-					"curve_proc": "/proc/curve_antilinear"
+					"curve_proc": "/proc/curve_antisquare"
 				},
 				{
 					"name": "ClearThrow",
 					"lo_mark": 0, 
-					"hi_mark": 1, 
+					"hi_mark": 2, 
 					"noise_scale": 0,
-					"input_proc": "/proc/consideration_input_in_line_of_sight", 
+					"input_proc": "/proc/consideration_input_raytrace_impactee_distance_to_target", 
 					"input_args": {
 						"input_key": "target",
 						"from_context": 1,
 						"ignore_enemies": 1,
 						"raytype": 7
 					},
-					"curve_proc": "/proc/curve_linear"
+					"curve_proc": "/proc/curve_antilinear"
 				}
 			]
 		}
