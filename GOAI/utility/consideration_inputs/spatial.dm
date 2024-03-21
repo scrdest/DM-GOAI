@@ -14,26 +14,36 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_manhattan_distance_to_req
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requesting identity is null (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
 		return null
 
+	var/from_memory = consideration_args?["from_memory"]
+
 	var/from_ctx = consideration_args?["from_context"]
 	if(isnull(from_ctx))
-		from_ctx = TRUE
+		from_ctx = !from_memory
 
 	var/pos_key = consideration_args?["input_key"] || "position"
 
-	var/raw_qry_target = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+	var/raw_qry_target = null
+
+	if(from_memory)
+		raw_qry_target = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
+
+	else if(from_ctx)
+		raw_qry_target = context[pos_key]
+
+	else
+		raw_qry_target = consideration_args[pos_key]
+
 	if(isnull(raw_qry_target))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_manhattan_distance_to_requester raw_qry_target is null ([raw_qry_target || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/atom/query_target = raw_qry_target
-	//DEBUGLOG_UTILITY_INPUT_FETCHERS("Query target is [query_target || "null"] @ L[__LINE__] in [__FILE__]")
 
 	if(isnull(query_target))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_manhattan_distance_to_requester query_target is null ([query_target || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/result = ManhattanDistance(requester_entity, query_target)
-	//DEBUGLOG_UTILITY_INPUT_FETCHERS("ManhattanDistance input is [result || "null"] @ L[__LINE__] in [__FILE__]")
 	return result
 
 
@@ -51,13 +61,25 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_chebyshev_distance_to_req
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("Requesting identity is null (from [requester || "null"] raw val) @ L[__LINE__] in [__FILE__]")
 		return null
 
+	var/from_memory = consideration_args?["from_memory"]
+
 	var/from_ctx = consideration_args?["from_context"]
 	if(isnull(from_ctx))
-		from_ctx = TRUE
+		from_ctx = !from_memory
 
 	var/pos_key = consideration_args?["input_key"] || "position"
 
-	var/raw_qry_target = (from_ctx ? context[pos_key] : consideration_args[pos_key])
+	var/raw_qry_target = null
+
+	if(from_memory)
+		raw_qry_target = _cihelper_get_brain_data(action_template, context, requester, consideration_args)
+
+	else if(from_ctx)
+		raw_qry_target = context[pos_key]
+
+	else
+		raw_qry_target = consideration_args[pos_key]
+
 	if(isnull(raw_qry_target))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_chebyshev_distance_to_requester raw_qry_target is null ([raw_qry_target || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
@@ -70,7 +92,6 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_chebyshev_distance_to_req
 		return null
 
 	var/result = ChebyshevDistance(requester_entity, query_target)
-	//DEBUGLOG_UTILITY_INPUT_FETCHERS("ManhattanDistance input is [result || "null"] @ L[__LINE__] in [__FILE__]")
 	return result
 
 
@@ -173,13 +194,15 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_raytrace_impactee_distanc
 	var/datum/utility_ai/mob_commander/requester_ai = requester
 
 	if(isnull(requester_ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_in_line_of_sight requester_ai is null ([requester_ai || "null"]) @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_raytrace_impactee_distance_to_target requester_ai is null ([requester_ai || "null"]) @ L[__LINE__] in [__FILE__]")
+		to_world_log("consideration_input_in_line_of_sight requester_ai is null ([requester_ai || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/mob/pawn = requester_ai?.GetPawn()
 
 	if(isnull(pawn))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_in_line_of_sight Pawn is null @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_input_raytrace_impactee_distance_to_target Pawn is null @ L[__LINE__] in [__FILE__]")
+		to_world_log("consideration_input_raytrace_impactee_distance_to_target Pawn is null @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/default = consideration_args["default"] || PLUS_INF
@@ -191,7 +214,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_raytrace_impactee_distanc
 	var/from_ctx = FALSE
 	var/from_memory_key = FALSE
 
-	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "consideration_input_in_line_of_sight")
+	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "consideration_input_raytrace_impactee_distance_to_target")
 
 	if(isnull(candidate))
 		// Try context:
@@ -210,7 +233,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_raytrace_impactee_distanc
 
 		if(from_memory_key)
 			if(!istype(requesting_brain))
-				DEBUGLOG_MEMORY_FETCH("consideration_input_in_line_of_sight Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
+				DEBUGLOG_MEMORY_FETCH("consideration_input_raytrace_impactee_distance_to_target Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 				return default
 
 			candidate = requesting_brain.GetMemoryValue(from_memory_key)
