@@ -126,7 +126,7 @@
 			"name": "GetToCover", 
 			"description": "Duck and cover.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
-			"priority": 16,
+			"priority": 8,
 			"context_procs": ["/proc/ctxfetcher_cover_candidates"], 
 			"context_args": [
 				{
