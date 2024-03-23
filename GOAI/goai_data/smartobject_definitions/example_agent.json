@@ -19,6 +19,27 @@
 			]
 		},
 		{
+			"name": "Shieldwall", 
+			"description": "Form a shield wall, lol.", 
+			"handler": "/datum/utility_ai/mob_commander/proc/SteerTo", 
+			"priority": 100,
+			"context_procs": ["/proc/ctxfetcher_shieldwall_candidates"], 
+			"considerations": [
+				{
+					"name": "DistanceToPos",
+					"lo_mark": 0, 
+					"hi_mark": 9, 
+					"noise_scale": 0,
+					"input_proc": "/proc/consideration_input_manhattan_distance_to_requester", 
+					"input_args": {
+						"input_key": "position",
+						"from_context": 1
+					},
+					"curve_proc": "/proc/curve_antilinear"
+				}
+			]
+		},
+		{
 			"name": "Flee", 
 			"description": "Bravely turn tail and run because you're scared.", 
 			"handler": "/datum/utility_ai/mob_commander/proc/FleeFrom", 

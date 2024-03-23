@@ -32,6 +32,7 @@
 // Keys for the memory dict
 # define MEM_SHOTAT "ShotAt"
 # define MEM_FRIENDS "Friendlies"
+# define MEM_FRIENDS_POSITIONS "FriendlyPositions"
 # define MEM_ENEMIES "Enemies"
 # define MEM_ENEMIES_POSITIONS "EnemyPositions"
 # define MEM_ENEMIES_POSITIONS_LATEST "EnemyPositionsLatest"

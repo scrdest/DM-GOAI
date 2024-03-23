@@ -14,7 +14,7 @@
 	var/max_friends = DEFAULT_MAX_ENEMIES
 
 	// max distance to count friendlies
-	var/friend_dist_cutoff = 4
+	var/friend_dist_cutoff = 6
 
 
 /sense/combatant_commander_eyes/proc/UpdatePerceptions(var/datum/utility_ai/mob_commander/owner)
@@ -68,7 +68,10 @@
 	var/PriorityQueue/target_queue = new /PriorityQueue(/datum/Tuple/proc/FirstCompare)
 
 	var/list/occupied_turfs = list()
+
 	var/list/friends = list()
+	var/list/friend_positions = list()
+
 	var/list/enemies = list()
 	var/list/enemy_positions = list()
 
@@ -89,6 +92,9 @@
 		if(!(owner.IsEnemy(enemy)))
 			if(length(friends) < src.max_friends && enemy_dist < friend_dist_cutoff && owner.IsFriend(enemy))
 				friends.Add(enemy)
+				var/turf/friend_pos = get_turf(enemy)
+				if(!isnull(friend_pos))
+					friend_positions.Add(friend_pos)
 
 			continue
 
@@ -158,6 +164,9 @@
 	// Short-term - otherwise AI will be clairvoyant
 	owner_brain.SetMemory(MEM_FRIENDS, friends, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
 	owner_brain.SetMemory(MEM_ENEMIES, enemies, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+
+	if(length(friend_positions))
+		owner_brain.SetMemory(MEM_FRIENDS_POSITIONS, friend_positions, owner.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
 
 	if(length(enemy_positions))
 		// Copy the previous latest

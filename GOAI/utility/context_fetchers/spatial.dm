@@ -160,7 +160,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_adjacent_turfs)
 
 
 CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_cardinal_turfs)
-	// Returns a simple list of visible turfs, suitable e.g. for pathfinding.
+	// Returns a simple list of adjacent turfs, suitable e.g. for pathfinding.
 
 	if(isnull(requester))
 		UTILITYBRAIN_DEBUG_LOG("WARNING: requester for ctxfetcher_cardinal_turfs is null @ L[__LINE__] in [__FILE__]!")
