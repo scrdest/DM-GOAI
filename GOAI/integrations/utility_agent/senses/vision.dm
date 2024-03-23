@@ -185,7 +185,7 @@
 			if(src.check_threatened_max > 0 && threats_checked++ >= src.check_threatened_max)
 				break
 
-			var/atom/whosehit = AtomDensityRaytrace(raytrace_enemy, pawn, ignorelist, RAYTYPE_PROJECTILE)
+			var/atom/whosehit = AtomDensityRaytrace(raytrace_enemy, pawn, ignorelist, RAYTYPE_PROJECTILE, FALSE)
 			if(isnull(whosehit))
 				continue
 

@@ -14,7 +14,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_fuzz_uniform)
 	// This is meant for randomizing AI decisions slightly without reducing activation too much.
 	// This variant uses a rescaled uniform random sample as a simple subtraction.
 	// E.g. with the scale param of 4, the minimum activation is 75%, at 8 it's 87.5%, the maximum being 100%.
-	var/scale = consideration_args?["scale"] || 10
+	var/scale = consideration_args?["scale"] || 4
 
 	var/sampled = (rand() / scale)
 
@@ -30,7 +30,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_fuzz_additive)
 	// This is meant for randomizing AI decisions slightly without reducing activation too much.
 	// This variant uses additive smoothing.
 	// E.g. with the scale param of 4, the minimum activation is 80%, at 8 it's 88%, the maximum being 100%.
-	var/scale = consideration_args?["scale"] || 10
+	var/scale = consideration_args?["scale"] || 4
 
 	var/sampled = (rand() / scale)
 

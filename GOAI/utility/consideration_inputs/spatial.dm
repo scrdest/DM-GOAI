@@ -209,6 +209,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_raytrace_impactee_distanc
 	var/strict = consideration_args["strict"] || FALSE  // only accept strict identity (in case cover is in the same tile)
 	var/reverse = consideration_args["reverse"] || FALSE  // raytrace from target to source instead of the opposite (for self-cover checks)
 	var/pos_key = consideration_args["input_key"] || "input"
+	var/check_glancing_angles = consideration_args["check_glancing_angles"] || FALSE
 	var/candidate = null
 
 	var/from_ctx = FALSE
@@ -256,25 +257,27 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_raytrace_impactee_distanc
 	if(ignore_enemies && istype(requesting_brain))
 		enemies = requesting_brain?.GetMemoryValue(MEM_ENEMIES)
 
-	var/list/ignorelist = (isnull(enemies) ? list() : enemies.Copy())
+	var/list/ignorelist = ((reverse || isnull(enemies)) ? list() : enemies.Copy())
 
 	if(reverse)
 		ignorelist.Add(candidate)
 	else
 		ignorelist.Add(pawn)
 
-	var/forecasted_impactee = (reverse ? AtomDensityRaytrace(candidate, pawn, ignorelist, raytype) : AtomDensityRaytrace(pawn, candidate, ignorelist, raytype))
+	var/atom/forecasted_impactee = (reverse ? AtomDensityRaytrace(candidate, pawn, ignorelist, raytype, check_glancing_angles) : AtomDensityRaytrace(pawn, candidate, ignorelist, raytype, check_glancing_angles))
 
 	if(isnull(forecasted_impactee))
 		return default
 
+	var/result = default
+
 	if(strict)
-		return ((forecasted_impactee == candidate) ? 0 : default)
+		result = reverse ? ((forecasted_impactee == pawn) ? 0 : default) : ((forecasted_impactee == candidate) ? 0 : default)
 
 	else
-		return get_dist(forecasted_impactee, candidate)
+		result = reverse ? get_dist(forecasted_impactee, pawn) : get_dist(forecasted_impactee, candidate)
 
-	return default
+	return result
 
 
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_distance_to_arg)

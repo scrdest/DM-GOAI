@@ -177,7 +177,7 @@
 			var/attacked = L.IAttack(target)
 			if(attacked == ATTACK_SUCCESSFUL)
 				// Might have to be removed later - should likely be handled by the harm logic itself
-				target.MeleeHitBy(H)
+				target.MeleeHitBy(L)
 				. = TRUE
 	# endif
 

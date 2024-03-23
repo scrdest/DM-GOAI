@@ -105,7 +105,7 @@
 	src.cover_data = ..()
 	src.cover_data.is_active = flipped
 	src.cover_data.cover_all = FALSE
-	src.cover_data.cover_dir = (flipped ? dir : 0)
+	src.cover_data.cover_dir = dir
 	return src.cover_data
 
 
