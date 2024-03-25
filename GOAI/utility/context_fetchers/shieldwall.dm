@@ -53,9 +53,6 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_shieldwall_candidates)
 		if(isnull(friend_loc))
 			continue
 
-		// uses direction bitflags
-		var/adjacent_offsets = 0
-
 		for(var/turf/card_pos in friend_loc.CardinalTurfs())
 			if(isnull(card_pos))
 				continue

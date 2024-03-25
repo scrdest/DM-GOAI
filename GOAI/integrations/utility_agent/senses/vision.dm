@@ -16,6 +16,9 @@
 	// max distance to count friendlies
 	var/friend_dist_cutoff = 6
 
+	// filter out dead mobs
+	var/ignore_dead = TRUE
+
 
 /sense/combatant_commander_eyes/proc/UpdatePerceptions(var/datum/utility_ai/mob_commander/owner)
 	var/datum/brain/owner_brain = owner.brain
@@ -30,7 +33,14 @@
 		// We grab the view range from the owned mob, so we need it here
 		return
 
-	var/list/visual_range = view(pawn)
+	var/list/_raw_visual_range = view(pawn)
+	var/list/visual_range = list()
+
+	for(var/atom/viewthing in _raw_visual_range)
+		if(!(CHECK_ALL_FLAGS(viewthing.goai_processing_visibility, GOAI_VISTYPE_STANDARD)))
+			continue
+
+		visual_range.Add(viewthing)
 
 	if(visual_range)
 		owner_brain?.perceptions[SENSE_SIGHT_CURR] = visual_range
@@ -78,6 +88,10 @@
 	// TODO: Refactor to accept objects/structures as threats (turrets, grenades...).
 	for(var/mob/enemy in true_searchspace)
 		if(!(istype(enemy, /mob/living/carbon) || istype(enemy, /mob/living/simple_animal) || istype(enemy, /mob/living/bot)))
+			continue
+
+		var/mob/living/L = enemy
+		if(ignore_dead && istype(L) && L.stat == DEAD)
 			continue
 
 		var/turf/enemyTurf = get_turf(enemy)

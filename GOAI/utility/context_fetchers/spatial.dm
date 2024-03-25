@@ -137,6 +137,8 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_adjacent_turfs)
 		filter_type = text2path(raw_type)
 		filter_output_key = context_args?["filter_output_key"]
 
+	var/filter_only = context_args?["filter_only"] || FALSE
+
 	for(var/turf/pos in trangeGeneric(1, atom_requester.x, atom_requester.y, atom_requester.z))
 		if(isnull(pos))
 			continue
@@ -152,7 +154,9 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_adjacent_turfs)
 			if(!isnull(filter_output_key))
 				ctx[filter_output_key] = found_type
 
-		ctx[context_key] = pos
+		if(!filter_only)
+			ctx[context_key] = pos
+
 		contexts[++(contexts.len)] = ctx
 		//UTILITYBRAIN_DEBUG_LOG("INFO: added position #[posidx] [pos] context [ctx] (len: [ctx?.len]) to contexts (len: [contexts.len]) @ L[__LINE__] in [__FILE__]!")
 

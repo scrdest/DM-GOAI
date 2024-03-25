@@ -1,0 +1,31 @@
+"a" = (/turf/wall,/area)
+"b" = (/obj/spawner/oneshot/create_stairs,/turf/ground,/area)
+"c" = (/obj/spawner/oneshot/create_stairs{dir = 8},/turf/ground,/area)
+"d" = (/obj/spawner/oneshot/create_stairs{dir = 4},/turf/ground,/area)
+"e" = (/turf/ground,/area)
+"f" = (/obj/spawner/oneshot/create_stairs{dir = 1},/turf/ground,/area)
+"g" = (/turf/open,/area)
+"h" = (/mob/living/simple_animal/aitester/utility,/turf/ground,/area)
+"i" = (/obj/spawner/oneshot/create_ladders,/turf/ground,/area)
+
+(1,1,1) = {"
+aaaaaaaa
+aeaeaiea
+abaeaaea
+aeaedaea
+aeaaaaaa
+aeeeeefa
+aeeaceea
+aaaaaaaa
+"}
+
+(1,1,2) = {"
+eaaaaaaa
+aaeeaeea
+ageaaaea
+aeeageea
+aehagaea
+aeeaaaga
+aeeegaga
+aaaaaaaa
+"}

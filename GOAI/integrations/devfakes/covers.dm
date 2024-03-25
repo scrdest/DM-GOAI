@@ -1,22 +1,12 @@
-/mob/IsCover(var/transitive = FALSE, var/for_dir = null, var/default_for_null_dir = FALSE)
-	// For now. Mobs being cover is fine in principle,
-	// but it messes with testing (ghost counts as cover!)
-	return FALSE
+# ifdef GOAI_LIBRARY_FEATURES
 
+// Dev-only cover objects for testing logic
 
 /* Abstract Base Class */
 /obj/cover
 	// Abstract Base Class, do not use directly!
-	# ifdef GOAI_LIBRARY_FEATURES
 	icon = 'icons/obj/structures.dmi'
 	icon_state = "woodenbarricade"
-	# endif
-
-	# ifdef GOAI_SS13_SUPPORT
-	icon = 'icons/obj/doors/material_doors.dmi'
-	icon_state = "metal"
-	# endif
-
 	density = 1
 
 
@@ -172,15 +162,8 @@
 
 /* Simple, non-powered door */
 /obj/cover/door
-	# ifdef GOAI_LIBRARY_FEATURES
 	icon = 'icons/obj/doors/mineral_doors.dmi'
 	icon_state = "wood"
-	# endif
-
-	# ifdef GOAI_SS13_SUPPORT
-	icon = 'icons/obj/doors/material_doors.dmi'
-	icon_state = "metal"
-	# endif
 
 	var/open = FALSE
 	density = FALSE
@@ -459,3 +442,5 @@
 	set src in view(1)
 	var/result = Toggle(TRUE)
 	return result
+
+# endif

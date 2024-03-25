@@ -14,7 +14,7 @@
 
 /turf/ground/New()
 	. = ..()
-	name += " ([x], [y])"
+	name += " ([x], [y], [z])"
 
 
 /turf/wall
@@ -270,19 +270,44 @@
 	var/turf/start_turf = get_turf(start)
 
 	for(var/turf/t in (trange(1, start) - start))
+		var/valid = FALSE
+
 		if(check_blockage)
 			if(!(t.IsBlocked(check_objects, check_objects_permissive)))
 				if(!(check_links && GoaiLinkBlocked(start_turf, t)))
-					adjacents += t
+					valid = TRUE
 		else
+			valid = TRUE
+
+		if(valid)
 			adjacents += t
 
-		# ifdef GOAI_SS13_SUPPORT
 		# ifdef GOAI_MULTIZ_ASTAR
-		// this should be considered in IsBlocked, but isn't yet
-		var/deltaDir = get_dir(start, t)
 
+		# ifdef GOAI_LIBRARY_FEATURES
 		if(threeD)
+			var/turf/open/openTurf = t
+			if(istype(openTurf))
+				var/turf/below = openTurf.GetBelow()
+				if(!isnull(below))
+					adjacents.Add(below)
+
+			/* Handle stairs */
+
+			var/deltaDir = get_dir(start_turf, t)
+			var/obj/structure/stairs/S = locate(/obj/structure/stairs) in t
+
+			if(istype(S))
+				var/turf/Upstairs = S.above
+
+				if(Upstairs && (S.dir == deltaDir))// && !LinkBlockedAboveGoai(src, Upstairs, deltaDir))
+					adjacents.Add(Upstairs)
+					//continue // do not add t
+		# endif
+
+		# ifdef GOAI_SS13_SUPPORT
+		if(threeD)
+			// restore deltaDir agh
 			var/turf/simulated/open/OP = get_step(src, deltaDir)
 			if(istype(OP) && !OP.density)
 				if((!locate(/obj/structure/lattice) in OP) && !GoaiLinkBlocked(src, OP))
@@ -350,16 +375,23 @@
 	return result
 
 
-/proc/fDistance(var/turf/start, var/T)
+/proc/fDistance(var/turf/start, var/atom/T)
 	if(!start)
 		return
 
-	var/chebyDist = get_dist(start, T)
-	var/turf/t = T
+	if(!istype(T))
+		return
+
+	var/chebyDist = ChebyshevDistance(start, T)
+	var/turf/t = get_turf(T)
 
 	if(istype(t))
 		var/deltaX = abs(start.x - t.x)
 		var/deltaY = abs(start.y - t.y)
+
+		#ifdef GOAI_MULTIZ_ASTAR
+		var/deltaZ = start.z - t.z
+		#endif
 
 		var/cost = deltaX + deltaY
 
@@ -375,11 +407,9 @@
 				cost = 1.414
 
 			#ifdef GOAI_MULTIZ_ASTAR
-			var/zdelta = start.z - t.z
-
 			// For now, assume moving up and down is penalized equally
 			// In the future, down might be slightly preferred.
-			cost += (abs(zdelta) * ASTAR_ZMOVE_BASE_PENALTY)
+			cost += (abs(deltaZ) * ASTAR_ZMOVE_BASE_PENALTY)
 			#endif
 
 			cost *= (start.pathweight + t.pathweight)/2
@@ -402,20 +432,20 @@
 	var/turf/t = T
 
 	if(t && istype(t))
-		for(var/obj/O in t.contents)
-			if(!(O?.density))
+		for(var/atom/movable/AM in t.contents)
+			if(!(AM?.density))
 				continue
 
 			# ifdef GOAI_SS13_SUPPORT
 
-			var/obj/machinery/door/D = O
+			var/obj/machinery/door/D = AM
 			if(istype(D))
 				continue
 
 			# endif
 
 			// unhandled blocking junk gets a penalty
-			cost += O.pathing_obstacle_penalty
+			cost += AM.pathing_obstacle_penalty
 
 	return cost
 
