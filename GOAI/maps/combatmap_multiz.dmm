@@ -4,7 +4,7 @@
 "d" = (/obj/spawner/oneshot/create_stairs{dir = 4},/turf/ground,/area)
 "e" = (/turf/ground,/area)
 "f" = (/obj/spawner/oneshot/create_stairs{dir = 1},/turf/ground,/area)
-"g" = (/turf/open,/area)
+"g" = (/turf/simulated/open,/area)
 "h" = (/mob/living/simple_animal/aitester/utility,/turf/ground,/area)
 "i" = (/obj/spawner/oneshot/create_ladders,/turf/ground,/area)
 
@@ -12,7 +12,7 @@
 aaaaaaaa
 aeaeaiea
 abaeaaea
-aeaedaea
+aaaedaea
 aeaaaaaa
 aeeeeefa
 aeeaceea

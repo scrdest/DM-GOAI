@@ -269,7 +269,73 @@
 	var/list/adjacents = list()
 	var/turf/start_turf = get_turf(start)
 
-	for(var/turf/t in (trange(1, start) - start))
+	# ifdef GOAI_MULTIZ_ASTAR
+	var/skipDirs = 0
+
+	var/turf/simulated/open/pitTurf = start
+	if(istype(pitTurf))
+		# ifdef GOAI_LIBRARY_FEATURES
+		var/turf/below = pitTurf.GetBelow()
+		# endif
+
+		# ifdef GOAI_SS13_SUPPORT
+		var/turf/below = pitTurf.below
+		if(below)
+			if(below.density || (locate(/obj/structure/lattice) in below) || GoaiLinkBlocked(src, below))
+				var/obj/structure/stairs/belowS = locate(/obj/structure/stairs) in below
+				if(belowS)
+					// redirect to stair output instead
+					adjacents.Add(get_step(below, belowS.dir))
+					skipDirs |= belowS.dir
+
+				below = null
+		# endif
+
+		if(below)
+			adjacents.Add(below)
+			return adjacents
+
+	# ifdef GOAI_LIBRARY_FEATURES
+	var/obj/structure/stairs/startS = locate(/obj/structure/stairs) in start
+
+	if(istype(startS))
+		var/turf/Upstairs = startS.above
+
+		if(Upstairs)
+			adjacents.Add(Upstairs)
+			skipDirs |= startS.dir
+	# endif
+
+	# ifdef GOAI_SS13_SUPPORT
+	var/obj/structure/stairs/startS = locate(/obj/structure/stairs) in start_turf
+	if(startS)
+		var/turf/Upstairs = GetAbove(startS)
+
+		if(Upstairs && !LinkBlockedAboveGoai(src, Upstairs, startS.dir))
+			// slightly funky - we need clearance one tile FURTHER than where the stair is
+			adjacents.Add(get_step(Upstairs, startS.dir))
+			skipDirs |= startS.dir
+	# endif
+
+	# endif
+
+	for(var/turf/t in (trange(1, start)))
+		if(t == start_turf)
+			continue
+
+		# ifdef GOAI_MULTIZ_ASTAR
+		var/deltaDir = get_dir(start_turf, t)
+
+		if(deltaDir & skipDirs)
+			var/turf/simulated/open/stairOpen = t
+			if(!istype(stairOpen))
+				// NOTE: Edge case if we have two pairs of adjacent stairs e.g. NORTH and WEST
+				//       and try to move NORTHWEST (because we allowed that fsr).
+				//       This would get blocked due to stairs even though it's a valid move.
+				//       Buuuuut we generally don't allow diagonal moves, so it's not worth worrying about yet.
+				continue
+		# endif
+
 		var/valid = FALSE
 
 		if(check_blockage)
@@ -279,52 +345,69 @@
 		else
 			valid = TRUE
 
-		if(valid)
-			adjacents += t
-
 		# ifdef GOAI_MULTIZ_ASTAR
 
 		# ifdef GOAI_LIBRARY_FEATURES
 		if(threeD)
-			var/turf/open/openTurf = t
-			if(istype(openTurf))
-				var/turf/below = openTurf.GetBelow()
-				if(!isnull(below))
-					adjacents.Add(below)
+			if(valid)
+				/* Handle stairs */
+				var/obj/structure/stairs/S = locate(/obj/structure/stairs) in t
 
-			/* Handle stairs */
+				if(istype(S))
+					var/turf/Upstairs = S.above
 
-			var/deltaDir = get_dir(start_turf, t)
-			var/obj/structure/stairs/S = locate(/obj/structure/stairs) in t
+					if(Upstairs)// && !LinkBlockedAboveGoai(src, Upstairs, deltaDir))
+						if(S.dir == deltaDir)
+							adjacents.Add(Upstairs)
 
-			if(istype(S))
-				var/turf/Upstairs = S.above
+				/* Handle ladders */
+				var/obj/structure/ladder/Lad = locate(/obj/structure/ladder) in t
 
-				if(Upstairs && (S.dir == deltaDir))// && !LinkBlockedAboveGoai(src, Upstairs, deltaDir))
-					adjacents.Add(Upstairs)
-					//continue // do not add t
+				if(istype(Lad))
+
+					if(Lad.above)
+						var/turf/Upstairs = get_turf(Lad.above)
+						if(Upstairs)
+							adjacents.Add(Upstairs)
+
+					if(Lad.below)
+						var/turf/Downstairs = get_turf(Lad.below)
+						if(Downstairs)
+							adjacents.Add(Downstairs)
 		# endif
 
 		# ifdef GOAI_SS13_SUPPORT
 		if(threeD)
-			// restore deltaDir agh
-			var/turf/simulated/open/OP = get_step(src, deltaDir)
-			if(istype(OP) && !OP.density)
-				if((!locate(/obj/structure/lattice) in OP) && !GoaiLinkBlocked(src, OP))
-					if(!OP.below.density)
-						adjacents.Add(OP.below)
+			if(valid)
+				/* Handle stairs */
+				var/obj/structure/stairs/S = locate(/obj/structure/stairs) in start_turf
 
-			/* Handle stairs */
-			var/obj/structure/stairs/S = locate(/obj/structure/stairs) in start_turf
+				if(istype(S))
+					var/turf/Upstairs = GetAbove(S)
 
-			if(istype(S))
-				var/turf/Upstairs = GetAbove(S)
+					if(S?.dir == deltaDir && !LinkBlockedAboveGoai(src, Upstairs, deltaDir))
+						// slightly funky - we need clearance one tile FURTHER than where the stair is
+						adjacents.Add(get_step(Upstairs, deltaDir))
 
-				if(S?.dir == deltaDir && !LinkBlockedAboveGoai(src, Upstairs, deltaDir))
-					// slightly funky - we need clearance one tile FURTHER than where the stair is
-					adjacents.Add(get_step(Upstairs, deltaDir))
+				/* Handle ladders */
+				var/obj/structure/ladder/Lad = locate(/obj/structure/ladder) in t
+
+				if(istype(Lad))
+
+					if(Lad.target_up)
+						var/turf/Upstairs = get_turf(Lad.target_up)
+						if(Upstairs)
+							adjacents.Add(Upstairs)
+
+					if(Lad.target_down)
+						var/turf/Downstairs = get_turf(Lad.target_down)
+						if(Downstairs)
+							adjacents.Add(Downstairs)
 		# endif
 		# endif
+
+		if(valid)
+			adjacents += t
 
 	return adjacents
 
@@ -406,13 +489,13 @@
 				//       Otherwise, for cardinal motion this will be broken into two moves with the expected cost of 2.
 				cost = 1.414
 
-			#ifdef GOAI_MULTIZ_ASTAR
-			// For now, assume moving up and down is penalized equally
-			// In the future, down might be slightly preferred.
-			cost += (abs(deltaZ) * ASTAR_ZMOVE_BASE_PENALTY)
-			#endif
-
 			cost *= (start.pathweight + t.pathweight)/2
+
+		#ifdef GOAI_MULTIZ_ASTAR
+		// For now, assume moving up and down is penalized equally
+		// In the future, down might be slightly preferred.
+		cost += (abs(deltaZ) * ASTAR_ZMOVE_BASE_PENALTY)
+		#endif
 
 		return cost
 

@@ -111,13 +111,13 @@
 	if(other.z > this.z)
 		this.above = other_loc
 		var/turf/clearance_pos = locate(this.x, this.y, other.z)
-		var/turf/open/clearance_turf = clearance_pos
+		var/turf/simulated/open/clearance_turf = clearance_pos
 		if(!istype(clearance_turf))
 			clearance_turf = new(clearance_pos)
 	else
 		other.above = target_loc
 		var/turf/clearance_pos = locate(other.x, other.y, this.z)
-		var/turf/open/clearance_turf = clearance_pos
+		var/turf/simulated/open/clearance_turf = clearance_pos
 		if(!istype(clearance_turf))
 			clearance_turf = new(clearance_pos)
 	return

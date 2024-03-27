@@ -4,12 +4,6 @@
 # define NEED_ENEMIES "enemies"
 # define NEED_OBEDIENCE "obedience"
 # define NEED_COMPOSURE "composure"
-// We do o position here to avoid hash collisions; 'o' should be an atom
-# define NEED_OBSTACLE_OPEN(o) "open [o] [ref(o)]"
-// We do a position here to avoid hash collisions; 'a' should be an atom
-// Need rather than State to allow 'incremental' plans,
-//  e.g. Plan<Near<Z>> = (Goto<X>(), Open<Y>(Near<Y>), Goto<Z>(OpenAt<Y>))
-# define NEED_NEAR_ATOM(a) "at [a] @ ([a.x], [a.y], [a.z])"
 
 // Subsystem loop schedules
 # define COMBATAI_SENSE_TICK_DELAY 4

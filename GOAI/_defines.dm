@@ -38,7 +38,7 @@
 #define COORDS_TUPLE_2D(A) "([A?.x], [A?.y])"
 #define COORDS_TUPLE_3D(A) "([A?.x], [A?.y], [A?.z])"
 // defaulting:
-#define COORDS_TUPLE COORDS_TUPLE_2D
+#define COORDS_TUPLE COORDS_TUPLE_3D
 #define LOCATION_WITH_COORDS(At) "[get_turf(At)] @ [COORDS_TUPLE(At)]"
 
 # ifdef GOAI_LIBRARY_FEATURES
@@ -204,7 +204,7 @@
 // Paths look ridiculous if you keep the cost the same as for vertical motion
 // (you get the nuCOM absurd athleticism of jumping up and down freely).
 // Custom costprocs can just Not Use This to support free-flying agents.
-#define ASTAR_ZMOVE_BASE_PENALTY 25
+#define ASTAR_ZMOVE_BASE_PENALTY 5
 
 /*
 // GOAI 'visibility' flags.

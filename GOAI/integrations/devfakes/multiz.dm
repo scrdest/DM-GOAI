@@ -2,18 +2,19 @@
 
 # ifdef GOAI_LIBRARY_FEATURES
 
-/turf/open
+/turf/simulated/open
 	icon = 'icons/turf/snow.dmi'
 	icon_state = "dimsnow"
+	pathweight = 10
 
 
-/turf/open/proc/GetBelow()
+/turf/simulated/open/proc/GetBelow()
 	var/new_z = max(1, src.z - 1)
 	var/turf/below = locate(src.x, src.y, new_z)
 	return below
 
 
-/turf/open/Enter(var/atom/movable/O, var/atom/oldloc)
+/turf/simulated/open/Enter(var/atom/movable/O, var/atom/oldloc)
 	if(get_dist(O, src) > 1)
 		return ..()
 
