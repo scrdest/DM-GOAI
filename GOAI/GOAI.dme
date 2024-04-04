@@ -69,6 +69,7 @@
 #include "basics\relationships.dm"
 #include "basics\senses.dm"
 #include "basics\turfs.dm"
+#include "basics\turfs_debug.dm"
 #include "basics\concrete_brains\_concrete.dm"
 #include "basics\concrete_brains\sim.dm"
 #include "basics\testing\generic.dm"

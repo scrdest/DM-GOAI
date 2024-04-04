@@ -1,18 +1,18 @@
 /turf/verb/GetCardinal()
 	set src in view(1)
-	var/list/neighbors = CardinalTurfs(TRUE, TRUE, TRUE)
+	var/list/neighbors = fCardinalTurfs(src, TRUE, TRUE, TRUE)
 	var/idx = 0
 
 	to_chat(usr, "==================")
 	for(var/atom/neighT in neighbors)
 		idx++
-		to_chat(usr, "Neighbor [idx] @ [neighT]")
+		to_chat(usr, "Neighbor [idx] [neighT] @ [COORDS_TUPLE(neighT)]")
 
 	to_chat(usr, "==================")
 
 	return
 
-
+/*
 /turf/verb/CheckTurfBlockage()
 	set src in view(1)
 
@@ -46,3 +46,4 @@
 	to_chat(usr, "==================")
 
 	return
+*/
