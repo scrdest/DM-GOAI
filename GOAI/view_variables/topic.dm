@@ -9,7 +9,6 @@
 		debug_variables(locate(href_list["Vars"]))
 
 	else if(href_list["varnameedit"] && href_list["datumedit"])
-		to_world("Varname Edit HIT!")
 		var/D = locate(href_list["datumedit"])
 		if(!istype(D,/datum) && !istype(D,/client))
 			to_chat(usr, "This can only be used on instances of types /client or /datum")
@@ -18,7 +17,6 @@
 		modify_variables(D, href_list["varnameedit"], 1)
 
 	else if(href_list["varnamechange"] && href_list["datumchange"])
-		to_world("Varname Change HIT!")
 		var/D = locate(href_list["datumchange"])
 		if(!istype(D,/datum) && !istype(D,/client))
 			to_chat(usr, "This can only be used on instances of types /client or /datum")
