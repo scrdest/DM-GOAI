@@ -64,12 +64,6 @@
 #define ATTACHMENT_CONTROLLER_BACKREF "AiControllerId"
 #define ATTACHMENT_EVTQUEUE_HIT "HitEventQueue"
 
-// Paths:
-#define DEFAULT_UTILITY_AI_SENSES "goai_data/dev_sense.json"
-#define DEFAULT_FACTION_AI_SENSES "goai_data/faction_senses.json"
-#define GOAPPLAN_METADATA_PATH "goai_data/goai_actions.json"
-#define DEFAULT_MOBCOMMANDER_PERSONALITY_TEMPLATE "goai_data/personality_templates/combat.json"
-
 // Helpers
 #define IS_VALID_NON_NULL(X) (!(isnull(X)) && istype(X))
 #define PUT_EMPTY_LIST_IN(X) if(IS_VALID_NON_NULL(X)) { X.Cut() } else { X = list() }
@@ -216,7 +210,7 @@
 //
 // NOTE: Do NOT try to over-optimize and set something as e.g. not VIEWABLE because it's not LONGLIVED - the whole
 //       reason those flags are separate is because there might be cases where you do want to allow one without the
-         other. It's on the API user to check both are set if they need both.
+//       other. It's on the API user to check both are set if they need both.
 */
 
 // Exists in the 'normal plane', as opposed to ghosts, AI-eyes, spawners, etc.

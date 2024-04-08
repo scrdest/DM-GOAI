@@ -28,8 +28,6 @@
 // TL;DR - all the strategic power of GOAP with the speed and flexibility of Utility AI.
 */
 
-# define GOAPPLAN_ACTIONSET_PATH "goai_data/smartobject_definitions/goapplan.json"
-
 // DYNAMIC QUERY SYNTAX: <Querytype>:<Typeval>@<Target>=><Outkey> WHERE
 // - Querytype: what kind of query this is, e.g. 'type' for type matching
 // - Typeval: what exactly are we searching for in this querytype, e.g. '/foo/bar' to find typesof /foo/bar'
@@ -168,7 +166,7 @@
 
 		else
 			// parsing error!
-			ASSERT(FALSE)
+			CRASH("Unrecognized Querytype: [raw_querytype] @ [__LINE__] in [__FILE__]")
 
 	return FALSE
 
@@ -355,18 +353,18 @@
 	var/desc = "plan for order: [json_encode(src.goal_state)]"
 
 	var/datum/utility_action_template/new_action_template = new(
-		considerations, //considerations
-		/datum/utility_ai/mob_commander/proc/PlanForGoal, //handler
-		HANDLERTYPE_SRCMETHOD, //handler_type
-		ctxprocs, //ctxprocs
-		context_args, //context_args
-		3, //priority
-		2, //charges
-		FALSE, //instant
-		hard_args, //hard_args
-		action_key, //action_key
-		desc, //act_description
-		TRUE, // instant
+		considerations, //considerations,
+		/datum/utility_ai/mob_commander/proc/PlanForGoal, //handler,
+		HANDLERTYPE_SRCMETHOD, //handler_type,
+		ctxprocs, //ctxprocs,
+		context_args, //context_args,
+		3, //priority,
+		2, //charges,
+		FALSE, //instant,
+		hard_args, //hard_args,
+		action_key, //action_key,
+		desc, //act_description,
+		TRUE, // instant,
 		// GOAP stuff
 		null, //preconds,
 		null //effects

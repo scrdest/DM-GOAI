@@ -17,6 +17,7 @@
 #include "__goai_library_features.dm"
 #include "_b_debug_modules.dm"
 #include "_defines.dm"
+#include "_paths.dm"
 #include "_utility_defines.dm"
 #include "demoGoap.dm"
 #include "GOAI.dm"

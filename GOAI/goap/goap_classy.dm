@@ -160,7 +160,7 @@ X================================================================X
 
 /proc/hash_goap_state(var/list/state) // assoc -> str
 	// Used for transposition tables.
-	// We want to skip equivalent plans, e.g. "Get<B> -> Get<A> -> Foo" == "Get<A> -> Get<B> -> Foo"
+	// We want to skip equivalent plans, e.g. "Get[B] -> Get[A] -> Foo" == "Get[A] -> Get[B] -> Foo"
 	// We don't care about the ordering if it's equivalent, and retaining such duplicates slows planning down significantly.
 	// To do that, we need to have a way to check output states for any ordering.
 	// We'll do that by just sorting keys alphabetically then stringifying them + value.
@@ -233,7 +233,12 @@ X================================================================X
 	var/is_valid = check_preconds(neigh, actual_blackboard)
 
 	var/effects = actual_blackboard.Copy()
-	var/list/curr_source = (GOAP_KEY_SRC in effects) ? effects[GOAP_KEY_SRC].Copy() : list()
+	var/list/curr_source = list()
+
+	if(GOAP_KEY_SRC in effects)
+		var/list/sourcelist = effects[GOAP_KEY_SRC]
+		if(istype(sourcelist))
+			curr_source += sourcelist
 
 	var/list/curr_pos_src = (GOAP_KEY_SRC in current_pos) ? current_pos[GOAP_KEY_SRC] : list()
 	if(curr_pos_src)
