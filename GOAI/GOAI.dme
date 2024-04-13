@@ -16,6 +16,7 @@
 // BEGIN_INCLUDE
 #include "__goai_library_features.dm"
 #include "__spaceman_dmm.dm"
+#include "_a_debug_mode.dm"
 #include "_b_debug_modules.dm"
 #include "_defines.dm"
 #include "_paths.dm"
@@ -71,14 +72,13 @@
 #include "basics\relationships.dm"
 #include "basics\senses.dm"
 #include "basics\turfs.dm"
-#include "basics\turfs_debug.dm"
 #include "basics\concrete_brains\_concrete.dm"
 #include "basics\concrete_brains\sim.dm"
-#include "basics\testing\generic.dm"
 #include "basics\testing\ui_hackery.dm"
 #include "goap\goap_classy.dm"
 #include "integrations\_defines.dm"
 #include "integrations\ai_state.dm"
+#include "integrations\debug.dm"
 #include "integrations\food.dm"
 #include "integrations\planner_cache.dm"
 #include "integrations\utility_plantest_tools.dm"
@@ -180,7 +180,6 @@
 #include "view_variables\view_variables.dm"
 #include "view_variables\view_variables_global.dm"
 #include "view_variables\vv_set_handlers.dm"
-#include "Z_testjunk\debug.dm"
 #include "Z_testjunk\devmobs.dm"
 // END_INCLUDE
 

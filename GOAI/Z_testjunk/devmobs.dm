@@ -1,3 +1,4 @@
+# ifdef GOAI_LIBRARY_FEATURES
 /mob/living/simple_animal/aitester
 	icon = 'icons/uristmob/simpleanimals.dmi'
 	icon_state = "ANTAG"
@@ -78,21 +79,4 @@
 // Spawns with a pure Utility AI instead
 /mob/living/simple_animal/aitester/utility
 
-
-/mob/living/simple_animal/aitester/utility/verb/ReloadAi()
-	set src in view()
-
-	if(!src.commander_id)
-		return
-
-	if(IS_REGISTERED_AI(src.commander_id))
-		var/datum/utility_ai/mob_commander/commander = GOAI_LIBBED_GLOB_ATTR(global_goai_registry[src.commander_id])
-		var/datum/brain/utility/ubrain = commander?.brain
-		if(ubrain)
-			for(var/cache_key in ubrain.file_actionsets)
-				actionset_file_cache[cache_key] = null  // clear the global cache
-
-			PUT_EMPTY_LIST_IN(ubrain.file_actionsets)  // clear the local cache
-			to_chat(usr, "AI for [src] reloaded!")
-
-	return src
+#endif

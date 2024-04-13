@@ -1,6 +1,3 @@
-// Uncomment to allow *ANY* debug logging below. Otherwise, they are all disabled.
-//# define ENABLE_DEBUG_LOG_MACROS 1
-
 // Uncomment defines as needed to enable various loggers.
 
 # ifdef ENABLE_DEBUG_LOG_MACROS
