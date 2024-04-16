@@ -5,9 +5,13 @@
 
 	var/list/needs
 
+	// Associated Brain
 	var/datum/brain/utility/brain
-	var/list/actionslist
-	var/list/actionlookup
+
+	// Unlike mob commanders, factions don't have a natural 'self' SmartObject source.
+	// Instead, we give them a bunch of actionsets here, as appropriate for their type.
+	// Note this isn't used directly; we'll use this attribute to define this datum as a SmartObject.
+	var/list/innate_actions_filepaths = null
 
 	var/list/senses // array, primary DS for senses
 	var/list/senses_index // assoc, used for quick lookups/access only
@@ -28,6 +32,10 @@
 	// Dynamically attached junk
 	var/dict/attachments
 
+	// These two are, by and large, relics of earlier code and are, practically speaking, DEPRECATED!
+	var/list/actionslist
+	var/list/actionlookup
+
 
 /datum/utility_ai/proc/InitActionLookup()
 	/* Largely redundant; initializes handlers, but
@@ -40,16 +48,30 @@
 
 
 /datum/utility_ai/proc/InitActionsList()
+	// DEPRECATED
 	var/list/new_actionslist = list()
 	return new_actionslist
 
 
 /datum/utility_ai/proc/InitNeeds()
+	// Allows overwriting the Brain's needs with AI's own.
 	src.needs = list()
+
+	if(!(src.brain))
+		return src.needs
+
+	var/list/needs = src.brain.needs
+
+	if(isnull(needs) || !istype(needs))
+		needs = list()
+
+	src.brain.needs = needs
+
 	return src.needs
 
 
 /datum/utility_ai/proc/InitRelations()
+	// Allows overwriting the Brain's relations with AI's own.
 	if(!(src.brain))
 		return
 
@@ -84,13 +106,13 @@
 	src.actionslist = src.InitActionsList()
 
 	//src.PreSetupHook()
+	src.RegisterAI()
 
 	src.brain = src.CreateBrain()
 	src.InitNeeds()
-	//src.InitStates()
-	src.UpdateBrain()
 	src.InitRelations()
 	src.InitSenses()
+	src.UpdateBrain()
 
 	//src.PostSetupHook()
 
@@ -133,7 +155,6 @@
 
 
 /datum/utility_ai/proc/Life()
-	src.RegisterAI()
 	// LifeTick WOULD be called here (in a loop) like so...:
 	/*
 		spawn(0)
@@ -145,30 +166,4 @@
 	//    will need to override this anyway to add additional systems
 	return TRUE
 
-
-/*
-/datum/utility_ai/proc/SetState(var/key, var/val)
-	if(!key)
-		return
-
-	states[key] = val
-
-	if(brain)
-		brain.SetState(key, val)
-
-	return TRUE
-
-
-/datum/utility_ai/proc/GetState(var/key, var/default = null)
-	if(!key)
-		return
-
-	if(brain && (key in brain.states))
-		return brain.GetState(key, default)
-
-	if(key in states)
-		return states[key]
-
-	return default
-*/
 

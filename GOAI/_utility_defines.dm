@@ -181,6 +181,9 @@
 // Always available:
 # define GOAI_HAS_UTILITY_ACTIONS_BOILERPLATE_ALWAYS(OBJTYPE) ##OBJTYPE/HasUtilityActions(var/requester, var/list/args = null) { return TRUE }
 
+// Available if a list in our variable is non-empty:
+# define GOAI_HAS_UTILITY_ACTIONS_BOILERPLATE_VARLIST(OBJTYPE, LISTVAR) ##OBJTYPE/HasUtilityActions(var/requester, var/list/args = null) { return (##LISTVAR) }
+
 // Is 'us', broadly speaking:
 # define GOAI_HAS_UTILITY_ACTIONS_BOILERPLATE_ISPAWN(OBJTYPE) ##OBJTYPE/HasUtilityActions(var/requester, var/list/args = null) { if(requester == src) { return TRUE }; var/datum/utility_ai/mob_commander/commander = requester; if(!istype(commander)) { return FALSE }; var/pawn = commander.GetPawn(); return (pawn == src) }
 

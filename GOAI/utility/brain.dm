@@ -263,21 +263,27 @@ var/global/last_plan_time = null
 	var/requester = src.GetRequester()
 	ASSERT(!isnull(requester))
 
+	// Innate actions; note that these should be used fairly sparingly
+	// (to avoid checking for actions we could never take anyway).
+	// Mostly useful for abstract AIs that have no natural pawns some of the time.
+	smartobjects.Add(requester)
+
 	// currently implicit since we always can see ourselves
 	// should prolly do a 'if X not in list already', but BYOOOOND
 
-	var/datum/utility_ai/mob_commander/mob_controller = requester
+	var/datum/utility_ai/mob_commander/mobcomm = requester
 
-	if(istype(mob_controller))
+	if(istype(mobcomm))
 		// For Mob Controllers, the Pawn is a SmartObject too!
-		var/datum/pawn = mob_controller.GetPawn()
+		var/datum/pawn = mobcomm.GetPawn()
 		smartobjects.Add(pawn)
-
 
 	if(!isnull(smartobjects))
 
 		for(var/datum/SO in smartobjects)
+			to_world_log("[src] Initiating processing SO [SO]...")
 			var/list/SO_actionsets = src.GetActionSetsFromSmartObject(SO, requester)
+			to_world_log("[src] Processing SO [SO] found [length(SO_actionsets)] Actionsets")
 
 			if(!isnull(SO_actionsets))
 				actionsets.Add(SO_actionsets)
@@ -321,7 +327,7 @@ var/global/last_plan_time = null
 				break
 
 		if(!best_act_tup)
-			RUN_ACTION_DEBUG_LOG("ERROR: Best action tuple is null! [best_act_tup] | <@[src]> | [__FILE__] -> L[__LINE__]")
+			RUN_ACTION_DEBUG_LOG("ERROR: Best action tuple is null! [best_act_tup], Actionset count: [length(actionsets)] | <@[src]> | [__FILE__] -> L[__LINE__]")
 			return
 
 		var/datum/utility_action_template/best_action_template = best_act_tup.middle
