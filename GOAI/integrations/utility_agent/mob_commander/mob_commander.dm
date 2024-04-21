@@ -13,14 +13,8 @@
 /datum/utility_ai/mob_commander
 	name = "utility AI commander"
 
-	// Tracking our pawn:
-	# ifdef GOAI_LIBRARY_FEATURES
-	var/atom/pawn
-	# endif
-
-	# ifdef GOAI_SS13_SUPPORT
-	var/weakref/pawn_ref
-	# endif
+	// We only ever attach to an existing pawn
+	initialize_pawn = FALSE
 
 	// Moving stuff:
 	var/datum/ActivePathTracker/active_path
@@ -37,20 +31,6 @@
 	// We're doing it this weird way to avoid dealing with list defaults
 	var/sense_filepaths = DEFAULT_UTILITY_AI_SENSES
 	#endif
-
-
-/datum/utility_ai/mob_commander/proc/GetPawn()
-	var/atom/movable/mypawn = null
-
-	# ifdef GOAI_LIBRARY_FEATURES
-	mypawn = (mypawn || src.pawn)
-	# endif
-
-	# ifdef GOAI_SS13_SUPPORT
-	mypawn = (mypawn || (pawn_ref?.resolve()))
-	# endif
-
-	return mypawn
 
 
 /datum/utility_ai/mob_commander/Life()

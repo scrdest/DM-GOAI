@@ -162,7 +162,7 @@
 						utility -= (0.01 * rand())
 
 					# ifdef UTILITYBRAIN_LOG_UTILITIES
-					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name]: [utility] (priority: [action_template?.priority_class]) | <@[src]>")
+					UTILITYBRAIN_DEBUG_LOG("Utility for [action_template?.name]([json_encode(ctx)]): [utility] (priority: [action_template?.priority_class]) | <@[src]>")
 					UTILITYBRAIN_DEBUG_LOG("=========================")
 					UTILITYBRAIN_DEBUG_LOG(" ")
 					# endif
@@ -260,8 +260,8 @@ var/global/last_plan_time = null
 		for(var/datum/order_smartobject/order_so in smart_orders)
 			smartobjects.Add(order_so)
 
-	var/requester = src.GetRequester()
-	ASSERT(!isnull(requester))
+	var/datum/utility_ai/requester = src.GetRequester()
+	ASSERT(istype(requester))
 
 	// Innate actions; note that these should be used fairly sparingly
 	// (to avoid checking for actions we could never take anyway).
@@ -271,11 +271,9 @@ var/global/last_plan_time = null
 	// currently implicit since we always can see ourselves
 	// should prolly do a 'if X not in list already', but BYOOOOND
 
-	var/datum/utility_ai/mob_commander/mobcomm = requester
-
-	if(istype(mobcomm))
-		// For Mob Controllers, the Pawn is a SmartObject too!
-		var/datum/pawn = mobcomm.GetPawn()
+	// The Pawn is a SmartObject too!
+	var/datum/pawn = requester.GetPawn()
+	if(!isnull(pawn))
 		smartobjects.Add(pawn)
 
 	if(!isnull(smartobjects))

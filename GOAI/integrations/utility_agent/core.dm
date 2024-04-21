@@ -3,10 +3,26 @@
 	var/life = TRUE
 	var/paused = FALSE
 
-	var/list/needs
+	var/list/needs = null
+
+	// Pawn - an AI-controlled entity.
+	// This can be a mob/atom, a faction datum, a squad wrapper datum for multiple mobs/atoms, etc.
+	// Note this can also be left blank if you want a purely abstract AI.
+	# ifdef GOAI_LIBRARY_FEATURES
+	var/datum/pawn
+	# endif
+
+	# ifdef GOAI_SS13_SUPPORT
+	var/weakref/pawn
+	# endif
+
+	// If True, calls src.InitializePawn()
+	// Set to False as an optimization to skip an unnecessary call.
+	var/initialize_pawn = TRUE
 
 	// Associated Brain
-	var/datum/brain/utility/brain
+	// Brains are a datastructure for AI-adjacent information like memories, perceptions, needs, etc.
+	var/datum/brain/utility/brain = null
 
 	// Unlike mob commanders, factions don't have a natural 'self' SmartObject source.
 	// Instead, we give them a bunch of actionsets here, as appropriate for their type.
@@ -83,7 +99,20 @@
 	return relations
 
 
+/datum/utility_ai/proc/InitPawn()
+	// Allows subclasses to specify how/whether to create a Pawn
+	return
+
+
 /datum/utility_ai/proc/PreSetupHook()
+	// Hook. Allows subclasses to add any arbitrary pre-init logic.
+	// As a matter of API contract, hooks should never override (always do '..()'!)
+	return
+
+
+/datum/utility_ai/proc/PostSetupHook()
+	// Hook. Allows subclasses to add any arbitrary post-init logic, just before Life()
+	// As a matter of API contract, hooks should never override (always do '..()'!)
 	return
 
 
@@ -105,7 +134,7 @@
 	src.actionlookup = src.InitActionLookup()  // order matters!
 	src.actionslist = src.InitActionsList()
 
-	//src.PreSetupHook()
+	src.PreSetupHook()
 	src.RegisterAI()
 
 	src.brain = src.CreateBrain()
@@ -114,7 +143,10 @@
 	src.InitSenses()
 	src.UpdateBrain()
 
-	//src.PostSetupHook()
+	if(src.initialize_pawn)
+		src.InitPawn()
+
+	src.PostSetupHook()
 
 	if(true_active)
 		src.Life()
@@ -148,6 +180,12 @@
 	// purely application, runs ShouldCleanup() and handles state as needed
 	// this is just an abstract method for overrides to plug into though
 	return FALSE
+
+
+/datum/utility_ai/proc/GetPawn()
+	var/datum/mypawn = null
+	mypawn = (mypawn || RESOLVE_PAWN(src.pawn))
+	return mypawn
 
 
 /datum/utility_ai/proc/LifeTick()
