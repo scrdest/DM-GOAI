@@ -279,9 +279,7 @@ var/global/last_plan_time = null
 	if(!isnull(smartobjects))
 
 		for(var/datum/SO in smartobjects)
-			to_world_log("[src] Initiating processing SO [SO]...")
 			var/list/SO_actionsets = src.GetActionSetsFromSmartObject(SO, requester)
-			to_world_log("[src] Processing SO [SO] found [length(SO_actionsets)] Actionsets")
 
 			if(!isnull(SO_actionsets))
 				actionsets.Add(SO_actionsets)

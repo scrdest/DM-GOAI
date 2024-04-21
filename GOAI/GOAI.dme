@@ -16,7 +16,6 @@
 // BEGIN_INCLUDE
 #include "__goai_library_features.dm"
 #include "__spaceman_dmm.dm"
-#include "_a_debug_mode.dm"
 #include "_b_debug_modules.dm"
 #include "_defines.dm"
 #include "_paths.dm"
@@ -117,7 +116,6 @@
 #include "integrations\utility_agent\planning.dm"
 #include "integrations\utility_agent\relations.dm"
 #include "integrations\utility_agent\senses.dm"
-#include "integrations\utility_agent\abstract_commander\abstract_commander.dm"
 #include "integrations\utility_agent\actions\debug.dm"
 #include "integrations\utility_agent\actions\idle.dm"
 #include "integrations\utility_agent\actions\request_plan.dm"
@@ -138,7 +136,6 @@
 #include "integrations\utility_agent\faction_commander\faction_presets\debug.dm"
 #include "integrations\utility_agent\faction_commander\faction_presets\README.dm"
 #include "integrations\utility_agent\mob_commander\combat.dm"
-#include "integrations\utility_agent\mob_commander\combat_commander.dm"
 #include "integrations\utility_agent\mob_commander\mob_commander.dm"
 #include "integrations\utility_agent\mob_commander\mob_orders.dm"
 #include "integrations\utility_agent\senses\action_senses.dm"

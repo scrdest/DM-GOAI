@@ -5,10 +5,10 @@
 	// - M: mob to attach to
 	// - commander: optional; preexisting AI to attach to the mob
 	// - type_on_new: optional; if creating a new AI, what type to use. Defaults to a combat mob AI.
-	var/datum/utility_ai/mob_commander/combat_commander/new_commander = commander
+	var/datum/utility_ai/mob_commander/new_commander = commander
 
 	if(isnull(commander))
-		var/true_newtype = type_on_new || /datum/utility_ai/mob_commander/combat_commander
+		var/true_newtype = type_on_new || /datum/utility_ai/mob_commander
 		new_commander = new true_newtype()
 
 	commander.pawn = REFERENCE_PAWN(M)

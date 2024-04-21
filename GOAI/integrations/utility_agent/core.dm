@@ -189,19 +189,67 @@
 
 
 /datum/utility_ai/proc/LifeTick()
+	if(paused)
+		return
+
+	if(brain)
+		brain.LifeTick()
+
+		for(var/datum/ActionTracker/instant_action_tracker in brain.pending_instant_actions)
+			var/tracked_instant_action = instant_action_tracker?.tracked_action
+			if(tracked_instant_action)
+				src.HandleInstantAction(tracked_instant_action, instant_action_tracker)
+
+		PUT_EMPTY_LIST_IN(brain.pending_instant_actions)
+
+		if(brain.running_action_tracker)
+			var/tracked_action = brain.running_action_tracker.tracked_action
+
+			if(tracked_action)
+				src.HandleAction(tracked_action, brain.running_action_tracker)
+
 	return TRUE
+
+
+/datum/utility_ai/proc/RegisterLifeSystems()
+	// Adds any number of subsystems.
+	// Subclasses should ..() this.
+	// Each subsystem should be spawn(0)'d off to fork/background them.
+
+	#ifdef UTILITY_SMARTOBJECT_SENSES
+	// Perception updates
+	spawn(0)
+		while(src.life)
+			src.SensesSystem()
+			sleep(src.senses_tick_delay)
+	#endif
+
+	return
 
 
 /datum/utility_ai/proc/Life()
-	// LifeTick WOULD be called here (in a loop) like so...:
-	/*
-		spawn(0)
-			while(src.life)
-				src.CheckForCleanup()
-				src.LifeTick()
-	*/
-	// ...except this would just spin its wheels here, and children
-	//    will need to override this anyway to add additional systems
-	return TRUE
+	src.RegisterLifeSystems()
+
+	// AI
+	spawn(0)
+		while(src.life)
+			var/cleaned_up = src.CheckForCleanup()
+			if(cleaned_up)
+				return
+
+			// Run the Life update function.
+			src.LifeTick()
+
+			// Fix the tickrate to prevent runaway loops in case something messes with it.
+			// Doing it here is nice, because it saves us from sanitizing it all over the place.
+			src.ai_tick_delay = max(WITH_UTILITY_SLEEPTIME_STAGGER(src?.base_ai_tick_delay || 0), MIN_AI_SLEEPTIME)
+			var/sleeptime = min(MAX_AI_SLEEPTIME, src.ai_tick_delay)
+
+			src.waketime = (world.time + src.ai_tick_delay)
+
+			// Wait until the next update tick.
+			while(world.time < src.waketime)
+				sleep(sleeptime)
+
 
 

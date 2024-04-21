@@ -17,11 +17,9 @@
 /datum/utility_ai/faction_commander
 	name = "unknown faction"
 
-	// For now, a Faction is effectively an alias/subclass of Abstract Commander AI.
-	// That's because they will share most if not all mechanical details.
-	parent_type = /datum/utility_ai/abstract_commander
-
-	var/datum/faction_data/faction = null
+	base_ai_tick_delay = FACTION_AI_TICK_DELAY
+	ai_tick_delay = FACTION_AI_TICK_DELAY
+	senses_tick_delay = FACTION_AI_TICK_DELAY
 
 	var/factionspec_source = null // path to JSON
 
@@ -39,16 +37,18 @@
 	return
 
 
-/datum/utility_ai/faction_commander/proc/InitializeFactionData()
+/datum/utility_ai/faction_commander/proc/InitializeFactionData(var/filespec = null)
 	/*
 	// Might be needed; currently disabled to allow for clean reinits.
 	if(!isnull(src.faction))
 		return
 	*/
 
+	var/spec_file = (filespec || src.factionspec_source)
+
 	var/list/factionspec = null // assoc list
 	if(src.factionspec_source)
-		factionspec = READ_JSON_FILE(src.factionspec_source)
+		factionspec = READ_JSON_FILE(spec_file)
 
 	var/faction_name = null
 	if(factionspec)

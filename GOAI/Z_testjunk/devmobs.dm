@@ -36,7 +36,7 @@
 
 
 /mob/living/simple_animal/aitester/proc/SpawnCommander()
-	var/datum/utility_ai/mob_commander/combat_commander/new_commander = new()
+	var/datum/utility_ai/mob_commander/new_commander = new()
 	#ifdef UTILITY_SMARTOBJECT_SENSES
 	// Spec for Dev senses!
 	new_commander.sense_filepaths = DEFAULT_UTILITY_AI_SENSES
