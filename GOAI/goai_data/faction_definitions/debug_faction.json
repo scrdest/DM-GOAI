@@ -1,0 +1,10 @@
+{
+	"name": "Debug Faction",
+	"tags": [
+		"debug"
+	],
+	"relationships": {},
+	"actionset_files": [
+		"faction_base.json"
+	]
+}

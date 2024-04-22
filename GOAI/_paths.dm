@@ -4,6 +4,7 @@
 
 #define GOAI_DATA_PATH(FP) "goai_data/" + ##FP
 #define GOAI_SMARTOBJECT_PATH(FP) "goai_data/smartobject_definitions/" + ##FP
+#define GOAI_FACTIONSPEC_PATH(FP) "goai_data/faction_definitions/" + ##FP
 
 #endif
 
@@ -12,6 +13,7 @@
 // SS13
 #define GOAI_DATA_PATH(FP) "code/modules/urist/GOAI/goai_data/" + ##FP
 #define GOAI_SMARTOBJECT_PATH(FP) "code/modules/urist/GOAI/goai_data/smartobject_definitions/" + ##FP
+#define GOAI_FACTIONSPEC_PATH(FP) "code/modules/urist/GOAI/goai_data/faction_definitions/" + ##FP
 
 #endif
 

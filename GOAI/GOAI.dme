@@ -16,6 +16,7 @@
 // BEGIN_INCLUDE
 #include "__goai_library_features.dm"
 #include "__spaceman_dmm.dm"
+#include "_a_debug_mode.dm"
 #include "_b_debug_modules.dm"
 #include "_defines.dm"
 #include "_paths.dm"
@@ -120,6 +121,7 @@
 #include "integrations\utility_agent\actions\idle.dm"
 #include "integrations\utility_agent\actions\request_plan.dm"
 #include "integrations\utility_agent\actions\wrapper.dm"
+#include "integrations\utility_agent\actions\faction\improve_relations.dm"
 #include "integrations\utility_agent\actions\faction\mobspawn.dm"
 #include "integrations\utility_agent\actions\mob\coverleap.dm"
 #include "integrations\utility_agent\actions\mob\flee.dm"

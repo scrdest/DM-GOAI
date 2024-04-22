@@ -22,6 +22,9 @@
 	// Faction Registry index
 	var/registry_index
 
+	// Associated Actions
+	var/list/actionset_files = null
+
 
 /datum/faction_data/proc/RegisterFaction()
 	// Registry pattern, to facilitate querying all Factions
@@ -51,7 +54,7 @@
 	return mytags
 
 
-/datum/faction_data/New(var/newname, var/datum/relationships/init_relations = null, var/list/init_tags = null)
+/datum/faction_data/New(var/newname, var/datum/relationships/init_relations = null, var/list/init_tags = null, var/list/actionsets = null)
 	. = ..()
 
 	if(newname)
@@ -63,6 +66,9 @@
 	if(init_tags)
 		src.tags = init_tags
 
+	if(actionsets)
+		src.actionset_files = actionsets
+
 	// Populate data structures (do not override existing)
 	src.relations = (src.relations || src.BuildRelations())
 	src.tags = (src.tags || src.BuildTags())
@@ -71,3 +77,29 @@
 	src.RegisterFaction()
 
 	return
+
+
+/* SmartObject */
+GOAI_HAS_UTILITY_ACTIONS_BOILERPLATE_VARLIST(/datum/faction_data, actionset_files)
+
+/datum/faction_data/GetUtilityActions(var/requester, var/list/args = null)
+	var/list/my_action_sets = list()
+
+	if(!src.actionset_files)
+		return my_action_sets
+
+	for(var/action_bundle_json_fp in src.actionset_files)
+		if(!fexists(action_bundle_json_fp))
+			GOAI_LOG_ERROR("[src.name] - Filepath [action_bundle_json_fp] does not exist - skipping!")
+			continue
+
+		try
+			var/datum/action_set/myset = ActionSetFromJsonFile(action_bundle_json_fp)
+			myset.origin = src
+			my_action_sets.Add(myset)
+
+		catch(var/exception/e)
+			world.Error(e)
+
+	return my_action_sets
+

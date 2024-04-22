@@ -47,8 +47,9 @@
 	var/spec_file = (filespec || src.factionspec_source)
 
 	var/list/factionspec = null // assoc list
-	if(src.factionspec_source)
+	if(spec_file)
 		factionspec = READ_JSON_FILE(spec_file)
+		to_world_log("Read factionspec [spec_file] for [src] ([json_encode(factionspec)])")
 
 	var/faction_name = null
 	if(factionspec)
@@ -65,7 +66,32 @@
 	if(factionspec)
 		faction_rels = factionspec["relationships"]
 
-	var/datum/faction_data/new_faction = new(faction_name, faction_rels, faction_tags)
+	var/list/actionspecs = null
+
+	if(factionspec)
+		var/list/raw_actionspecs = factionspec["actionset_files"]
+
+		if(raw_actionspecs)
+			actionspecs = list()
+
+			for(var/raw_spec_path in raw_actionspecs)
+				// If the spec does not have the canonical SO location, assume it's a relative path in the SO dir.
+				var/basepath_idx = findtext(raw_spec_path, GOAI_SMARTOBJECT_PATH(""))
+				var/abs_spec_path = ((basepath_idx != 1) ? GOAI_SMARTOBJECT_PATH(raw_spec_path) : raw_spec_path)
+				actionspecs.Add(abs_spec_path)
+
+	if(spec_file)
+		// If the spec does not have the canonical SO location, assume it's a relative path in the SO dir.
+		var/basepath_idx = findtext(spec_file, GOAI_SMARTOBJECT_PATH(""))
+
+		var/abs_spec_path = spec_file
+		if(!basepath_idx)
+			abs_spec_path = GOAI_DATA_PATH(spec_file)
+
+		factionspec = READ_JSON_FILE(abs_spec_path)
+		to_world_log("Read factionspec [spec_file] for [src] ([json_encode(factionspec)])")
+
+	var/datum/faction_data/new_faction = new(faction_name, faction_rels, faction_tags, actionspecs)
 
 	// Note: the pawn may be a weakref, so
 	// if for whatever reason the faction gets de-registered from a global list,
