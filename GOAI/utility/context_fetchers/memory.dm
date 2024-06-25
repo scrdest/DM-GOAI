@@ -68,8 +68,22 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value)
 	return contexts
 
 
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value_assoc)
+	// Returns a stored Memory, expecting it to be an assoc list.
+	// If that is the case, unpacks all items as keys in a single a new context.
+
+	var/list/memory_val = __ctxfetcher_get_memory_value_helper(CTXFETCHER_FORWARD_ARGS)
+
+	if(!istype(memory_val))
+		return list()
+
+	var/list/contexts = list()
+	ARRAY_APPEND(contexts, memory_val)
+	return contexts
+
+
 CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_memory_value_array)
-	/* Retrieves a stored Memory, expecting it to be a list.
+	/* Retrieves a stored Memory, expecting it to be an array list.
 	// If that is the case, unpacks each list item to a new context.
 	//
 	// This is handy if you want to build Contexts from a single Memory,

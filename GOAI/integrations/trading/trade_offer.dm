@@ -19,7 +19,7 @@
 
 	// Positive amount A implies receiver buying A units from creator
 	// Negative amount A implies receiver selling A units to creator
-	var/resource_amount = 0
+	var/commodity_amount = 0
 
 	// Positive price P implies receiver transferring P credits to creator
 	// Negative price P implies receiver will receive P credits from creator
@@ -42,11 +42,11 @@
 	var/deadline = null
 
 
-/datum/trade_offer/proc/Create(var/source, var/resource_amt, var/cash_amt, var/expires_at = null, var/target = null)
+/datum/trade_offer/proc/Create(var/source, var/commodity_amt, var/cash_amt, var/expires_at = null, var/target = null)
 	// Should possibly clean the ID/array here, but don't have a Big Ole Array for these yet.
 	src.is_open = TRUE
 	src.creator = source
-	src.resource_amount = resource_amt
+	src.commodity_amount = commodity_amt
 	src.cash_value = cash_amt
 	src.receiver = target
 
@@ -56,9 +56,9 @@
 	return
 
 
-/datum/trade_offer/New(var/source, var/resource_amt, var/cash_amt, var/expires_at = null, var/target = null)
+/datum/trade_offer/New(var/source, var/commodity_amt, var/cash_amt, var/expires_at = null, var/target = null)
 	// We'll shunt the init to a custom proc so we can object-pool and reuse these.
-	src.Create(source, resource_amt, cash_amt, expires_at, target)
+	src.Create(source, commodity_amt, cash_amt, expires_at, target)
 	return
 
 
@@ -84,7 +84,7 @@
 
 	// Positive amount A implies receiver buying A units from creator
 	// Negative amount A implies receiver selling A units to creator
-	var/resource_amount = 0
+	var/commodity_amount = 0
 
 	// Positive price P implies receiver transferring P credits to creator
 	// Negative price P implies receiver will receive P credits from creator
@@ -102,10 +102,10 @@
 	var/deadline = null
 
 
-/datum/trade_contract/proc/Create(var/source, var/receiver, var/resource_amt, var/cash_amt, var/contract_deadline = null)
+/datum/trade_contract/proc/Create(var/source, var/receiver, var/commodity_amt, var/cash_amt, var/contract_deadline = null)
 	src.is_open = TRUE
 	src.creator = source
-	src.resource_amount = resource_amt
+	src.commodity_amount = commodity_amt
 	src.cash_value = cash_amt
 
 	if(!isnull(contract_deadline))
@@ -114,9 +114,9 @@
 	return
 
 
-/datum/trade_contract/New(var/source, var/receiver, var/resource_amt, var/cash_amt, var/contract_deadline = null)
+/datum/trade_contract/New(var/source, var/receiver, var/commodity_amt, var/cash_amt, var/contract_deadline = null)
 	// We'll shunt the init to a custom proc so we can object-pool and reuse these.
-	src.Create(source, resource_amt, cash_amt, contract_deadline)
+	src.Create(source, commodity_amt, cash_amt, contract_deadline)
 	return
 
 
@@ -137,7 +137,7 @@
 	var/target = (isnull(claimed_by) ? src.receiver : claimed_by)
 
 	// Currently just alloc a new object; may object-pool in the future.
-	var/datum/trade_contract/as_contract = new(src.creator, target, src.resource_amount, src.cash_value, src.deadline)
+	var/datum/trade_contract/as_contract = new(src.creator, target, src.commodity_amount, src.cash_value, src.deadline)
 
 	return as_contract
 

@@ -41,32 +41,21 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_trade_desirability - Requester must be an AI for this Consideration (found: [ai.type])! @ L[__LINE__] in [__FILE__]")
 		return null
 
+	var/datum/brain/economy_brain
 	// populates the economy_brain with an actual brain; will log if it's not
-	CIHELPER_GET_REQUESTER_BRAIN_INLINED(requester, var/datum/brain/economy_brain)
+	CIHELPER_GET_REQUESTER_BRAIN_INLINED(requester, economy_brain)
 
-	var/from_ctx = consideration_args["from_context"]
+	var/from_ctx = consideration_args?["from_context"]
 	if(isnull(from_ctx))
 		from_ctx = TRUE
 
-	var/input_key = "input"
+	var/datasource = from_ctx ? context : consideration_args
 
-	if(!isnull(consideration_args))
-		input_key = consideration_args["input_key"] || input_key
-
-	if(isnull(input_key))
-		DEBUGLOG_MEMORY_FETCH("consideration_trade_desirability Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
-		return null
-
-	var/commodity = null
-	DEBUGLOG_MEMORY_ERRTRY(commodity = (from_ctx ? context[input_key] : consideration_args[input_key]))
-	DEBUGLOG_MEMORY_ERRCATCH(var/exception/e, DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: [e] on [e.file]:[e.line]. <input_key='[input_key]'>"))
-
-	if(isnull(commodity))
-		DEBUGLOG_MEMORY_FETCH("consideration_trade_desirability commodity is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
-		return null
-
-	var/cash_value = consideration_args["cash_value"] || 0
-	var/raw_volume = consideration_args["trade_volume"] || 0
+	var/commodity = datasource["commodity"]
+	var/cash_value = datasource["cash_value"] || 0
+	var/raw_volume = datasource["trade_volume"] || 0
+	#warn remove debug prints
+	to_world_log("RQ [requester] consideration_trade_desirability received trade_data: [cash_value]$ for [commodity] @ [raw_volume]")
 
 	// Supply-side reverses the preferences in the formula. Default to demand-side.
 	var/is_sell = raw_volume < 0
@@ -75,9 +64,14 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 		is_sell = FALSE
 
 	var/commodity_preference = economy_brain.GetCommodityDesirability(commodity, raw_volume)
-	var/money_preference = economy_brain.GetMoneyDesirability(cash_value)
 
-	var/desirability = 0  // default
+	if(isnull(commodity_preference))
+		// Either a need went negative, or the proc straight up crashed somewhere.
+		// In both cases, do not pass go, do not collect 200 trades.
+		return 0
+
+	# warn money_preference logic does not account for amounts right now
+	var/money_preference = economy_brain.GetMoneyDesirability(cash_value) || 0
 
 	// the general shape of formula is: (2 * Acquired) / (1 + Acquired + Traded)
 	// the additive smoothing in the denominator ensures we're always normalized
@@ -88,5 +82,45 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	var/numerator = is_sell ? (2 * money_preference) : (2 * commodity_preference)
 	var/denominator = (1 + commodity_preference + money_preference)
 
-	desirability = numerator / denominator
+	var/desirability = numerator / denominator
+
+	#warn debug logs
+	to_world_log("money_preference [money_preference] | commodity_preference [commodity_preference] | numerator [numerator] / denominator [denominator] == [desirability]")
 	return desirability
+
+#warn TODO TEST THE CONSIDERATION
+
+/mob/verb/TestTradeFoodBuy()
+	var/raw_faction_ai = pick(GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))
+	var/datum/utility_ai/faction_ai = raw_faction_ai
+
+	if(!istype(faction_ai))
+		to_chat(usr, "[raw_faction_ai] is not an AI somehow")
+		return
+
+	var/datum/brain/faction_brain = faction_ai.brain
+
+	var/trade_data = list("commodity" = "/obj/food", "trade_volume" = 1, "cash_value" = 1000)
+
+	faction_brain.SetMemory("testTrade", trade_data)
+
+	to_chat(usr, "[raw_faction_ai] got a new trade offer: [json_encode(trade_data)]")
+	return
+
+
+/mob/verb/TestTradeFoodSell()
+	var/raw_faction_ai = pick(GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))
+	var/datum/utility_ai/faction_ai = raw_faction_ai
+
+	if(!istype(faction_ai))
+		to_chat(usr, "[raw_faction_ai] is not an AI somehow")
+		return
+
+	var/datum/brain/faction_brain = faction_ai.brain
+
+	var/trade_data = list("commodity" = "/obj/food", "trade_volume" = -1, "cash_value" = 1000)
+
+	faction_brain.SetMemory("testTrade", trade_data)
+
+	to_chat(usr, "[raw_faction_ai] got a new trade offer: [json_encode(trade_data)]")
+	return
