@@ -4,9 +4,6 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_all_faction_ais)
 		UTILITYBRAIN_DEBUG_LOG("ERROR: context_args for ctxfetcher_all_factions is null @ L[__LINE__] in [__FILE__]!")
 		return
 
-	#warn to_world_log() here needs removing
-	to_world_log("FactionAIs: [json_encode(GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))]")
-
 	if(!GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))
 		UTILITYBRAIN_DEBUG_LOG("WARNING: ctxfetcher_all_factions found no items in the global faction registry @ L[__LINE__] in [__FILE__]!")
 		return

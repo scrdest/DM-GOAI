@@ -533,7 +533,7 @@
 				name = "TargetNearby",
 				active = TRUE,
 				consideration_args = list(
-					"input_key" = target_key,
+					CONSIDERATION_INPUTKEY_KEY = target_key,
 					"from_context" = 1
 				)
 			)

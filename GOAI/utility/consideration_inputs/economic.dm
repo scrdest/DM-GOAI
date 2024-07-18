@@ -50,12 +50,17 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 		from_ctx = TRUE
 
 	var/datasource = from_ctx ? context : consideration_args
+	CONSIDERATION_GET_INPUT_KEY(var/datasource_key)
 
-	var/commodity = datasource["commodity"]
-	var/cash_value = datasource["cash_value"] || 0
-	var/raw_volume = datasource["trade_volume"] || 0
-	#warn remove debug prints
-	to_world_log("RQ [requester] consideration_trade_desirability received trade_data: [cash_value]$ for [commodity] @ [raw_volume]")
+	var/datum/trade_offer/offer = datasource[datasource_key]
+
+	if(!istype(offer))
+		to_world_log("consideration_trade_desirability: received offer [offer || "null"] is not of a valid trade_offer type!")
+		return 0
+
+	var/commodity = offer.commodity_key
+	var/cash_value = offer.cash_value || 0
+	var/raw_volume = offer.commodity_amount || 0
 
 	// Supply-side reverses the preferences in the formula. Default to demand-side.
 	var/is_sell = raw_volume < 0
@@ -63,64 +68,14 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	if(isnull(is_sell))
 		is_sell = FALSE
 
-	var/commodity_preference = economy_brain.GetCommodityDesirability(commodity, raw_volume)
+	var/desirability = economy_brain.GetCommodityDesirability(commodity, raw_volume, cash_value)
 
-	if(isnull(commodity_preference))
+	if(isnull(desirability))
 		// Either a need went negative, or the proc straight up crashed somewhere.
 		// In both cases, do not pass go, do not collect 200 trades.
+		#warn debug logs
+		to_world_log("consideration_trade_desirability: Desirability for [commodity] x [raw_volume] @ [cash_value] == null!")
 		return 0
 
-	# warn money_preference logic does not account for amounts right now
-	var/money_preference = economy_brain.GetMoneyDesirability(cash_value) || 0
-
-	// the general shape of formula is: (2 * Acquired) / (1 + Acquired + Traded)
-	// the additive smoothing in the denominator ensures we're always normalized
-	// the multiplier in the numerator ensures desirability maxes out at Acquired=1 + Traded=0
-	//     (because it's definitely a deal we NEED to make)
-	// if Acq/Tra are both 1, we are considering an 'emergency' trade with Desirability at 66% (modulo other Considerations)
-
-	var/numerator = is_sell ? (2 * money_preference) : (2 * commodity_preference)
-	var/denominator = (1 + commodity_preference + money_preference)
-
-	var/desirability = numerator / denominator
-
-	#warn debug logs
-	to_world_log("money_preference [money_preference] | commodity_preference [commodity_preference] | numerator [numerator] / denominator [denominator] == [desirability]")
 	return desirability
 
-#warn TODO TEST THE CONSIDERATION
-
-/mob/verb/TestTradeFoodBuy()
-	var/raw_faction_ai = pick(GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))
-	var/datum/utility_ai/faction_ai = raw_faction_ai
-
-	if(!istype(faction_ai))
-		to_chat(usr, "[raw_faction_ai] is not an AI somehow")
-		return
-
-	var/datum/brain/faction_brain = faction_ai.brain
-
-	var/trade_data = list("commodity" = "/obj/food", "trade_volume" = 1, "cash_value" = 1000)
-
-	faction_brain.SetMemory("testTrade", trade_data)
-
-	to_chat(usr, "[raw_faction_ai] got a new trade offer: [json_encode(trade_data)]")
-	return
-
-
-/mob/verb/TestTradeFoodSell()
-	var/raw_faction_ai = pick(GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))
-	var/datum/utility_ai/faction_ai = raw_faction_ai
-
-	if(!istype(faction_ai))
-		to_chat(usr, "[raw_faction_ai] is not an AI somehow")
-		return
-
-	var/datum/brain/faction_brain = faction_ai.brain
-
-	var/trade_data = list("commodity" = "/obj/food", "trade_volume" = -1, "cash_value" = 1000)
-
-	faction_brain.SetMemory("testTrade", trade_data)
-
-	to_chat(usr, "[raw_faction_ai] got a new trade offer: [json_encode(trade_data)]")
-	return

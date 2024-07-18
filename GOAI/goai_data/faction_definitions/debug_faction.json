@@ -5,6 +5,7 @@
 	],
 	"relationships": {},
 	"actionset_files": [
-		"faction_base.json"
+		"faction_base.json",
+		"faction_trade_test.json"
 	]
 }

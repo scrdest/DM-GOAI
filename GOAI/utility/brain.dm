@@ -11,6 +11,12 @@
 	//       but I don't want to refactor the parent into a GOAPy subclass.
 	var/list/file_actionsets = null
 
+	// This defines WHAT we need and HOW MUCH we care about it (higher is more).
+	var/list/need_weights = null
+
+	//
+	var/list/trade_offers = null
+
 
 /datum/brain/utility/GetAiController()
 	var/datum/utility_ai/commander = null
@@ -245,6 +251,12 @@ var/global/last_plan_time = null
 
 	if(isnull(smartobjects))
 		smartobjects = list()
+
+	if(!isnull(src.trade_offers))
+		for(var/offer_key in src.trade_offers)
+			var/datum/trade_offer/offer_so = src.trade_offers[offer_key]
+			if(istype(offer_so))
+				smartobjects.Add(offer_so)
 
 	if(!isnull(smart_paths))
 		for(var/path_key in smart_paths)

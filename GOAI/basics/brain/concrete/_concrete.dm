@@ -137,7 +137,12 @@
 /datum/brain/concrete/proc/HandlePlanningState()
 	/* Wrapper around CreatePlan() logic. Ensures the plan is valid.*/
 
+	#ifdef BRAIN_MODULE_INCLUDED_STATES
 	var/list/curr_state = src.states.Copy()
+	#endif
+	#ifndef BRAIN_MODULE_INCLUDED_STATES
+	var/list/curr_state = list()
+	#endif
 
 	// Build the state we're solving for
 	var/list/goal_state = BuildGoalState(curr_state)

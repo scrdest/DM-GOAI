@@ -1,5 +1,8 @@
 {
 	"/obj/food": {
-		"food": 30
+		"food_generic": 3
+	},
+	"/obj/decor": {
+		"prestige": 2
 	}
 }

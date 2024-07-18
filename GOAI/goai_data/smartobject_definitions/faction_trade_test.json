@@ -1,0 +1,44 @@
+{
+	"name": "Trade", 
+	"active": 1, 
+	"actions": [
+		{
+			"name": "Make Sell Offer", 
+			"description": "Create a Sell offer for a Commodity we don't particularly want.", 
+			"handler": "/datum/utility_ai/proc/CreateSellOfferForNeed", 
+			"priority": 10,
+			"context_procs": ["/proc/ctxfetcher_get_needs"], 
+			"context_args": [{
+				
+			}],
+			"considerations": [
+				{
+					"name": "Need is High",
+					"input_proc": "/proc/consideration_input_get_need_perc",
+					"lo_mark": 0.5, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_square"
+				}
+			]
+		},
+		{
+			"name": "Make Buy Offer", 
+			"description": "Create a Buy offer for a Commodity that will satisfy our Need(s).", 
+			"handler": "/datum/utility_ai/proc/CreateBuyOfferForNeed", 
+			"priority": 10,
+			"context_procs": ["/proc/ctxfetcher_get_needs"], 
+			"context_args": [{
+				
+			}],
+			"considerations": [
+				{
+					"name": "Need is Low",
+					"input_proc": "/proc/consideration_input_get_need_perc",
+					"lo_mark": 0, 
+					"hi_mark": 0.5, 
+					"curve_proc": "/proc/curve_antisquare"
+				}
+			]
+		}
+	]
+}

@@ -37,6 +37,21 @@ if(_cihelper_get_requester_brain_okay) {\
 }; \
 ##Output = _cihelper_get_requester_brain_output_brain;
 
+#define CONSIDERATION_INPUTKEY_KEY "input_key"
+#define CONSIDERATION_INPUTKEY_DEFAULT "input"
+
+#define CONSIDERATION_GET_INPUT_KEY(Varname) ##Varname = consideration_args?[CONSIDERATION_INPUTKEY_KEY] || CONSIDERATION_INPUTKEY_DEFAULT
+
+// These are technically ContextFetcher stuff, but their outputs naturally wire into inputs in Considerations so this helps with chaining
+#define CONTEXT_OUTPUTKEY_KEY "output_context_key"
+#define CONTEXT_GET_OUTPUT_KEY(Varname) ##Varname = context_args?[CONTEXT_OUTPUTKEY_KEY] || CONSIDERATION_INPUTKEY_DEFAULT
+
+#define CONTEXT_ADD_SINGLE_KEYED_CONTEXT(Item, ContextKeyVar, ContextsListVar) if(TRUE) {\
+    var/list/__macro_ctx = list(); \
+    __macro_ctx[##ContextKeyVar] = ##Item; \
+    ARRAY_APPEND(##ContextsListVar, __macro_ctx) \
+};
+
 
 /proc/_cihelper_get_requester_brain(var/requester, var/caller = null)
 	var/datum/utility_ai/controller = requester

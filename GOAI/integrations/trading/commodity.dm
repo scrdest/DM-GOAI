@@ -127,10 +127,6 @@ var/global/list/commodity_db = null
 			return
 
 	var/list/type_data = global.commodity_db[typename]
-
-	#warn debug log
-	to_world_log("GetCommodityNeedAllValuesAbstract([typename]) => [json_encode(type_data)]")
-
 	return type_data
 
 

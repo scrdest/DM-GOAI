@@ -11,7 +11,7 @@
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_mean)
 	/* Calculates the average of the wrapped proc's values */
 	var/default = consideration_args?["default"] || 0
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_ctx = consideration_args?["from_context"]
 	var/from_memory = consideration_args?["from_memory"]
 	var/min_count_raw = consideration_args?["min_count"] || 1
@@ -120,7 +120,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_mean_kalman)
 	// This might also be worthwhile for YUUUGE inputs (in value or count), for numerical stability reasons.
 	*/
 	var/default = consideration_args?["default"] || 0
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_ctx = consideration_args?["from_context"]
 	var/from_memory = consideration_args?["from_memory"]
 
@@ -216,7 +216,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_mean_kalman)
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_min)
 	/* Calculates the min of the wrapped proc's values */
 	var/default = consideration_args?["default"] || 0
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_ctx = consideration_args?["from_context"]
 	var/from_memory = consideration_args?["from_memory"]
 
@@ -303,7 +303,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_min)
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_max)
 	/* Calculates the max of the wrapped proc's values */
 	var/default = consideration_args?["default"] || 0
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_ctx = consideration_args?["from_context"]
 	var/from_memory = consideration_args?["from_memory"]
 
@@ -391,7 +391,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_mode)
 	// NOTE: do not use this for large contexts - this may require a fair bit of extra RAM!
 	*/
 	var/default = consideration_args?["default"] || 0
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_ctx = consideration_args?["from_context"]
 	var/from_memory = consideration_args?["from_memory"]
 
@@ -499,7 +499,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_median)
 	// NOTE: do not use this for large contexts - this may require a fair bit of extra RAM!
 	*/
 	var/default = consideration_args?["default"] || 0
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_ctx = consideration_args?["from_context"]
 	var/from_memory = consideration_args?["from_memory"]
 
@@ -601,7 +601,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_list_length)
 	// This can be used to consider how many enemies are in view, for example.
 	var/default = consideration_args?["default"] || 0
 	var/from_ctx = consideration_args?["from_context"]
-	var/input_key = consideration_args?["input_key"] || "input"
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
 	var/from_memory = consideration_args?["from_memory"]
 
 	if(isnull(from_ctx))

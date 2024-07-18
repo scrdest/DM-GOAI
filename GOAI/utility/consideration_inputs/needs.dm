@@ -6,10 +6,10 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_need_perc)
 		DEBUGLOG_MEMORY_FETCH("consideration_input_get_need_perc Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
-	var/input_key = "input"
+	var/input_key = CONSIDERATION_INPUTKEY_DEFAULT
 
 	if(!isnull(consideration_args))
-		input_key = consideration_args["input_key"] || input_key
+		input_key = consideration_args[CONSIDERATION_INPUTKEY_KEY] || input_key
 
 	if(isnull(input_key))
 		DEBUGLOG_MEMORY_FETCH("consideration_input_get_need_perc Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
@@ -23,7 +23,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_need_perc)
 	if(isnull(default))
 		default = NEED_MAXIMUM
 
-	var/value = requesting_brain.needs[input_key]
+	var/value = requesting_brain.GetNeedAmountCurrent(input_key, null)
 	if(isnull(value))
 		return default
 

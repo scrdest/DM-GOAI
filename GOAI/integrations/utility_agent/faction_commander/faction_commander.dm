@@ -66,6 +66,13 @@
 	if(factionspec)
 		faction_rels = factionspec["relationships"]
 
+	var/list/faction_need_weights = null
+	if(factionspec)
+		faction_need_weights = factionspec["needs"]
+
+	if(!isnull(faction_need_weights))
+		src.brain.need_weights = faction_need_weights
+
 	var/list/actionspecs = null
 
 	if(factionspec)

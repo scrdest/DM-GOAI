@@ -3,8 +3,6 @@
 	var/life = TRUE
 	var/paused = FALSE
 
-	var/list/needs = null
-
 	// Pawn - an AI-controlled entity.
 	// This can be a mob/atom, a faction datum, a squad wrapper datum for multiple mobs/atoms, etc.
 	// Note this can also be left blank if you want a purely abstract AI.
@@ -69,23 +67,6 @@
 	return new_actionslist
 
 
-/datum/utility_ai/proc/InitNeeds()
-	// Allows overwriting the Brain's needs with AI's own.
-	src.needs = list()
-
-	if(!(src.brain))
-		return src.needs
-
-	var/list/needs = src.brain.needs
-
-	if(isnull(needs) || !istype(needs))
-		needs = list()
-
-	src.brain.needs = needs
-
-	return src.needs
-
-
 /datum/utility_ai/proc/InitRelations()
 	// Allows overwriting the Brain's relations with AI's own.
 	if(!(src.brain))
@@ -138,7 +119,7 @@
 	src.RegisterAI()
 
 	src.brain = src.CreateBrain()
-	src.InitNeeds()
+
 	src.InitRelations()
 	src.InitSenses()
 	src.UpdateBrain()
