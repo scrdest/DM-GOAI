@@ -276,7 +276,7 @@
 		// Similarly, this is base rate, so negative STEADFAST means taking MORE morale hit per, uh, hit.
 		var/composure_dr = 1 - steadfastness
 		var/composure_loss = composure_dr * MAGICNUM_COMPOSURE_LOSS_ONHIT_BASE
-		needybrain.AddMotive(NEED_COMPOSURE, -composure_loss)
+		needybrain.AddNeed(NEED_COMPOSURE, -composure_loss)
 
 	src.brain.SetMemory("mainthreat", by_whom, 100)
 	return

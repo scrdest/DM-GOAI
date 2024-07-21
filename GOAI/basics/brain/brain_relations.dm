@@ -1,3 +1,6 @@
+#define BRAIN_MODULE_INCLUDED_RELATIONS 1
+
+
 /datum/brain
 	/* Faction-esque data; relation modifiers by tag. */
 	var/datum/relationships/relations

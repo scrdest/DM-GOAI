@@ -10,7 +10,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_all_faction_ais)
 
 	var/list/contexts = list()
 
-	var/context_key = context_args["output_context_key"] || "output"
+	CONTEXT_GET_OUTPUT_KEY(var/context_key)
 
 	for(var/faction_ai in GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry))
 		if(requester && (faction_ai == requester))

@@ -1,3 +1,4 @@
+#define BRAIN_MODULE_INCLUDED_MEMORY 1
 
 /datum/brain
 	/* Memory container; key-value map.

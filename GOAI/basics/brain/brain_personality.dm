@@ -1,3 +1,4 @@
+#define BRAIN_MODULE_INCLUDED_PERSONALITY 1
 
 /datum/brain
 	/* Personality container.

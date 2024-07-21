@@ -5,6 +5,10 @@
 
 #warn Dev module included!
 
+
+var/global/datum/faction_data/trade_debug_faction = null
+
+
 /mob/verb/TestTrade(testfilepath as file|null)
 	var/data_fp = testfilepath || GOAI_DATA_PATH("trade_test_cases.json")
 	var/list/testdata = READ_JSON_FILE(data_fp)
@@ -36,10 +40,9 @@
 
 		faction_brain.needs[new_need_key] = new_need_val
 
-	var/list/offers = list()
-
-	if(isnull(faction_brain.trade_offers))
-		faction_brain.trade_offers = list()
+	if(isnull(global.trade_debug_faction))
+		var/datum/faction_data/economy_gods = new("Economy Gods")
+		global.trade_debug_faction = economy_gods
 
 	for(var/test_key in testdata)
 		if(test_key == "_new_needs")
@@ -54,11 +57,9 @@
 		var/trade_volume = test_case["trade_volume"] || 1
 		var/cash_value = test_case["cash_value"] || 1000
 
-		var/datum/trade_offer/offer = new("Debug Gods", commodity_key, trade_volume, cash_value)
-		offers.Add(offer)
+		var/datum/trade_offer/test_offer = new(global.trade_debug_faction, commodity_key, trade_volume, cash_value)
+		REGISTER_OFFER_TO_MARKETPLACE(test_offer)
 
-		to_chat(usr, "[raw_faction_ai] got a new trade offer ([test_key]): {commodity_key: [offer.commodity_key], commodity_amount: [offer.commodity_amount]u, cash_value: [offer.cash_value] }")
-
-		faction_brain.trade_offers[test_key] = offer
+		to_chat(usr, "Created a new trade offer ([DEFAULT_IF_NULL(test_offer.id, "null")]): {commodity_key: [test_offer.commodity_key], commodity_amount: [test_offer.commodity_amount]u, cash_value: [test_offer.cash_value] }")
 
 	return

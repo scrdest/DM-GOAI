@@ -43,25 +43,8 @@
 	return 0
 
 
-/datum/brain/proc/GetNeedWeights() // () -> assoc[str, float]
-	// returns an assoc of keys of all Needs this AI cares about to their weights
-	var/list/needs_by_weight = list()
-	return needs_by_weight
-
-
-/datum/brain/proc/GetNeedAmountCurrent(var/need, var/default = 0)
-	return default
-
-
-/datum/brain/proc/GetNeedDesirability(var/need, var/amount)
-	return 0
-
 
 /datum/brain/proc/GetCommodityDesirability(var/commodity, var/amount, var/cash_value, var/list/curr_need_level_overrides = null)
-	return null
-
-
-/datum/brain/proc/GetNeedDeltaUtility(var/need, var/amt_pre, var/amt_post)
 	return null
 
 
@@ -122,21 +105,6 @@
 	to_world_log("GetNeedAmountCurrent([need], [default]) - needs are [json_encode(src.needs)]")
 	to_world_log("GetNeedAmountCurrent([need], [default]) - raw_amt is: [DEFAULT_IF_NULL(raw_amt, "null")], amt is: [amt]")
 	return amt
-
-
-/datum/brain/utility/GetNeedWeights()
-	#warn Get this from data (in GetNeedWeights())
-	var/list/myneeds = src.need_weights
-
-	if(!istype(myneeds))
-		#warn Do better defaults
-		myneeds = list(
-			NEED_FOOD_GENERIC = 3,
-			NEED_PRESTIGE = 0.8,
-			NEED_WEALTH = 1,
-		)
-
-	return myneeds
 
 
 /datum/brain/utility/GetNeedDesirability(var/need, var/amount)

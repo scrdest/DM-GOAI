@@ -24,38 +24,8 @@
 	/* Dict containing sensory data indexed by sense key. */
 	var/dict/perceptions
 
-	/* Bookkeeping for update times */
-	var/list/last_need_update_times
-	var/last_pawn_update_time
-	var/last_action_update_time
-
 	/* Dynamically attached junk */
 	var/dict/attachments
-
-
-
-
-/datum/brain/proc/Life()
-	/* Something like the commented-out block below *SHOULD* be here as it's a base class
-	// but since this runs an infinite ticker loop, I didn't want to waste CPU cycles running
-	// procs that just do a 'return' forever. May get restored later at some point if having
-	// a solid ABC outweighs the risks.
-
-	while(life)
-		LifeTick()
-		sleep(AI_TICK_DELAY)
-	*/
-	return
-
-
-/datum/brain/proc/LifeTick()
-	return
-
-
-/datum/brain/proc/CleanDelete()
-	src.life = FALSE
-	qdel(src)
-	return TRUE
 
 
 /datum/brain/proc/GetAiController()

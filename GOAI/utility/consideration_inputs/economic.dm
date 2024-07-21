@@ -52,6 +52,13 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	var/datasource = from_ctx ? context : consideration_args
 	CONSIDERATION_GET_INPUT_KEY(var/datasource_key)
 
+	#warn debug logs
+	to_world_log("consideration_trade_desirability: datasource_key [datasource_key || "null"]")
+
+	if(isnull(datasource_key))
+		to_world_log("consideration_trade_desirability: datasource_key [datasource_key || "null"] is null")
+		return 0
+
 	var/datum/trade_offer/offer = datasource[datasource_key]
 
 	if(!istype(offer))

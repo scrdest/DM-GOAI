@@ -83,9 +83,13 @@
 	// This is const'd right now, but might have some randomness or w/e, plus we can audit it better in a variable.
 	var/expiry_time = EXPIRY_TIME_SLOW
 
-	var/datum/trade_offer/sell_offer = new(src, commodity, trade_amount, asking_price, world.time + expiry_time)
-	REGISTER_OFFER_TO_MARKETPLACE(sell_offer)
+	// NOTE: The source on the contract will be the Pawn, so Faction datum for faction AIs or a mob for mob AIs.
+	//       This separates concerns - other AIs only care about how much they like the mob/faction and don't have
+	//         to know whether they are dealing with an NPC, a PC, or a completely abstract entity.
+	var/source_entity = src.pawn
 
+	var/datum/trade_offer/sell_offer = new(source_entity, commodity, trade_amount, asking_price, world.time + expiry_time)
+	REGISTER_OFFER_TO_MARKETPLACE(sell_offer)
 	tracker.SetDone()
 
 	#warn Debug logs
@@ -171,19 +175,20 @@
 
 	// Find the best Thing we can buy to satisfy this need
 	var/commodity = ai_brain.GetBestPurchaseCommodityForNeed(need_key)
+	var/source_entity = src.pawn
 
 	if(!isnull(bid_price_fast))
 		// Find HOW MUCH of said Thing we ideally want to buy
 		var/fast_trade_amount = ai_brain.GetCommodityAmountForNeedDelta(half_need_delta, curr_need)  // should usually return a positive value!
 		var/expiry_time_fast = EXPIRY_TIME_FAST
-		var/datum/trade_offer/buy_offer_fast = new(src, commodity, fast_trade_amount, bid_price_fast, world.time + expiry_time_fast)
+		var/datum/trade_offer/buy_offer_fast = new(source_entity, commodity, fast_trade_amount, bid_price_fast, world.time + expiry_time_fast)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_fast)
 
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
 		var/slow_trade_amount = ai_brain.GetCommodityAmountForNeedDelta(half_need_delta, curr_need + half_need_delta)  // should usually return a positive value!
 		var/expiry_time_slow = EXPIRY_TIME_SLOW
-		var/datum/trade_offer/buy_offer_slow = new(src, commodity, slow_trade_amount, bid_price_slow, world.time + expiry_time_slow)
+		var/datum/trade_offer/buy_offer_slow = new(source_entity, commodity, slow_trade_amount, bid_price_slow, world.time + expiry_time_slow)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_slow)
 
 	tracker.SetDone()

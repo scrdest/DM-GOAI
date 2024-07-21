@@ -1,3 +1,4 @@
+#define BRAIN_MODULE_INCLUDED_ACTIONS 1
 
 /datum/brain
 	var/list/actionslist

@@ -388,14 +388,14 @@
 
 	else if(src.active_path && tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * (20 + walk_dist)))
 		if(istype(needybrain))
-			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
+			needybrain.AddNeed(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
 		tracker.SetFailed()
 
 	else if(tracker.IsOlderThan(COMBATAI_MOVE_TICK_DELAY * (10 + walk_dist)))
 		if(istype(needybrain))
-			needybrain.AddMotive(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
+			needybrain.AddNeed(NEED_COMPOSURE, -MAGICNUM_COMPOSURE_LOSS_FAILMOVE)
 
 		CancelNavigate()
 		tracker.SetFailed()

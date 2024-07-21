@@ -9,6 +9,12 @@
 	var/_ticks_since_detached = 0
 
 
+/datum/brain/proc/CleanDelete()
+	src.life = FALSE
+	qdel(src)
+	return TRUE
+
+
 /* Stubs. Should implement properly in the subclasses! */
 /datum/brain/proc/ShouldCleanup()
 	return FALSE

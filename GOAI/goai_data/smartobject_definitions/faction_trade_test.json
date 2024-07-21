@@ -3,10 +3,29 @@
 	"active": 1, 
 	"actions": [
 		{
+			"name": "Accept Trade", 
+			"description": "Given a trade offer, accept it if it's beneficial.", 
+			"handler": "/datum/utility_ai/proc/AcceptTradeOffer", 
+			"priority": 20,
+			"context_procs": ["/proc/ctxfetcher_get_market_trade_offers"], 
+			"context_args": [{
+				"input_key": "input"
+			}],
+			"considerations": [
+				{
+					"name": "TradeDesirability",
+					"input_proc": "/proc/consideration_trade_desirability",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
 			"name": "Make Sell Offer", 
 			"description": "Create a Sell offer for a Commodity we don't particularly want.", 
 			"handler": "/datum/utility_ai/proc/CreateSellOfferForNeed", 
-			"priority": 10,
+			"priority": 1,
 			"context_procs": ["/proc/ctxfetcher_get_needs"], 
 			"context_args": [{
 				
@@ -25,7 +44,7 @@
 			"name": "Make Buy Offer", 
 			"description": "Create a Buy offer for a Commodity that will satisfy our Need(s).", 
 			"handler": "/datum/utility_ai/proc/CreateBuyOfferForNeed", 
-			"priority": 10,
+			"priority": 1,
 			"context_procs": ["/proc/ctxfetcher_get_needs"], 
 			"context_args": [{
 				

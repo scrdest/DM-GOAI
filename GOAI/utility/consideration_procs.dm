@@ -40,7 +40,7 @@ if(_cihelper_get_requester_brain_okay) {\
 #define CONSIDERATION_INPUTKEY_KEY "input_key"
 #define CONSIDERATION_INPUTKEY_DEFAULT "input"
 
-#define CONSIDERATION_GET_INPUT_KEY(Varname) ##Varname = consideration_args?[CONSIDERATION_INPUTKEY_KEY] || CONSIDERATION_INPUTKEY_DEFAULT
+#define CONSIDERATION_GET_INPUT_KEY(Varname) ##Varname = DEFAULT_IF_NULL(consideration_args?[CONSIDERATION_INPUTKEY_KEY], CONSIDERATION_INPUTKEY_DEFAULT)
 
 // These are technically ContextFetcher stuff, but their outputs naturally wire into inputs in Considerations so this helps with chaining
 #define CONTEXT_OUTPUTKEY_KEY "output_context_key"

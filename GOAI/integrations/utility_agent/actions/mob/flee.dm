@@ -71,7 +71,7 @@
 
 			var/datum/brain/utility/needybrain = src.brain
 			if(istype(needybrain))
-				needybrain.AddMotive(NEED_COMPOSURE, MAGICNUM_COMPOSURE_GAIN_FLEED)
+				needybrain.AddNeed(NEED_COMPOSURE, MAGICNUM_COMPOSURE_GAIN_FLEED)
 
 			return
 
