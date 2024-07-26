@@ -50,7 +50,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_needs)
 			UTILITYBRAIN_DEBUG_LOG("WARNING: ctxfetcher_get_needs need [need_key] weight is irrelevant! @ L[__LINE__] in [__FILE__]!")
 			continue
 
-		var/curr_need_value = requesting_brain.GetNeedAmountCurrent(need_key, null)
+		var/curr_need_value = requesting_brain.GetNeed(need_key, null)
 
 		if(isnull(curr_need_value))
 			UTILITYBRAIN_DEBUG_LOG("WARNING: ctxfetcher_get_needs need [need_key] value is null! @ L[__LINE__] in [__FILE__]!")

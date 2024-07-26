@@ -48,7 +48,7 @@
 
 	var/list/factionspec = null // assoc list
 	if(spec_file)
-		factionspec = READ_JSON_FILE(spec_file)
+		READ_JSON_FILE_CACHED(spec_file, factionspec)
 		to_world_log("Read factionspec [spec_file] for [src] ([json_encode(factionspec)])")
 
 	var/faction_name = null
@@ -66,12 +66,26 @@
 	if(factionspec)
 		faction_rels = factionspec["relationships"]
 
+	var/list/faction_needs = null
+	if(factionspec)
+		faction_needs = factionspec["needs"]
+
+	if(!isnull(faction_needs))
+		src.brain.needs = faction_needs
+
 	var/list/faction_need_weights = null
 	if(factionspec)
-		faction_need_weights = factionspec["needs"]
+		faction_need_weights = factionspec["need_weights"]
 
 	if(!isnull(faction_need_weights))
 		src.brain.need_weights = faction_need_weights
+
+	var/list/faction_preferred_trades = null
+	if(factionspec)
+		faction_preferred_trades = factionspec["preferred_trades"]
+
+	if(!isnull(faction_preferred_trades))
+		src.brain?.preferred_trades = faction_preferred_trades
 
 	var/list/actionspecs = null
 
@@ -95,7 +109,7 @@
 		if(!basepath_idx)
 			abs_spec_path = GOAI_DATA_PATH(spec_file)
 
-		factionspec = READ_JSON_FILE(abs_spec_path)
+		READ_JSON_FILE_CACHED(abs_spec_path, factionspec)
 		to_world_log("Read factionspec [spec_file] for [src] ([json_encode(factionspec)])")
 
 	var/datum/faction_data/new_faction = new(faction_name, faction_rels, faction_tags, actionspecs)

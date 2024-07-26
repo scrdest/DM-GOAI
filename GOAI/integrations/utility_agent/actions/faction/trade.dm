@@ -18,12 +18,24 @@
 	var/datum/trade_offer/offer = input
 
 	if(!istype(offer))
-		to_world_log("AcceptTradeOffer: Invalid offer type for object [offer]!")
+		to_world_log("AcceptTradeOffer ([src]): Invalid offer type for offer object [NULL_TO_TEXT(offer)]!")
 		tracker.SetFailed()
 		return
 
+	var/ai_pawn = src.GetPawn()  // usually a faction, though COULD be a mob too
+
+	if(isnull(ai_pawn))
+		to_world_log("AcceptTradeOffer ([src]): Does not have a pawn ([NULL_TO_TEXT(ai_pawn)]).")
+		tracker.SetFailed()
+		return
+
+	var/datum/trade_contract/contract = offer.ToContract(ai_pawn)
+	GOAI_BRAIN_ADD_CONTRACT(src.brain, contract)
+	#warn Finish this - put the contract in some tracking variable
+
 	# warn TODO, debug log
 	to_world_log("ACCEPTED a deal for [offer.commodity_key] * [offer.commodity_amount]u @ [offer.cash_value]$")
+
 	tracker.SetDone()
 	return
 
@@ -44,7 +56,7 @@
 		return
 
 	// How high our 'sacrificed' need is rn
-	var/curr_need = ai_brain.GetNeedAmountCurrent(need_key, null)
+	var/curr_need = ai_brain.GetNeed(need_key, null)
 
 	if(isnull(curr_need))
 		to_world_log("CreateSellOfferForNeed: need_key [need_key] value is null!")
@@ -52,7 +64,7 @@
 		return
 
 	// How much money we got
-	//var/curr_wealth = ai_brain.GetNeedAmountCurrent(NEED_WEALTH, 0)
+	//var/curr_wealth = ai_brain.GetNeed(NEED_WEALTH, 0)
 
 	// How much of our Need-satisfaction we're willing to sacrifice
 	var/need_delta_total = -min(curr_need - 10, RANDOMIZED_NEED_DELTA)
@@ -62,12 +74,16 @@
 		tracker.SetFailed()
 		return
 
-	var/commodity = ai_brain.GetBestSaleCommodityForNeed(need_key)
+	var/commodity = src.GetBestSaleCommodityForNeed(need_key)
 
-	var/trade_amount = ai_brain.GetCommodityAmountForNeedDelta(commodity, need_delta_total)  // should usually return a negative value!
+	if(isnull(commodity))
+		to_world_log("ERROR: CreateSellOfferForNeed: [src.name] Commodity for [need_key] is null ([commodity])")
+		return
+
+	var/trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_delta_total)  // should usually return a negative value!
 
 	// How much Utility we lose from the trade if we didn't get paid
-	var/tradeoff_utility_loss = ai_brain.GetCommodityDesirability(commodity, trade_amount, 0)
+	var/tradeoff_utility_loss = src.GetCommodityDesirability(commodity, trade_amount, 0)
 
 	// How much profit we want to take on top of a Utility-fair trade
 	var/profitability_factor = RANDOMIZED_PROFITABILITY_FACTOR
@@ -76,7 +92,7 @@
 	var/total_pricing_utility = tradeoff_utility_loss - profitability_factor
 
 	// How much we want for this deal
-	var/asking_price = ai_brain.GetMoneyForNeedUtility(total_pricing_utility)
+	var/asking_price = src.GetMoneyForNeedUtility(total_pricing_utility)
 
 	// How long do we want to keep this open
 	// Generally, this should be lower if we are desperate (because we are offering deals that are quite bad for us).
@@ -93,7 +109,7 @@
 	tracker.SetDone()
 
 	#warn Debug logs
-	to_world_log("Marketplace - current state is: [json_encode(GOAI_LIBBED_GLOB_ATTR(global_marketplace))]")
+	to_world_log("CreateSellOfferForNeed: [src.name] created new Sell offer for [commodity] @ [trade_amount]u | [asking_price]$")
 	return sell_offer
 
 
@@ -113,7 +129,7 @@
 		return
 
 	// How high our 'acquired' need is rn
-	var/curr_need = ai_brain.GetNeedAmountCurrent(need_key, null)
+	var/curr_need = ai_brain.GetNeed(need_key, null)
 
 	if(isnull(curr_need))
 		to_world_log("CreateBuyOfferForNeed: need_key [need_key] value is null!")
@@ -147,13 +163,13 @@
 	var/half_need_delta = need_delta_total / 2
 
 	// How much money we got
-	var/curr_wealth = max(0, ai_brain.GetNeedAmountCurrent(NEED_WEALTH, 0))
+	var/curr_wealth = max(0, ai_brain.GetNeed(NEED_WEALTH, 0))
 
 	// How much profit we want to take on top of a Utility-fair trade
 	var/profitability_factor = RANDOMIZED_PROFITABILITY_FACTOR
 
 	// How much we offer for this deal
-	var/bid_price_fast = min(curr_wealth, ai_brain.GetMoneyForNeedUtility(half_need_delta - profitability_factor, curr_wealth))
+	var/bid_price_fast = min(curr_wealth, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, curr_wealth))
 
 	if(bid_price_fast >= PLUS_INF)
 		// Invalid deal
@@ -171,22 +187,27 @@
 	var/bid_price_slow = null
 
 	if(remaining_cash > 0)
-		bid_price_slow = min(remaining_cash, ai_brain.GetMoneyForNeedUtility(half_need_delta - profitability_factor, remaining_cash))
+		bid_price_slow = min(remaining_cash, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, remaining_cash))
 
 	// Find the best Thing we can buy to satisfy this need
-	var/commodity = ai_brain.GetBestPurchaseCommodityForNeed(need_key)
+	var/commodity = src.GetBestPurchaseCommodityForNeed(need_key)
+
+	if(isnull(commodity))
+		to_world_log("ERROR: CreateBuyOfferForNeed: [src.name] Commodity for [need_key] is null ([commodity])")
+		return
+
 	var/source_entity = src.pawn
 
 	if(!isnull(bid_price_fast))
 		// Find HOW MUCH of said Thing we ideally want to buy
-		var/fast_trade_amount = ai_brain.GetCommodityAmountForNeedDelta(half_need_delta, curr_need)  // should usually return a positive value!
+		var/fast_trade_amount = src.GetCommodityAmountForNeedDelta(half_need_delta, curr_need)  // should usually return a positive value!
 		var/expiry_time_fast = EXPIRY_TIME_FAST
 		var/datum/trade_offer/buy_offer_fast = new(source_entity, commodity, fast_trade_amount, bid_price_fast, world.time + expiry_time_fast)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_fast)
 
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
-		var/slow_trade_amount = ai_brain.GetCommodityAmountForNeedDelta(half_need_delta, curr_need + half_need_delta)  // should usually return a positive value!
+		var/slow_trade_amount = src.GetCommodityAmountForNeedDelta(half_need_delta, curr_need + half_need_delta)  // should usually return a positive value!
 		var/expiry_time_slow = EXPIRY_TIME_SLOW
 		var/datum/trade_offer/buy_offer_slow = new(source_entity, commodity, slow_trade_amount, bid_price_slow, world.time + expiry_time_slow)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_slow)
@@ -194,5 +215,37 @@
 	tracker.SetDone()
 
 	#warn Debug logs
-	to_world_log("Marketplace - current state is: [json_encode(GOAI_LIBBED_GLOB_ATTR(global_marketplace))]")
+	to_world_log("CreateBuyOfferForNeed: [src.name] created new Buy [isnull(bid_price_slow) ? "offer" : "offers"] for [commodity]")
+	return
+
+
+/datum/utility_ai/proc/FulfilContract(var/datum/ActionTracker/tracker, var/input)
+	/* ATTEMPTS to fulfil the terms of a Contract on our part.
+	// If we are buying, send the cash; if we are selling, send the goods.
+	// Depending on the deal type, pawn type, and any AI LOD logic, this might success instantly,
+	// create abstract tracker data, or trigger low-level movement etc. to physically move objects.
+	*/
+	if(isnull(tracker))
+		return
+
+	var/datum/trade_contract/contract = input
+
+	if(!istype(contract))
+		to_world_log("FulfilContract ([src]): Invalid offer type for contract object [NULL_TO_TEXT(contract)]!")
+		tracker.SetFailed()
+		return
+
+	var/ai_pawn = src.GetPawn()  // usually a faction, though COULD be a mob too
+
+	if(isnull(ai_pawn))
+		to_world_log("FulfilContract ([src]): Does not have a pawn ([NULL_TO_TEXT(ai_pawn)]).")
+		tracker.SetFailed()
+		return
+
+	#warn Finish this - apply the effects, dispatch the execution to the pawn, track
+
+	# warn TODO, debug log
+	to_world_log("FULFILLED a contract for [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+
+	tracker.SetDone()
 	return

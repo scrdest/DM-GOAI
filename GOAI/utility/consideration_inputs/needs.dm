@@ -8,22 +8,27 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_need_perc)
 
 	var/input_key = CONSIDERATION_INPUTKEY_DEFAULT
 
-	if(!isnull(consideration_args))
-		input_key = consideration_args[CONSIDERATION_INPUTKEY_KEY] || input_key
+	input_key = consideration_args?[CONSIDERATION_INPUTKEY_KEY] || input_key
 
 	if(isnull(input_key))
 		DEBUGLOG_MEMORY_FETCH("consideration_input_get_need_perc Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
 		return null
 
+	var/from_ctx = consideration_args?["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/need_key = (from_ctx ? context[input_key] : consideration_args[input_key])
+
 	var/default = null
 
 	if(!isnull(consideration_args))
-		default = consideration_args["default"]
+		default = consideration_args?["default"]
 
 	if(isnull(default))
 		default = NEED_MAXIMUM
 
-	var/value = requesting_brain.GetNeedAmountCurrent(input_key, null)
+	var/value = requesting_brain.GetNeed(need_key, null)
 	if(isnull(value))
 		return default
 
@@ -45,7 +50,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_lowest_need_perc)
 	var/input_key = CONSIDERATION_INPUTKEY_DEFAULT
 
 	if(!isnull(consideration_args))
-		input_key = consideration_args[CONSIDERATION_INPUTKEY_KEY] || input_key
+		input_key = consideration_args?[CONSIDERATION_INPUTKEY_KEY] || input_key
 
 	if(isnull(input_key))
 		DEBUGLOG_MEMORY_FETCH("consideration_input_get_need_perc Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
@@ -54,10 +59,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_lowest_need_perc)
 	var/default = null
 
 	if(!isnull(consideration_args))
-		default = consideration_args["default"]
-
-	if(isnull(default))
-		default = NEED_MAXIMUM
+		default = consideration_args?["default"]
 
 	var/list/needs_by_weight = requesting_brain.GetNeedWeights() || list()
 
@@ -71,7 +73,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_lowest_need_perc)
 			// ignore unimportant needs
 			continue
 
-		var/need_value = requesting_brain.GetNeedAmountCurrent(input_key, null)
+		var/need_value = requesting_brain.GetNeed(input_key, null)
 
 		if(isnull(need_value))
 			continue
@@ -89,3 +91,42 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_lowest_need_perc)
 	var/result = (lowest_value / NEED_MAXIMUM)
 
 	return result
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_input_get_need_weight)
+	/* Returns the weight of a given need.
+	// This can be used to scale down the priority of individual needs without scaling down
+	// the priority of the whole action.
+	*/
+	var/datum/brain/requesting_brain = _cihelper_get_requester_brain(requester, "consideration_input_get_need_weight")
+
+	if(!istype(requesting_brain))
+		DEBUGLOG_MEMORY_FETCH("consideration_input_get_need_weight Brain is null ([requesting_brain || "null"]) @ L[__LINE__] in [__FILE__]")
+		return FALSE
+
+	var/input_key = CONSIDERATION_INPUTKEY_DEFAULT
+	input_key = consideration_args?[CONSIDERATION_INPUTKEY_KEY] || input_key
+
+	if(isnull(input_key))
+		DEBUGLOG_MEMORY_FETCH("consideration_input_get_need_weight Input Key is null ([input_key || "null"]) @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/from_ctx = consideration_args?["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/need_key = (from_ctx ? context[input_key] : consideration_args[input_key])
+
+	var/default = null
+
+	if(!isnull(consideration_args))
+		default = consideration_args["default"]
+
+	if(isnull(default))
+		default = 0
+
+	var/value = requesting_brain.GetNeedWeight(need_key, null)
+	if(isnull(value))
+		return default
+
+	return value

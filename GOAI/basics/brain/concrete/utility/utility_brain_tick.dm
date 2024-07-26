@@ -1,10 +1,24 @@
 /*
 // This module houses the core loop of the Utility brain.
+//
+// For messy, historical reasons, the core AI logic had once been implemented in the Brain class rather than the AI class
+// (namely: the AI object came later by factoring out the AI from the mob class).
+//
+// This is that LEGACY implementation - the AI proper calls into the Brain's API.
+//
+// This is (or at least should be) unincluded at the moment.
+// Not much will happen if you untick this and/or the other Brain-based decision API components,
+// but this is deprecated, possibly under-maintained and probably just... unnecessary.
 */
 
 /datum/brain/utility/proc/OnBeginLifeTick()
 	return
 
+
+// Bears explaining: for mostly emergent design reasons, the Utility Brain does not own its own processing.
+// Instead, the AI controlling the Brain 'pulses' this core loop at its own leisure and harvests results.
+
+// Potential TODO: move this logic to AI, use the Brain just for storage
 
 /datum/brain/utility/LifeTick()
 	var/run_count = 0
@@ -84,10 +98,6 @@
 
 	return
 
-
-// Bears explaining: for mostly emergent design reasons, the Utility Brain does not own its own processing.
-// Instead, the AI controlling the Brain 'pulses' this core loop at its own leisure and harvests results.
-//
 /*
 /datum/brain/utility/Life()
 	while(life)

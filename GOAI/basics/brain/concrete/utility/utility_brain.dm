@@ -6,7 +6,3 @@
 
 
 /datum/brain/utility
-	// NOTE: we'll reuse actionslist from the parent for ActionSets; this is not ideal
-	//       but I don't want to refactor the parent into a GOAPy subclass.
-	var/list/file_actionsets = null
-

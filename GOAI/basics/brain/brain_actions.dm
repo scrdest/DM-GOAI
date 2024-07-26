@@ -110,3 +110,12 @@
 		return FALSE
 
 	return TRUE
+
+
+
+/datum/brain/verb/DoAction(Act as anything in actionslist)
+	return null
+
+
+/datum/brain/verb/DoInstantAction(Act as anything in actionslist)
+	return null

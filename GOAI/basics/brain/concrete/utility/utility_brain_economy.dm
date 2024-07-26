@@ -1,6 +1,14 @@
 /*
-// This module extends the AI Brain class with methods for reasoning about economic values of goods and money.
+// Utility-brained implementations for trading logic
 */
+
+
+#warn Restore the nulls for default procs here:
+//#define DEFAULT_BUY_ITEM_PROC null
+//#define DEFAULT_SELL_ITEM_PROC null
+
+#define DEFAULT_BUY_ITEM_PROC /proc/utility_best_trade_item_selector_personality_generic
+#define DEFAULT_SELL_ITEM_PROC /proc/utility_best_trade_item_selector_personality_generic
 
 #define APPROX_SQRT_TWO 1.41421
 
@@ -36,75 +44,6 @@
 // but remains reasonably enthusiastic about big jumps later on.
 #define DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR 0.05
 
-// placeholders because this is an ABC:
-
-
-/datum/brain/proc/GetMoneyDesirability(var/amount, var/curr_wealth = null)
-	return 0
-
-
-
-/datum/brain/proc/GetCommodityDesirability(var/commodity, var/amount, var/cash_value, var/list/curr_need_level_overrides = null)
-	return null
-
-
-/datum/brain/proc/GetMoneyForNeedUtility(var/utility, var/curr_wealth = null)
-	/* This is effectively an inverse of GetMoneyDesirability(Amt). */
-	return
-
-
-/datum/brain/proc/GetCommodityAmountForNeedDelta(var/commodity, var/need_key, var/delta)
-	/* Given a Commodity and a Need delta, how many whole units of Commodity do we need
-	// to give us at least that much change in the Need?
-	//
-	// As any Commodity's Need satisfaction per unit may be higher than our delta,
-	// and we want integer-valued amounts, this is not a simple division.
-	*/
-	return
-
-
-/*
-// Picking the preferred trade good when WE are making offers.
-//
-// This does not affect our willingness to accept buy or sell offers from others,
-// that just depends on normal AI logic evaluating the offer.
-//
-// The methods for preferred Buy and Sell goods are split to make it easier
-// to customize their logic separately.
-//
-// For example, you might want to hardcode the bought item for a need,
-// but pick a sold item from items that we have available at the moment.
-*/
-
-/datum/brain/proc/GetBestPurchaseCommodityForNeed(var/need_key)
-	/* Given a Need, what is the thing we'd prefer to buy to satisfy it? */
-
-	// The implementation can be very dumb, e.g. hardcoded item or a random
-	// choice from a list of hardcoded items, or very fancy - up to implementer.
-
-	return
-
-
-/datum/brain/proc/GetBestSaleCommodityForNeed(var/need_key)
-	/* Given a Need, what is the thing we'd prefer to sell to satisfy it? */
-
-	// The implementation can be very dumb, e.g. hardcoded item or a random
-	// choice from a list of hardcoded items, or very fancy - up to implementer.
-
-	return
-
-
-/*
-// Utility-brained implementations
-*/
-
-/datum/brain/utility/GetNeedAmountCurrent(var/need, var/default = 0)
-	var/raw_amt = src.needs?[need]
-	var/amt = DEFAULT_IF_NULL(raw_amt, default)
-	#warn Debug logging
-	to_world_log("GetNeedAmountCurrent([need], [default]) - needs are [json_encode(src.needs)]")
-	to_world_log("GetNeedAmountCurrent([need], [default]) - raw_amt is: [DEFAULT_IF_NULL(raw_amt, "null")], amt is: [amt]")
-	return amt
 
 
 /datum/brain/utility/GetNeedDesirability(var/need, var/amount)
@@ -252,7 +191,7 @@
 		var/override_amt = curr_need_level_overrides?[posthoc_need_key]
 
 		// starting point:
-		var/curr_need_amt = (isnull(override_amt) ? src.GetNeedAmountCurrent(posthoc_need_key) : override_amt)
+		var/curr_need_amt = (isnull(override_amt) ? src.GetNeed(posthoc_need_key) : override_amt)
 
 		// deltas:
 		var/raw_post_need_amt = needs_commodity_deltas[posthoc_need_key]
@@ -306,7 +245,7 @@
 	// mostly pro-forma in case this ever does anything important in the ABC
 	. = ..(amount)
 
-	var/wealth = isnull(curr_wealth) ? src.GetNeedAmountCurrent(NEED_WEALTH, 0) : curr_wealth
+	var/wealth = isnull(curr_wealth) ? src.GetNeed(NEED_WEALTH, 0) : curr_wealth
 
 	// Personality factor (PF) makes us loss-averse
 	// The higher the factor (up to 1), the more loss-averse we are:
@@ -381,7 +320,7 @@
 	// mostly pro-forma in case this ever does anything important in the ABC
 	. = ..(utility)
 
-	var/wealth = isnull(curr_wealth) ? src.GetNeedAmountCurrent(NEED_WEALTH, 0) : curr_wealth
+	var/wealth = isnull(curr_wealth) ? src.GetNeed(NEED_WEALTH, 0) : curr_wealth
 
 	// We scale UP by this in GetMoneyDesirability(), so need to scale DOWN here.
 	var/downscaled_utils = utility / ECONOMY_MONEY_TO_UTILS_MAGIC_NUMBER
@@ -501,13 +440,6 @@
 // especially if the logic does not depend on the calling brain's state.
 */
 
-#warn Restore the nulls for default procs here:
-//#define DEFAULT_BUY_ITEM_PROC null
-//#define DEFAULT_SELL_ITEM_PROC null
-
-#define DEFAULT_BUY_ITEM_PROC /proc/utility_best_trade_item_selector_hardcoded
-#define DEFAULT_SELL_ITEM_PROC /proc/utility_best_trade_item_selector_hardcoded
-
 
 /datum/brain/utility
 	var/best_purchase_for_need_proc = DEFAULT_BUY_ITEM_PROC
@@ -525,8 +457,7 @@
 		return value
 
 	else
-		#warn debug logs
-		to_world_log("WARNING: GetBestPurchaseCommodityForNeed for [src] has no dynamic proc declared!")
+		to_world_log("ERROR: GetBestPurchaseCommodityForNeed for [src] has no dynamic proc declared! @ [__LINE__] in [__FILE__]")
 
 	return .
 
@@ -539,8 +470,6 @@
 		return value
 
 	else
-		#warn debug logs
-		to_world_log("WARNING: GetBestSaleCommodityForNeed for [src] has no dynamic proc declared!")
+		to_world_log("ERROR: GetBestSaleCommodityForNeed for [src] has no dynamic proc declared!")
 
 	return .
-

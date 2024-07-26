@@ -12,7 +12,7 @@
 	var/id = null
 
 	// Who is offering
-	var/creator
+	var/creator = null
 
 	// Who is receiving the offer - optional, null means open to all
 	var/receiver = null
@@ -78,11 +78,15 @@
 	// Primarily meant for invalidating fulfilled contracts.
 	var/is_open = TRUE
 
+	// A bitflag tracking the current state of the trade.
+	// Use GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state) to check if the deal can be considered fulfilled.
+	var/lifecycle_state = GOAI_CONTRACT_LIFECYCLE_INITIAL
+
 	// So that we can put these into a hugh jass array and assign the index from the array here for tracking.
 	var/id = null
 
 	// Who is offering
-	var/creator
+	var/creator = null
 
 	// Who is receiving the offer
 	var/receiver = null
@@ -155,19 +159,61 @@
 // $$$  Contract => Fulfilment (or not)  $$$
 */
 
-/datum/trade_contract/proc/Expire()
+
+/datum/trade_contract/proc/Signoff(var/signoff_party)
 	/*
-	// Failed-to-deliver, fission mailed.
+	// Represents a party in the trade signing off on its fulfilment.
+	// The user must pass an entity as the argument that should match either the creator or the receiver of the offer.
+	// This functions like providing that side's "signature" and allows switching the appropriate flag.
+	// The contracts require the signoff from both sides to be considered successfully closed.
 	*/
-	src.is_open = FALSE
-	return src
+
+	if(isnull(signoff_party))
+		to_world_log("TradeContract [src] received a call to Signoff() with a null signoff_party. This is not critical, but generally should not happen.")
+		return src
+
+	if((signoff_party == src.creator) && (src.lifecycle_state & GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CREATOR))
+		src.lifecycle_state ^= GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CREATOR
+		return src
+
+	if((signoff_party == src.receiver) && (src.lifecycle_state & GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CONTRACTOR))
+		src.lifecycle_state ^= GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CONTRACTOR
+		return src
+
+	return null
 
 
 /datum/trade_contract/proc/Complete()
 	/*
 	// Job's done.
 	*/
-	src.is_open = FALSE
-	return src
 
+	// Verify signoff, refuse to complete if there's anything unsettled left.
+	if(!GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state))
+		return FALSE
+
+	// Mark the contract as closed.
+	src.is_open = FALSE
+
+	return TRUE
+
+
+/datum/trade_contract/proc/Expire()
+	/*
+	// Failed-to-deliver, fission mailed.
+	*/
+
+	// If somehow we forgot to mark the contract as completed
+	// but it is in a success state as of expiry, just complete it now.
+	if(GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state))
+		return src.Complete()
+
+	//
+	if(GOAI_CONTRACT_IS_PROGRESSED(src.lifecycle_state))
+		return
+
+	// Mark the contract as closed.
+	src.is_open = FALSE
+
+	return TRUE
 

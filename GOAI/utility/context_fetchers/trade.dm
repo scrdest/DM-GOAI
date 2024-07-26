@@ -32,6 +32,11 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_market_trade_offers)
 			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - junk")
 			continue
 
+		if(!(offer.is_open))
+			// Exclude bound offers
+			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - no longer open")
+			continue
+
 		if(!(isnull(offer.expiry_time) || (offer.expiry_time > now)))
 			// Exclude expired offers
 			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - expired")

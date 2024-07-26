@@ -11,7 +11,8 @@ var/global/datum/faction_data/trade_debug_faction = null
 
 /mob/verb/TestTrade(testfilepath as file|null)
 	var/data_fp = testfilepath || GOAI_DATA_PATH("trade_test_cases.json")
-	var/list/testdata = READ_JSON_FILE(data_fp)
+	var/list/testdata
+	READ_JSON_FILE_CACHED(data_fp, testdata)
 
 	if(!testdata)
 		to_chat(usr, "test data from [data_fp] is invalid!")

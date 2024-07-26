@@ -1,3 +1,6 @@
+/*
+// Procs for integrating an AI with a Brain.
+*/
 
 /datum/utility_ai/proc/CreateBrain(var/list/custom_actionslist = null, var/list/init_memories = null, var/list/init_action = null, var/datum/brain/with_hivemind = null, var/list/custom_personality = null)
 	var/list/new_actionslist = (custom_actionslist ? custom_actionslist : actionslist)

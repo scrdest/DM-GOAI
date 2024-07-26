@@ -1,7 +1,18 @@
 
 /datum/brain/utility/proc/Idle()
 	return
-
+/*
+// This module contains the API for dealing with available Actions.
+//
+// For messy, historical reasons, the core AI logic had once been implemented in the Brain class rather than the AI class
+// (namely: the AI object came later by factoring out the AI from the mob class).
+//
+// This is that LEGACY implementation - the AI proper calls into the Brain's API.
+//
+// This is (or at least should be) unincluded at the moment.
+// Not much will happen if you untick this and/or the other Brain-based decision API components,
+// but this is deprecated, possibly under-maintained and probably just... unnecessary.
+*/
 
 /datum/brain/utility/proc/GetActionSetFromFile(var/filename)
 	if(isnull(src.file_actionsets))
@@ -131,3 +142,4 @@
 	RUN_ACTION_DEBUG_LOG("INVALID ACTION: [action_key]  | <@[src]> | [__FILE__] -> L[__LINE__]")
 	src.AbortPlan()
 	return TRUE
+

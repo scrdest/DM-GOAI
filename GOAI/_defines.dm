@@ -69,6 +69,9 @@
 #define SET_IF_NOT_NULL(Nullable, Var) if(!(isnull(Nullable))) { ##Var = Nullable }
 #define DEFAULT_IF_NULL(Nullable, Default) (isnull(Nullable) ? Default : Nullable)
 
+// A variant of DEFAULT_IF_NULL for logging, as this is an extremely common pattern in messages in DM.
+#define NULL_TO_TEXT(Nullable) DEFAULT_IF_NULL(Nullable, "null")
+
 // Kinda black magic; looks up an AI reference and puts it into the variable PATH specified in the second argument.
 #define FetchAiControllerForObjIntoVar(gameobj, VarPath) var/__commander_backref = gameobj?.attachments?.Get(ATTACHMENT_CONTROLLER_BACKREF); VarPath = IS_REGISTERED_AI(__commander_backref) && GOAI_LIBBED_GLOB_ATTR(global_goai_registry[__commander_backref])
 

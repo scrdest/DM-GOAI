@@ -98,6 +98,11 @@ GLOBAL_LIST_EMPTY(global_marketplace)
 					MARKETWATCH_DEBUG_LOG("Marketwatch cleaning up [market_key] - garbage")
 					continue
 
+				if(!(offer.is_open))
+					// Bound as contract instead
+					MARKETWATCH_DEBUG_LOG("Marketwatch cleaning up [market_key] - bound")
+					continue
+
 				if(offer.expiry_time && (offer.expiry_time <= now))
 					// Expired, remove
 					MARKETWATCH_DEBUG_LOG("Marketwatch cleaning up [market_key] - expired at [offer.expiry_time], current: [now]")

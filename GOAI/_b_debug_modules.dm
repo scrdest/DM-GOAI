@@ -1,5 +1,6 @@
 // Uncomment defines as needed to enable various loggers.
 
+
 # ifdef ENABLE_DEBUG_LOG_MACROS
 	# define DEMOGOAP_DEBUG_LOGGING 0
 	//# define DEBUG_LOGGING 0

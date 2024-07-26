@@ -1,8 +1,7 @@
 #define BRAIN_MODULE_INCLUDED_NEEDS 1
 
-#warn Restore null default for production
-// #define DEFAULT_NEEDS_FP null
-#define DEFAULT_NEEDS_FP GOAI_PERSONALITY_PATH("trade_faction.json")
+// This is mostly for easy debugging - can set the base file globally
+#define DEFAULT_NEEDS_FP null
 
 /datum/brain
 	/* Needs.
@@ -26,7 +25,7 @@
 	var/list/need_weights = null
 
 	// Data file to load all the above from.
-	var/initial_needs_fp = null
+	var/initial_needs_fp = DEFAULT_NEEDS_FP
 
 
 /datum/brain/proc/InitNeeds()
@@ -34,8 +33,13 @@
 	var/list/file_needs = null
 	var/list/file_need_weights = null
 
+	#ifdef BRAIN_MODULE_INCLUDED_ECONOMY
+	// This is a bit awkward here, but it's easier to dump this in here now and fix later as a prototyping thing
+	var/list/file_preferred_trades = null
+	#endif
+
 	if(src.initial_needs_fp)
-		needfile_data = READ_JSON_FILE(src.initial_needs_fp)
+		READ_JSON_FILE_CACHED(src.initial_needs_fp, needfile_data)
 
 	if(needfile_data)
 		// Keep the need values in a separate key - might need to chuck in other data
@@ -44,8 +48,21 @@
 		file_needs = needfile_data["needs"]
 		file_need_weights = needfile_data["need_weights"]
 
+		#ifdef BRAIN_MODULE_INCLUDED_ECONOMY
+		file_preferred_trades = needfile_data["preferred_trades"]
+		#endif
+
 	src.needs = DEFAULT_IF_NULL(file_needs, list())
 	src.need_weights = DEFAULT_IF_NULL(file_need_weights, list())
+
+	#ifdef BRAIN_MODULE_INCLUDED_ECONOMY
+	src.preferred_trades = file_preferred_trades
+	#warn debug logs
+	to_world_log("Setting preferred_trades for [src] to: [json_encode(src.preferred_trades)]")
+	#endif
+
+	#warn debug logs
+	to_world_log("Setting needs for [src] to: [json_encode(src.needs)] | [json_encode(src.need_weights)]")
 	return needs
 
 
@@ -87,10 +104,16 @@
 	return src.need_weights
 
 
-/datum/brain/proc/GetNeedAmountCurrent(var/need, var/default = 0)
-	// How much Need we've got.
-	// This is NOT a simple lookup, because there might be some scaling etc. in here.
-	return default
+/datum/brain/proc/GetNeedWeight(var/key, var/default = null) // () -> assoc[str, float]
+	// returns a weight for a specific Need
+	if(isnull(key))
+		return
+
+	if(!(key in src.need_weights))
+		return default
+
+	var/weight = src.need_weights[key]
+	return weight
 
 
 /datum/brain/proc/GetNeedDesirability(var/need, var/amount)

@@ -28,22 +28,18 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	var/datum/utility_action_template/candidate = action_template
 
 	if(!istype(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_trade_desirability Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	if(isnull(requester))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_trade_desirability - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/utility_ai/ai = requester
 
 	if(!istype(ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("consideration_trade_desirability - Requester must be an AI for this Consideration (found: [ai.type])! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability - Requester must be an AI for this Consideration (found: [ai.type])! @ L[__LINE__] in [__FILE__]")
 		return null
-
-	var/datum/brain/economy_brain
-	// populates the economy_brain with an actual brain; will log if it's not
-	CIHELPER_GET_REQUESTER_BRAIN_INLINED(requester, economy_brain)
 
 	var/from_ctx = consideration_args?["from_context"]
 	if(isnull(from_ctx))
@@ -52,17 +48,14 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	var/datasource = from_ctx ? context : consideration_args
 	CONSIDERATION_GET_INPUT_KEY(var/datasource_key)
 
-	#warn debug logs
-	to_world_log("consideration_trade_desirability: datasource_key [datasource_key || "null"]")
-
 	if(isnull(datasource_key))
-		to_world_log("consideration_trade_desirability: datasource_key [datasource_key || "null"] is null")
+		to_world_log("ERROR: consideration_trade_desirability: datasource_key [datasource_key || "null"] is null")
 		return 0
 
 	var/datum/trade_offer/offer = datasource[datasource_key]
 
 	if(!istype(offer))
-		to_world_log("consideration_trade_desirability: received offer [offer || "null"] is not of a valid trade_offer type!")
+		to_world_log("ERROR: consideration_trade_desirability: received offer [offer || "null"] is not of a valid trade_offer type!")
 		return 0
 
 	var/commodity = offer.commodity_key
@@ -75,13 +68,13 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	if(isnull(is_sell))
 		is_sell = FALSE
 
-	var/desirability = economy_brain.GetCommodityDesirability(commodity, raw_volume, cash_value)
+	var/desirability = ai.GetCommodityDesirability(commodity, raw_volume, cash_value)
 
 	if(isnull(desirability))
 		// Either a need went negative, or the proc straight up crashed somewhere.
 		// In both cases, do not pass go, do not collect 200 trades.
 		#warn debug logs
-		to_world_log("consideration_trade_desirability: Desirability for [commodity] x [raw_volume] @ [cash_value] == null!")
+		to_world_log("DEBUG: consideration_trade_desirability: Desirability for [commodity] x [raw_volume] @ [cash_value] == null!")
 		return 0
 
 	return desirability
