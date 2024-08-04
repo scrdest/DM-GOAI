@@ -118,5 +118,6 @@
 	// if for whatever reason the faction gets de-registered from a global list,
 	// this would result in the pawn getting nulled out.
 	src.pawn = REFERENCE_PAWN(new_faction)
+	to_world_log("The pawn for Faction AI [src] is [src.pawn] ([faction_name])")
 
 	return src

@@ -196,8 +196,9 @@
 			if(cleaned_up)
 				return
 
-			// Run the Life update function.
-			src.LifeTick()
+			if(!src.paused)
+				// Run the Life update function.
+				src.LifeTick()
 
 			// Fix the tickrate to prevent runaway loops in case something messes with it.
 			// Doing it here is nice, because it saves us from sanitizing it all over the place.

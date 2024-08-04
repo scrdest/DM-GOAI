@@ -1,4 +1,3 @@
-// TODO: port to Utility!
 
 /proc/spawn_faction_commander(var/faction_name)
 	var/datum/utility_ai/faction_commander/debug/new_commander = new()
@@ -6,6 +5,8 @@
 
 	if(true_faction_name)
 		new_commander.name = true_faction_name
+
+	return new_commander
 
 
 /proc/BuildFactionName()

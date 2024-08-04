@@ -277,17 +277,17 @@
 /datum/utility_ai/proc/LifeTick()
 	set waitfor = FALSE
 
-	if(paused)
+	if(src.paused)
 		return
 
-	if(!brain)
+	if(!src.brain)
 		return
 
 	var/run_count = 0
 	var/target_run_count = 1
 	var/do_plan = FALSE
 
-	OnBeginLifeTick() // hook
+	src.OnBeginLifeTick() // hook
 
 	while(run_count++ < target_run_count)
 		/* STATE: Running */

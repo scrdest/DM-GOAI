@@ -38,20 +38,23 @@ GLOBAL_LIST_EMPTY(global_marketplace)
 // Inlined functions, because BYOND's too dumb to do it itself and this code is kinda hot.
 // 1) Add an offer (/datum/trade_offer) to the registry
 #define REGISTER_OFFER_TO_MARKETPLACE(offer) if(offer) { \
-	if(isnull(GOAI_LIBBED_GLOB_ATTR(global_marketplace))) { \
-		INITIALIZE_GLOBAL_MARKETPLACE_INLINE(null) \
-	}; \
-	if(isnull(offer.id)) { offer.id = ref(offer) }; \
+	INITIALIZE_GLOBAL_MARKETPLACE_INLINE_IF_NEEDED(null); \
+	if(!(offer.id)) { offer.id = ref(offer) }; \
 	GOAI_LIBBED_GLOB_ATTR(global_marketplace)[offer.id] = offer; \
 }
 
 // 2) Remove an offer BY ID (/datum/trade_offer's 'id' attribute) from the registry
 //    This is not using the object in case the offer got del'd but we still have the ID somewhere.
 #define DEREGISTER_OFFER_FROM_MARKETPLACE(offer_id) if(offer_id) { \
-	if(isnull(GOAI_LIBBED_GLOB_ATTR(global_marketplace))) { \
-		INITIALIZE_GLOBAL_MARKETPLACE_INLINE(null) \
-	}; \
+	INITIALIZE_GLOBAL_MARKETPLACE_INLINE_IF_NEEDED(null); \
 	GOAI_LIBBED_GLOB_ATTR(global_marketplace)[offer_id] = null; \
+}
+
+// 3) Get a SPECIFIC offer BY ID (/datum/trade_offer's 'id' attribute) from the registry
+//    This is used to refer back to an actual offer from keys stored in other systems, e.g. Brains.
+#define GET_OFFER_FROM_MARKETPLACE(offer_id, VarName) if(offer_id) { \
+	INITIALIZE_GLOBAL_MARKETPLACE_INLINE_IF_NEEDED(null); \
+	##VarName = GOAI_LIBBED_GLOB_ATTR(global_marketplace)[offer_id]; \
 }
 
 // Format-string to use to construct a unique hash for the Marketwatch system
@@ -128,6 +131,11 @@ GLOBAL_LIST_EMPTY(global_marketplace)
 	GOAI_LIBBED_GLOB_ATTR(global_marketplace) = list(); \
 	StartGlobalMarketwatch(Tickrate); \
 	MARKETWATCH_DEBUG_LOG("Initialized a global marketplace with tickrate [DEFAULT_IF_NULL(Tickrate, DEFAULT_MARKETWATCH_TICKRATE)]"); \
+};
+
+// Variant - does the same, but only if it's not already initialized
+#define INITIALIZE_GLOBAL_MARKETPLACE_INLINE_IF_NEEDED(Tickrate) if(isnull(GOAI_LIBBED_GLOB_ATTR(global_marketplace))) {\
+	INITIALIZE_GLOBAL_MARKETPLACE_INLINE(Tickrate); \
 };
 
 /proc/InitializeGlobalMarketplace()

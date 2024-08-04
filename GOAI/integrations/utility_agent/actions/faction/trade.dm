@@ -31,7 +31,6 @@
 
 	var/datum/trade_contract/contract = offer.ToContract(ai_pawn)
 	GOAI_BRAIN_ADD_CONTRACT(src.brain, contract)
-	#warn Finish this - put the contract in some tracking variable
 
 	# warn TODO, debug log
 	to_world_log("ACCEPTED a deal for [offer.commodity_key] * [offer.commodity_amount]u @ [offer.cash_value]$")
@@ -106,6 +105,8 @@
 
 	var/datum/trade_offer/sell_offer = new(source_entity, commodity, trade_amount, asking_price, world.time + expiry_time)
 	REGISTER_OFFER_TO_MARKETPLACE(sell_offer)
+	GOAI_BRAIN_ADD_OFFER(ai_brain, sell_offer.id)
+
 	tracker.SetDone()
 
 	#warn Debug logs
@@ -204,6 +205,7 @@
 		var/expiry_time_fast = EXPIRY_TIME_FAST
 		var/datum/trade_offer/buy_offer_fast = new(source_entity, commodity, fast_trade_amount, bid_price_fast, world.time + expiry_time_fast)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_fast)
+		GOAI_BRAIN_ADD_OFFER(ai_brain, buy_offer_fast.id)
 
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
@@ -211,6 +213,7 @@
 		var/expiry_time_slow = EXPIRY_TIME_SLOW
 		var/datum/trade_offer/buy_offer_slow = new(source_entity, commodity, slow_trade_amount, bid_price_slow, world.time + expiry_time_slow)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_slow)
+		GOAI_BRAIN_ADD_OFFER(ai_brain, buy_offer_slow.id)
 
 	tracker.SetDone()
 

@@ -457,7 +457,7 @@
 		return value
 
 	else
-		to_world_log("ERROR: GetBestPurchaseCommodityForNeed for [src] has no dynamic proc declared! @ [__LINE__] in [__FILE__]")
+		to_world_log("ERROR: GetBestPurchaseCommodityForNeed for [src] has no dynamic proc declared! @ L[__LINE__] in [__FILE__]")
 
 	return .
 

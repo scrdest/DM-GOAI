@@ -2,7 +2,7 @@
 	var/atom/pawn = src.GetPawn()
 
 	if(!istype(pawn))
-		ACTION_RUNTIME_DEBUG_LOG("No owned mob found for [src.name] AI @ [__LINE__] in [__FILE__]")
+		ACTION_RUNTIME_DEBUG_LOG("No owned mob found for [src.name] AI @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
 	// Pathfinding/search
@@ -250,7 +250,7 @@
 	var/atom/pawn = src.GetPawn()
 
 	if(!istype(pawn))
-		ACTION_RUNTIME_DEBUG_LOG("No owned mob found for [src.name] AI @ [__LINE__] in [__FILE__]")
+		ACTION_RUNTIME_DEBUG_LOG("No owned mob found for [src.name] AI @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
 	var/turf/best_local_pos = tracker?.BBGet("bestpos", null)
@@ -283,7 +283,7 @@
 	var/atom/pawn = src.GetPawn()
 
 	if(!istype(pawn))
-		ACTION_RUNTIME_DEBUG_LOG("No owned mob found for [src.name] AI @ [__LINE__] in [__FILE__]")
+		ACTION_RUNTIME_DEBUG_LOG("No owned mob found for [src.name] AI @ L[__LINE__] in [__FILE__]")
 		return FALSE
 
 	var/tracker_frustration = tracker.BBSetDefault("frustration", 0)

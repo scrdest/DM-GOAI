@@ -57,3 +57,62 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_market_trade_offers)
 		contexts[++(contexts.len)] = ctx
 
 	return contexts
+
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_own_contracts)
+	// Returns a context for each of the Trade Contracts we participate in
+
+	// This could technically be done by more basic CFs, but this is an abstraction
+	// that hides the implementation details of tracking and allows nice pre-filtering.
+
+	var/datum/utility_ai/requester_ai = requester
+	var/datum/brain/requesting_brain = null
+	var/requester_pawn = null
+
+	if(istype(requester_ai))
+		requesting_brain = requester_ai.brain
+		requester_pawn = requester_ai.GetPawn()
+
+	if(!istype(requesting_brain))
+		to_world_log("ERROR: ctxfetcher_get_own_contracts: Brain [requesting_brain] for [requester_ai] is not a valid Brain object! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/list/contexts = list()
+
+	if(isnull(requester_pawn))
+		// We MUST have a pawn to determine if we're a receiver or creator of any given offer
+		to_world_log("WARNING: ctxfetcher_get_own_contracts: Pawn [requester_pawn] for [requester_ai] is null, no contracts will be found! @ L[__LINE__] in [__FILE__]")
+		return contexts
+
+	if(!(requesting_brain.active_contracts))
+		// simply don't have any
+		return contexts
+
+	CONTEXT_GET_OUTPUT_KEY(var/context_key)
+
+	var/exclude_offered = context_args?["exclude_offered"]
+	exclude_offered = DEFAULT_IF_NULL(exclude_offered, FALSE)
+
+	var/exclude_received = context_args?["exclude_received"]
+	exclude_received = DEFAULT_IF_NULL(exclude_received, FALSE)
+
+	for(var/contract_key in requesting_brain.active_contracts)
+		var/datum/trade_contract/contract = requesting_brain.active_contracts[contract_key]
+
+		if(!istype(contract))
+			continue
+
+		if(!contract.is_open)
+			continue
+
+		if(exclude_offered && (contract.creator == requester_pawn))
+			continue
+
+		if(exclude_received && (contract.receiver == requester_pawn))
+			continue
+
+		var/list/ctx = list()
+		ctx[context_key] = contract
+		contexts[++(contexts.len)] = ctx
+
+	return contexts

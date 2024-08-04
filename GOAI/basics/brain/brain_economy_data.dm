@@ -1,4 +1,10 @@
 
+#define GOAI_BRAIN_ADD_OFFER(Brain, OfferId) if(TRUE) {\
+	if(!isnull(Brain) && !isnull(OfferId)) { \
+		if(isnull(Brain.active_offers)) { Brain.active_offers = list() }; \
+		Brain.active_offers.Add(OfferId); \
+	} \
+};
 
 #define GOAI_BRAIN_ADD_CONTRACT(Brain, Contract) if(TRUE) {\
 	if(!isnull(Brain) && !isnull(Contract)) { \
@@ -8,6 +14,9 @@
 };
 
 /datum/brain
+	// An assoc list tracking all our active trade offers.
+	var/list/active_offers = null
+
 	// An assoc list tracking all our active trade contracts.
 	var/list/active_contracts = null
 

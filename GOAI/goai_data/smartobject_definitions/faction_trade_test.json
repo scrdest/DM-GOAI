@@ -3,6 +3,25 @@
 	"active": 1, 
 	"actions": [
 		{
+			"name": "Fulfill Contract", 
+			"description": "Deliver on our side of a contract.", 
+			"handler": "/datum/utility_ai/proc/DebugFulfilContractInstant", 
+			"priority": 10,
+			"context_procs": ["/proc/ctxfetcher_get_own_contracts"], 
+			"context_args": [{
+				
+			}],
+			"considerations": [
+				{
+					"name": "Priority fuzzing",
+					"input_proc": "/proc/consideration_input_fuzz_uniform",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
 			"name": "Accept Trade", 
 			"description": "Given a trade offer, accept it if it's beneficial.", 
 			"handler": "/datum/utility_ai/proc/AcceptTradeOffer", 
@@ -12,6 +31,16 @@
 				"input_key": "input"
 			}],
 			"considerations": [
+				{
+					"name": "Offers Below Max",
+					"input_proc": "/proc/consideration_offers_pending",
+					"lo_mark": 0, 
+					"hi_mark": 2, 
+					"curve_proc": "/proc/curve_antilinear",
+					"consideration_args": {
+						"default": 3
+					}
+				},
 				{
 					"name": "TradeDesirability",
 					"input_proc": "/proc/consideration_trade_desirability",
@@ -31,6 +60,26 @@
 				
 			}],
 			"considerations": [
+				{
+					"name": "Offers Below Max",
+					"input_proc": "/proc/consideration_offers_pending",
+					"lo_mark": 0, 
+					"hi_mark": 2, 
+					"curve_proc": "/proc/curve_antilinear",
+					"consideration_args": {
+						"default": 3
+					}
+				},
+				{
+					"name": "Contracts Below Max",
+					"input_proc": "/proc/consideration_contracts_pending",
+					"lo_mark": 1, 
+					"hi_mark": 3, 
+					"curve_proc": "/proc/curve_antibinary",
+					"consideration_args": {
+						"default": 3
+					}
+				},
 				{
 					"name": "Need is High",
 					"input_proc": "/proc/consideration_input_get_need_perc",
@@ -57,6 +106,26 @@
 				
 			}],
 			"considerations": [
+				{
+					"name": "Offers Below Max",
+					"input_proc": "/proc/consideration_offers_pending",
+					"lo_mark": 0, 
+					"hi_mark": 2, 
+					"curve_proc": "/proc/curve_antilinear",
+					"consideration_args": {
+						"default": 3
+					}
+				},
+				{
+					"name": "Contracts Below Max",
+					"input_proc": "/proc/consideration_contracts_pending",
+					"lo_mark": 1, 
+					"hi_mark": 3, 
+					"curve_proc": "/proc/curve_antibinary",
+					"consideration_args": {
+						"default": 3
+					}
+				},
 				{
 					"name": "Need is Low",
 					"input_proc": "/proc/consideration_input_get_need_perc",
