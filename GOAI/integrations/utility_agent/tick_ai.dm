@@ -46,6 +46,8 @@
 /datum/utility_ai/proc/NextPlanStep()
 	if(src.running_action_tracker)
 		src.running_action_tracker.process = FALSE
+		src.running_action_tracker = null
+
 	return TRUE
 
 
@@ -291,9 +293,9 @@
 
 	while(run_count++ < target_run_count)
 		/* STATE: Running */
-		sleep(-1)
+		sleep(0)
 
-		if(src.running_action_tracker?.process) // processing action
+		if(src.running_action_tracker) // processing action
 			RUN_ACTION_DEBUG_LOG("ACTIVE ACTION: [src.running_action_tracker.tracked_action] @ [src.running_action_tracker.IsRunning()] | <@[src]>")
 
 			if(src.running_action_tracker.replan)
@@ -303,11 +305,10 @@
 
 			else if(src.running_action_tracker.is_done)
 				src.NextPlanStep()
-				target_run_count++
+				//target_run_count++
 
 			else if(src.running_action_tracker.is_failed)
 				src.AbortPlan(FALSE)
-
 
 		/* STATE: Ready */
 		else if(src.selected_action) // ready to go
@@ -317,7 +318,6 @@
 			target_run_count++
 
 			src.selected_action = null
-
 
 		/* STATE: Pending next stage */
 		else if(src.active_plan && src.active_plan.len)
@@ -362,8 +362,12 @@
 				target_run_count++
 
 	// handle actions
-	sleep(-1)
-	if(src.running_action_tracker)
+	sleep(0)
+
+	if(src.running_action_tracker?.process)
+		// If the process attr is set to false (or there's no action), we skip this for now.
+		// This is an optimization to avoid calling HandleAction and its children if this would
+		// just tell us to shut up and wait
 		var/tracked_action = src.running_action_tracker.tracked_action
 
 		if(tracked_action)

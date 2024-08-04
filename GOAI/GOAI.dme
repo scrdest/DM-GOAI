@@ -16,7 +16,6 @@
 // BEGIN_INCLUDE
 #include "__goai_library_features.dm"
 #include "__spaceman_dmm.dm"
-#include "_a_debug_mode.dm"
 #include "_b_debug_modules.dm"
 #include "_defines.dm"
 #include "_need_keys.dm"

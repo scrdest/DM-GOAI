@@ -6,10 +6,9 @@
 
 
 /datum/utility_ai/proc/DebugFulfilContractInstant(var/datum/ActionTracker/tracker, var/input)
-	/* ATTEMPTS to fulfil the terms of a Contract on our part.
-	// If we are buying, send the cash; if we are selling, send the goods.
-	// Depending on the deal type, pawn type, and any AI LOD logic, this might success instantly,
-	// create abstract tracker data, or trigger low-level movement etc. to physically move objects.
+	/*
+	// Debug variant of fulfillment logic.
+	// Will instantly set the contract to its resolved state.
 	*/
 	if(isnull(tracker))
 		return
@@ -31,28 +30,23 @@
 		tracker.SetFailed()
 		return
 
+	/*
 	var/creator_is_seller = contract.commodity_amount > 0
 	var/creator_is_payer = contract.cash_value < 0
 
-	/*
 	var/datum/goods_sender = (creator_is_seller ? contract.receiver : contract.creator)
 	var/datum/money_sender = (creator_is_payer ? contract.creator : contract.receiver)
-	*/
 
-	#warn TODO - for safety we should not re-do it if we already set it, use the Tracker storage to ensure
-	/*
 	contract.EscrowPut(goods_sender, contract.commodity_key, abs(contract.commodity_amount))
 	contract.EscrowPut(money_sender, contract.commodity_key, abs(contract.cash_value))
-	*/
 
-	contract.escrow[contract.commodity_key] = abs(contract.commodity_amount)
-	contract.escrow[NEED_WEALTH] = abs(contract.cash_value)
-
-	/*
 	contract.Signoff(contract.creator)
 	contract.Signoff(contract.receiver)
 	*/
 
+	// We'll directly set everything up for success here
+	contract.escrow[contract.commodity_key] = abs(contract.commodity_amount)
+	contract.escrow[NEED_WEALTH] = abs(contract.cash_value)
 	contract.lifecycle_state = GOAI_CONTRACT_LIFECYCLE_FULFILLED
 
 	var/completed = contract.Complete()

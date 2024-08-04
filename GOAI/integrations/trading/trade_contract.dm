@@ -300,12 +300,12 @@
 		to_world_log("TradeContract [src] received a call to Signoff() with a null signoff_party. This is not critical, but generally should not happen.")
 		return src
 
-	if((signoff_party == src.creator) && (src.lifecycle_state & GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CREATOR))
-		src.lifecycle_state ^= GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CREATOR
+	if(signoff_party == src.creator)
+		src.lifecycle_state |= GOAI_CONTRACT_LIFECYCLE_SIGNOFF_CREATOR
 		return src
 
-	if((signoff_party == src.receiver) && (src.lifecycle_state & GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CONTRACTOR))
-		src.lifecycle_state ^= GOAI_CONTRACT_LIFECYCLE_AWAITING_SIGNOFF_CONTRACTOR
+	if(signoff_party == src.receiver)
+		src.lifecycle_state |= GOAI_CONTRACT_LIFECYCLE_SIGNOFF_CONTRACTOR
 		return src
 
 	return null

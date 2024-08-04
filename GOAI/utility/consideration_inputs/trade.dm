@@ -132,7 +132,6 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_offers_pending)
 	return result
 
 
-
 CONSIDERATION_CALL_SIGNATURE(/proc/consideration_contracts_pending)
 	/*
 	// Returns the number of contracts held by the AI Brain.
@@ -170,3 +169,40 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_contracts_pending)
 		result = length(requesting_brain.active_contracts)
 
 	return result
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_get_our_assets)
+	/*
+	// Returns the number of contracts held by the AI Brain.
+	// This can (and is mainly meant to) be used to throttle the creation of more contracts.
+	//
+	// As a Utility Consideration, this throttling can be as soft or hard as you want to configure it to be,
+	// with binary curves providing a hard cutoff at max number of contracts allowed.
+	*/
+	var/datum/utility_action_template/candidate = action_template
+
+	if(!istype(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(isnull(requester))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/datum/utility_ai/ai = requester
+
+	if(!istype(ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/datum/pawn = ai.GetPawn()
+
+	if(!istype(pawn))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets - Requester has no Pawn! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(isnull(pawn.global_id))
+		pawn.InitializeGlobalId()
+
+	var/list/assets = GET_ASSETS_TRACKER(pawn.global_id)
+	return assets

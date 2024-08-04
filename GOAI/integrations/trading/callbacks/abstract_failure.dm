@@ -10,11 +10,11 @@
 	// Where the success transfers the goods from party to counterparty,
 	// recipients from the escrow, this failure proc returns whatever
 	// each party deposited *back to them*.
-	//
-	//
 	*/
+	set waitfor = FALSE
 	to_world_log("INFO: RUNNING trade_apply_instant_abstract_failure() @ [__LINE__] in [__FILE__]")
 	ASSETS_TABLE_LAZY_INIT(TRUE)
+	sleep(0)
 
 	if(!istype(contract))
 		to_world_log("ERROR: trade_apply_instant_abstract_failure() received an invalid input type [contract] ([NULL_TO_TEXT(contract?.type)]) @ [__LINE__] in [__FILE__]")

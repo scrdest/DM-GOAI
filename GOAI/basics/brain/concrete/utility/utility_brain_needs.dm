@@ -11,7 +11,12 @@
 
 	// Extra bookkeeping on top
 	#ifdef BRAIN_MODULE_INCLUDED_METRICS
-	last_need_update_times[key] = world.time
+	/*
+	if(isnull(src.last_need_update_times))
+		src.last_need_update_times = list()
+
+	src.last_need_update_times[key] = world.time#
+	*/
 	#endif
 	MOTIVES_DEBUG_LOG("Curr [key] = [needs[key]] | <@[src]>")
 

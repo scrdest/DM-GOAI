@@ -6,8 +6,11 @@
 
 /proc/trade_apply_instant_abstract_success(var/datum/trade_contract/contract)
 	/* Simple callback meant as a default, resolves the trade instantly */
+	set waitfor = FALSE
+
 	to_world_log("INFO: RUNNING trade_apply_instant_abstract_success() @ [__LINE__] in [__FILE__]")
 	ASSETS_TABLE_LAZY_INIT(TRUE)
+	sleep(0)
 
 	if(!istype(contract))
 		to_world_log("ERROR: trade_apply_instant_success() received an invalid input type [contract] ([NULL_TO_TEXT(contract?.type)]) @ [__LINE__] in [__FILE__]")

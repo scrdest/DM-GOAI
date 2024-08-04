@@ -116,3 +116,32 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_own_contracts)
 		contexts[++(contexts.len)] = ctx
 
 	return contexts
+
+
+CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_own_assets)
+
+	var/datum/utility_ai/requester_ai = requester
+	var/datum/requester_pawn = null
+
+	if(istype(requester_ai))
+		requester_pawn = requester_ai.GetPawn()
+
+	if(!istype(requester_pawn))
+		to_world_log("ERROR: ctxfetcher_get_own_assets: Pawn [requester_pawn] for [requester_ai] is not a valid object! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/list/contexts = list()
+
+	CONTEXT_GET_OUTPUT_KEY(var/context_key)
+
+	if(isnull(requester_pawn.global_id))
+		requester_pawn.InitializeGlobalId()
+
+	var/list/assets = GET_ASSETS_TRACKER(requester_pawn.global_id)
+
+	if(!isnull(assets))
+		var/list/ctx = list()
+		ctx[context_key] = assets
+		contexts[++(contexts.len)] = ctx
+
+	return contexts
