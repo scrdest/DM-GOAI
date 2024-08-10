@@ -23,5 +23,6 @@ GLOBAL_LIST_EMPTY(global_asset_registry)
 
 #define HAS_REGISTERED_ASSETS(id) (id && GOAI_LIBBED_GLOB_ATTR(global_asset_registry) && (id in GOAI_LIBBED_GLOB_ATTR(global_asset_registry)))
 #define CREATE_ASSETS_TRACKER(id) (GOAI_LIBBED_GLOB_ATTR(global_asset_registry)[id] = list())
+#define CREATE_ASSETS_TRACKER_IF_NEEDED(id) if(!(id && HAS_REGISTERED_ASSETS(id))) { CREATE_ASSETS_TRACKER(id) };
 #define GET_ASSETS_TRACKER(id) (GOAI_LIBBED_GLOB_ATTR(global_asset_registry)[id])
 #define UPDATE_ASSETS_TRACKER(id, new_data) (GOAI_LIBBED_GLOB_ATTR(global_asset_registry)[id] = new_data)

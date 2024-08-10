@@ -50,25 +50,31 @@
 // Shipments may get intercepted or be too big to be handled in one transport.
 // In particular, player trade items might be sent in arbitrarily small batches, because humans.
 // As such, the flags below track that at least SOME effort was made to fulfill the terms.
+// These are stored in a SEPARATE bitflag!
 
 // SHIPPING => Supplier sending goods
-#define GOAI_CONTRACT_LIFECYCLE_SHIPPING 16
+#define GOAI_CONTRACT_LIFECYCLE_SHIPPING 1
 
 // RECEIVING => Payer received SOME goods
-#define GOAI_CONTRACT_LIFECYCLE_RECEIVING 32
+#define GOAI_CONTRACT_LIFECYCLE_RECEIVING 2
 
 // PAYING => Supplier received SOME money
-#define GOAI_CONTRACT_LIFECYCLE_PAYING 64
+#define GOAI_CONTRACT_LIFECYCLE_PAYING 4
 
-// As each flag represents some dangling, unsettled requirement, we expect the final value to be zero.
-// Anything else indicates that even if both sides signed off, something did not clean up properly.
-#define GOAI_CONTRACT_IS_COMPLETED(ContractStateVal) (ContractStateVal == GOAI_CONTRACT_LIFECYCLE_FULFILLED)
+// Each requirement sets a bit. If all bits are set - we're good!
+#define GOAI_CONTRACT_IS_COMPLETED(ContractStateVal, ContractAuxStateVal) (ContractStateVal == GOAI_CONTRACT_LIFECYCLE_FULFILLED)
 
-// This is technically a success state, but something has gone horribly wrong with the state.
+// This is technically a success state, but something has gone horribly wrong with state flags.
 // This can be used to force-complete contracts but with warn-level logging added.
-#define GOAI_CONTRACT_IS_DIRTY_COMPLETED(ContractStateVal) ((ContractStateVal & GOAI_CONTRACT_LIFECYCLE_FULFILLED) == GOAI_CONTRACT_LIFECYCLE_FULFILLED)
+#define GOAI_CONTRACT_IS_DIRTY_COMPLETED(ContractStateVal, ContractAuxStateVal) ((ContractStateVal & GOAI_CONTRACT_LIFECYCLE_FULFILLED) == GOAI_CONTRACT_LIFECYCLE_FULFILLED)
 
-// Flags above the first 4 bits represent at least one side made an *effort* to fulfill the terms.
+// Did both parties sign off on the contract completion?
+#define GOAI_CONTRACT_IS_SIGNED(ContractStateVal, ContractAuxStateVal) ((ContractStateVal & GOAI_CONTRACT_LIFECYCLE_SIGNOFF_CREATOR) && (ContractStateVal & GOAI_CONTRACT_LIFECYCLE_SIGNOFF_CONTRACTOR))
+
+// Beyond signoffs, is the contract completed? If FALSE, something was not delivered.
+// If TRUE, we could force-complete contracts but with warn-level logging added.
+#define GOAI_CONTRACT_COMPLETED_IF_SIGNED(ContractStateVal, ContractAuxStateVal) GOAI_CONTRACT_IS_COMPLETED((ContractStateVal | (GOAI_CONTRACT_LIFECYCLE_SIGNOFF_CREATOR | GOAI_CONTRACT_LIFECYCLE_SIGNOFF_CONTRACTOR)), ContractAuxStateVal)
+
+// If any of the bits in progressed_state were set, someone made a good-faith effort to fulfill their obligations.
 // This can be checked to add some leniency on things like expiration.
-#define GOAI_CONTRACT_IS_PROGRESSED(ContractStateVal) (ContractStateVal >= GOAI_CONTRACT_LIFECYCLE_SHIPPING)
-
+#define GOAI_CONTRACT_IS_PROGRESSING(ContractStateVal, ContractAuxStateVal) (ContractAuxStateVal > GOAI_CONTRACT_LIFECYCLE_INITIAL)

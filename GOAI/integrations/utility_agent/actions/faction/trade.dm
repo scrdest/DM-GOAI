@@ -15,6 +15,9 @@
 	if(isnull(tracker))
 		return
 
+	if(tracker.IsStopped())
+		return
+
 	var/datum/trade_offer/offer = input
 
 	if(!istype(offer))
@@ -222,33 +225,177 @@
 	return
 
 
-/datum/utility_ai/proc/FulfilContract(var/datum/ActionTracker/tracker, var/input)
+/datum/utility_ai/proc/ContractDispatchInstant(var/datum/ActionTracker/tracker, var/input)
 	/* ATTEMPTS to fulfil the terms of a Contract on our part.
-	// If we are buying, send the cash; if we are selling, send the goods.
-	// Depending on the deal type, pawn type, and any AI LOD logic, this might success instantly,
-	// create abstract tracker data, or trigger low-level movement etc. to physically move objects.
+	// If we are buying, send the cash; if we are selling, send the goods, etc.
+	// (there are weird cases where we send BOTH or NEITHER).
 	*/
+
 	if(isnull(tracker))
+		return
+
+	if(tracker.IsStopped())
 		return
 
 	var/datum/trade_contract/contract = input
 
 	if(!istype(contract))
-		to_world_log("FulfilContract ([src]): Invalid offer type for contract object [NULL_TO_TEXT(contract)]!")
+		to_world_log("ContractDispatchInstant ([src]): Invalid offer type for contract object [NULL_TO_TEXT(contract)]!")
+		tracker.SetFailed()
+		return
+
+	if(!(contract.is_open))
+		to_world_log("ContractDispatchInstant ([src]): Contract [contract] is closed (expired or already fulfilled)!")
+		tracker.SetFailed()
+		return
+
+	var/datum/ai_pawn = src.GetPawn()  // usually a faction, though COULD be a mob too
+
+	if(!istype(ai_pawn))
+		to_world_log("ContractDispatchInstant ([src]): Does not have a valid pawn ([NULL_TO_TEXT(ai_pawn)]).")
+		tracker.SetFailed()
+		return
+
+	var/creator_is_seller = contract.commodity_amount > 0
+	var/creator_is_payer = contract.cash_value < 0
+
+	var/datum/creator_datum = contract.creator
+	var/datum/contractor_datum = contract.receiver
+
+	var/trade_volume = abs(contract.commodity_amount)
+	var/cash_volume = abs(contract.cash_value)
+
+	var/datum/goods_sender = (creator_is_seller ? contractor_datum : creator_datum)
+	var/datum/money_sender = (creator_is_payer ? creator_datum : contractor_datum)
+
+	var/we_send_goods = (goods_sender == ai_pawn)
+	var/we_send_money = (money_sender == ai_pawn)
+
+	ASSETS_TABLE_LAZY_INIT(TRUE)
+	CREATE_ASSETS_TRACKER_IF_NEEDED((ai_pawn.global_id || ai_pawn.InitializeGlobalId()))
+
+	if(we_send_goods)
+		if(contract.EscrowPut(ai_pawn, contract.commodity_key, trade_volume))
+			contract.lifecycle_state |= GOAI_CONTRACT_LIFECYCLE_GOODS_DELIVERED
+		else
+			tracker.SetFailed()
+			to_world_log("FAILED to send goods for order [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+			return
+
+	if(we_send_money)
+		if(contract.EscrowPut(ai_pawn, NEED_WEALTH, cash_volume))
+			contract.lifecycle_state |= GOAI_CONTRACT_LIFECYCLE_PAID
+		else
+			tracker.SetFailed()
+			to_world_log("FAILED to send payment for order [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+			return
+
+	contract.Signoff(ai_pawn)
+
+	var/completed = FALSE
+
+	if(contract.CheckFulfilled())
+		if(GOAI_CONTRACT_IS_COMPLETED(contract.lifecycle_state, contract.progressed_state))
+			completed = contract.Complete()
+
+	if(completed)
+		to_world_log("COMPLETED a contract for [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+	else
+		to_world_log("FULFILLED an order for [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+
+	tracker.SetDone()
+	return
+
+
+
+/datum/utility_ai/proc/FulfillContractInstantBilateral(var/datum/ActionTracker/tracker, var/input)
+	/*
+	// Forces both parties of the trade to fulfill their obligations, sign-off and complete the contract (if possible).
+	//
+	// If any side cannot fulfill their end of the deal, they will do the best they can right now (i.e. transfer what they've got).
+	// If that happens and the contract cannot be completed, it will simply be postponed to the next check (no success, no failure).
+	//
+	// Uses instant transfer of commodities and money (low simulation LOD).
+	*/
+
+	if(isnull(tracker))
+		return
+
+	if(tracker.IsStopped())
+		return
+
+	var/datum/trade_contract/contract = input
+
+	if(!istype(contract))
+		to_world_log("FulfillContractInstantBilateral ([src]): Invalid offer type for contract object [NULL_TO_TEXT(contract)]!")
+		tracker.SetFailed()
+		return
+
+	if(!(contract.is_open))
+		to_world_log("FulfillContractInstantBilateral ([src]): Contract [contract] is closed (expired or already fulfilled)!")
 		tracker.SetFailed()
 		return
 
 	var/ai_pawn = src.GetPawn()  // usually a faction, though COULD be a mob too
 
 	if(isnull(ai_pawn))
-		to_world_log("FulfilContract ([src]): Does not have a pawn ([NULL_TO_TEXT(ai_pawn)]).")
+		to_world_log("FulfillContractInstantBilateral ([src]): Does not have a pawn ([NULL_TO_TEXT(ai_pawn)]).")
 		tracker.SetFailed()
 		return
 
-	#warn Finish this - apply the effects, dispatch the execution to the pawn, track
+	var/creator_is_seller = contract.commodity_amount > 0
+	var/creator_is_payer = contract.cash_value < 0
 
-	# warn TODO, debug log
-	to_world_log("FULFILLED a contract for [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+	var/datum/creator_datum = contract.creator
+	var/datum/contractor_datum = contract.receiver
 
-	tracker.SetDone()
+	var/datum/goods_sender = (creator_is_seller ? contractor_datum : creator_datum)
+	var/datum/money_sender = (creator_is_payer ? creator_datum : contractor_datum)
+
+	ASSETS_TABLE_LAZY_INIT(TRUE)
+	CREATE_ASSETS_TRACKER_IF_NEEDED((creator_datum.global_id || creator_datum.InitializeGlobalId()))
+	CREATE_ASSETS_TRACKER_IF_NEEDED((contractor_datum.global_id || contractor_datum.InitializeGlobalId()))
+
+	// Supplier delivers, if they can
+	var/goods_needed = contract.EscrowGetNeededAmt(contract.commodity_key)
+	var/delivered = (!goods_needed || contract.EscrowPut(goods_sender, contract.commodity_key, goods_needed))
+
+	// Payer pays, if they can
+	var/cash_needed = contract.EscrowGetNeededAmt(NEED_WEALTH)
+	var/paid = (!cash_needed || contract.EscrowPut(money_sender, NEED_WEALTH, cash_needed))
+
+	if(delivered && paid)
+		// Sign off
+		contract.Signoff(contract.creator)
+		contract.Signoff(contract.receiver)
+
+		// Mark everything as delivered (instantly)
+		contract.lifecycle_state |= GOAI_CONTRACT_LIFECYCLE_GOODS_DELIVERED
+		contract.lifecycle_state |= GOAI_CONTRACT_LIFECYCLE_PAID
+
+		// Should be completeable at this point
+		var/completed = contract.Complete()
+
+		# warn TODO, debug logs for contract fulfillment
+		if(completed)
+			tracker.SetDone()
+			to_world_log("FULFILLED a contract for [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+		else
+			tracker.SetFailed()
+			to_world_log("FAILED a contract for [contract.commodity_key] * [contract.commodity_amount]u @ [contract.cash_value]$")
+
+	else
+		if(!paid)
+			to_world_log("Payer [money_sender] could not pay for contract [contract].")
+
+		if(!delivered)
+			to_world_log("Supplier [goods_sender] could not provide goods for contract [contract].")
+
+		var/failures = tracker.BBSetDefault("CouldNotDeliver", 1)
+		tracker.BBSet("CouldNotDeliver", failures + 1)
+
+		if(failures > 1)
+			tracker.SetFailed()
+			to_world_log("Contract [contract] could not be fulfilled right now.")
+
 	return

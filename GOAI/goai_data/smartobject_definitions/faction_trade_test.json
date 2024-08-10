@@ -5,7 +5,7 @@
 		{
 			"name": "Fulfill Contract", 
 			"description": "Deliver on our side of a contract.", 
-			"handler": "/datum/utility_ai/proc/DebugFulfilContractInstant", 
+			"handler": "/datum/utility_ai/proc/FulfillContractInstantBilateral", 
 			"priority": 10,
 			"context_procs": ["/proc/ctxfetcher_get_own_contracts"], 
 			"context_args": [{

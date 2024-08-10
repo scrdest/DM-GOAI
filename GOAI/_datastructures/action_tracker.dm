@@ -12,6 +12,9 @@
 
 	var/process = TRUE
 
+	// this doesn't do anything, just prevents multiple things trying to request pause/unpause
+	var/_pausetracker = FALSE
+
 	// Special flag; when TRUE, plan is invalid but not failed (typically, a dependency popped up)
 	// The value might be a key - this indicates the reason for replan (i.e. OBSTACLE might have an obstacle-specific replanner)
 	var/replan = FALSE
@@ -219,6 +222,28 @@
 	src.replan = FALSE
 	PUT_EMPTY_LIST_IN(src.replan_data)
 	return
+
+
+/datum/ActionTracker/proc/PauseFor(var/time)
+	set waitfor = FALSE
+
+	. = TRUE
+
+	if(src._pausetracker)
+		return FALSE
+
+	if(!time || time < 0)
+		return FALSE
+
+	src._pausetracker = TRUE
+	src.process = FALSE
+
+	sleep(time)
+
+	src._pausetracker = TRUE
+	src.process = FALSE
+
+	return TRUE
 
 
 /* Core loop */

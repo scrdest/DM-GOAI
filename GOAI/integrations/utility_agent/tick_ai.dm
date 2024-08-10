@@ -34,10 +34,11 @@
 	// Cancel current tracker, if any is running
 	if(src.running_action_tracker)
 		src.running_action_tracker.process = FALSE
+		src.running_action_tracker = null
 
 	// Cancel all instant and regular Actions
 	PUT_EMPTY_LIST_IN(src.pending_instant_actions)
-	src.active_plan = null
+	PUT_EMPTY_LIST_IN(src.active_plan)
 	src.selected_action = null
 
 	return TRUE
@@ -285,6 +286,8 @@
 	if(!src.brain)
 		return
 
+	var/list/active_plan = src.active_plan
+
 	var/run_count = 0
 	var/target_run_count = 1
 	var/do_plan = FALSE
@@ -308,7 +311,8 @@
 				//target_run_count++
 
 			else if(src.running_action_tracker.is_failed)
-				src.AbortPlan(FALSE)
+				to_world_log("[src.running_action_tracker.tracked_action] failed, aborting")
+				src.AbortPlan(TRUE)
 
 		/* STATE: Ready */
 		else if(src.selected_action) // ready to go
@@ -320,16 +324,16 @@
 			src.selected_action = null
 
 		/* STATE: Pending next stage */
-		else if(src.active_plan && src.active_plan.len)
+		else if(active_plan?.len)
 			//step done, move on to the next
 			//TODO consider if plan needs to be a list for Utility AIs at all
-			RUN_ACTION_DEBUG_LOG("ACTIVE PLAN: [src.active_plan] ([src.active_plan.len]) | <@[src]>")
-			DEBUG_LOG_LIST_ASSOC(src.active_plan, RUN_ACTION_DEBUG_LOG)
+			RUN_ACTION_DEBUG_LOG("ACTIVE PLAN: [active_plan ? json_encode(active_plan) : "[]"] | <@[src]>")
+			DEBUG_LOG_LIST_ASSOC(active_plan, RUN_ACTION_DEBUG_LOG)
 
-			while(src.active_plan.len && isnull(src.selected_action))
+			while(active_plan && isnull(src.selected_action))
 				// Unlike GOAP as of writing, active_plan is a STACK.
 				// (it's faster this way and GOAP should use a stack too but honk)
-				src.selected_action = pop(src.active_plan)
+				src.selected_action = pop(active_plan)
 
 				var/datum/utility_action/action = src.selected_action
 				UTILITYBRAIN_DEBUG_LOG("Selected action: [action?.name || "NONE"]([action?.arguments && json_encode(action?.arguments)]) | <@[src]>")
@@ -350,14 +354,14 @@
 
 		/* STATE: Planning */
 		if(do_plan)
-			var/prev_plan = src.active_plan
+			var/prev_plan = active_plan
 
 			var/should_retry = src.HandlePlanningState()
 
 			if(should_retry)
 				target_run_count++
 
-			if(isnull(prev_plan) && src.active_plan)
+			if(isnull(prev_plan) && active_plan)
 				// If we created a new plan, execute straight away
 				target_run_count++
 

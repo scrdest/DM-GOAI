@@ -17,6 +17,10 @@
 	// Use GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state) to check if the deal can be considered fulfilled.
 	var/lifecycle_state = GOAI_CONTRACT_LIFECYCLE_INITIAL
 
+	// Similar to lifecycle_state, auxiliary bitflag.
+	// Tracks whether either party at least made *an effort* to fulfill the deal.
+	var/progressed_state = GOAI_CONTRACT_LIFECYCLE_INITIAL
+
 	// So that we can put these into a hugh jass array and assign the index from the array here for tracking.
 	var/id = null
 
@@ -157,6 +161,7 @@
 // $$$  Contract => Fulfilment (or not)  $$$
 */
 
+
 /datum/trade_contract/proc/EscrowPut(var/datum/party, var/key, var/value)
 	/*
 	// To fulfill a contract, both parties commit resources into the Escrow,
@@ -216,6 +221,29 @@
 	UPDATE_ASSETS_TRACKER(party.global_id, assets)
 
 	return TRUE
+
+
+/datum/trade_contract/proc/EscrowGetNeededAmt(var/key)
+	/*
+	// This helper tells us how much of a given resource we need to add to fulfill
+	// the contractual obligations of this contract.
+	*/
+
+	if(!key)
+		return 0
+
+	if(!istype(src.escrow))
+		src.escrow = list()
+
+	var/required_amt = null
+	var/curr_escrow_amt = src.escrow[key] || 0
+
+	if(key == NEED_WEALTH)
+		required_amt = max(0, (abs(src.cash_value) - curr_escrow_amt))
+	else
+		required_amt = max(0, (abs(src.commodity_amount) - curr_escrow_amt))
+
+	return required_amt
 
 
 /datum/trade_contract/proc/CheckFulfilled(var/list/escrow_override = null)
@@ -335,14 +363,10 @@
 	*/
 
 	// Verify signoff, refuse to complete if there's anything unsettled left.
-	if(!GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state))
-		if(!GOAI_CONTRACT_IS_DIRTY_COMPLETED(src.lifecycle_state))
-			// it's NOT just waiting for signatures, something hasn't completed
-			to_world_log("Contract [src] could not complete - pending states ([src.lifecycle_state])")
-			return FALSE
-
-		if(require_signoff)
-			// iff we got here, the only missing thing is signoff
+	if(!GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state, src.progressed_state))
+		if(require_signoff && GOAI_CONTRACT_COMPLETED_IF_SIGNED(src.lifecycle_state, src.progressed_state))
+			// if we got here, the only missing thing is signoff
+			// if signoff is not required, we just keep going to completion state
 			to_world_log("Contract [src] could not complete - missing required signoff ([src.lifecycle_state])")
 			return FALSE
 
@@ -363,7 +387,7 @@
 
 	// If somehow we forgot to mark the contract as completed
 	// but it is in a success state as of expiry, just complete it now.
-	if(GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state))
+	if(GOAI_CONTRACT_IS_COMPLETED(src.lifecycle_state, src.progressed_state))
 		var/completed = src.Complete(FALSE)
 		if(completed)
 			// If we could not force completion, this block will not be reached
