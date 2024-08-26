@@ -33,7 +33,7 @@
 			"considerations": [
 				{
 					"name": "Offers Below Max",
-					"input_proc": "/proc/consideration_offers_pending",
+					"input_proc": "/proc/consideration_contracts_pending",
 					"lo_mark": 0, 
 					"hi_mark": 2, 
 					"curve_proc": "/proc/curve_antilinear",
@@ -45,7 +45,7 @@
 					"name": "TradeDesirability",
 					"input_proc": "/proc/consideration_trade_desirability",
 					"lo_mark": 0, 
-					"hi_mark": 1, 
+					"hi_mark": 0.2, 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]
@@ -90,9 +90,9 @@
 				{
 					"name": "Need Weight",
 					"input_proc": "/proc/consideration_input_get_need_weight",
-					"lo_mark": -10, 
-					"hi_mark": 10, 
-					"curve_proc": "/proc/curve_linear"
+					"lo_mark": 1, 
+					"hi_mark": 20, 
+					"curve_proc": "/proc/curve_antilinear"
 				}
 			]
 		},

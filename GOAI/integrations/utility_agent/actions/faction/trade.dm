@@ -66,7 +66,7 @@
 		return
 
 	// How much money we got
-	//var/curr_wealth = ai_brain.GetNeed(NEED_WEALTH, 0)
+	var/curr_wealth = ai_brain.GetNeed(NEED_WEALTH, 0)
 
 	// How much of our Need-satisfaction we're willing to sacrifice
 	var/need_delta_total = -min(curr_need - 10, RANDOMIZED_NEED_DELTA)
@@ -80,21 +80,35 @@
 
 	if(isnull(commodity))
 		to_world_log("ERROR: CreateSellOfferForNeed: [src.name] Commodity for [need_key] is null ([commodity])")
+		tracker.SetFailed()
 		return
 
-	var/trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_delta_total)  // should usually return a negative value!
+	var/raw_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, need_delta_total)  // should usually return a negative value!
+
+	if(isnull(raw_trade_amount))
+		to_world_log("ERROR: CreateSellOfferForNeed: [src.name] Commodity raw_trade_amount for [need_key] is [NULL_TO_TEXT(raw_trade_amount)]")
+		tracker.SetFailed()
+		return
 
 	// How much Utility we lose from the trade if we didn't get paid
-	var/tradeoff_utility_loss = src.GetCommodityDesirability(commodity, trade_amount, 0)
+	var/tradeoff_utility_loss = src.GetCommodityDesirability(commodity, raw_trade_amount, 0)
 
 	// How much profit we want to take on top of a Utility-fair trade
 	var/profitability_factor = RANDOMIZED_PROFITABILITY_FACTOR
+
+	// How much do we want to play with (i.e. excluding a reserve)
+	var/safe_wealth = (curr_wealth * (1 - profitability_factor))
 
 	// Just totalling the factors for auditability
 	var/total_pricing_utility = tradeoff_utility_loss - profitability_factor
 
 	// How much we want for this deal
-	var/asking_price = src.GetMoneyForNeedUtility(total_pricing_utility)
+	var/raw_asking_price = src.GetMoneyForNeedUtility(total_pricing_utility, safe_wealth)
+
+	if(isnull(raw_asking_price))
+		to_world_log("ERROR: CreateSellOfferForNeed: [src.name] Commodity raw_asking_price for [total_pricing_utility] is [NULL_TO_TEXT(raw_asking_price)]")
+		tracker.SetFailed()
+		return
 
 	// How long do we want to keep this open
 	// Generally, this should be lower if we are desperate (because we are offering deals that are quite bad for us).
@@ -105,6 +119,11 @@
 	//       This separates concerns - other AIs only care about how much they like the mob/faction and don't have
 	//         to know whether they are dealing with an NPC, a PC, or a completely abstract entity.
 	var/source_entity = src.pawn
+
+	// We need to flip the signs to represent the values on the receiver side
+	// (e.g. if we are selling 5u == -5u for us, the receiver is GETTING +5u)
+	var/trade_amount = -raw_trade_amount
+	var/asking_price = CEIL(max(1, abs(raw_asking_price))) * (raw_asking_price < 0 ? -1 : 1)
 
 	var/datum/trade_offer/sell_offer = new(source_entity, commodity, trade_amount, asking_price, world.time + expiry_time)
 	REGISTER_OFFER_TO_MARKETPLACE(sell_offer)
@@ -172,19 +191,24 @@
 	// How much profit we want to take on top of a Utility-fair trade
 	var/profitability_factor = RANDOMIZED_PROFITABILITY_FACTOR
 
+	// How much do we want to play with (i.e. excluding a reserve)
+	var/safe_wealth = (curr_wealth * (1 - profitability_factor))
+
 	// How much we offer for this deal
-	var/bid_price_fast = min(curr_wealth, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, curr_wealth))
+	var/bid_price_fast = min(safe_wealth, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, safe_wealth))
 
 	if(bid_price_fast >= PLUS_INF)
 		// Invalid deal
 		tracker.SetFailed()
 		return
 
-	var/remaining_cash = curr_wealth
+	var/remaining_cash = safe_wealth
 
-	if(bid_price_fast > curr_wealth)
+	bid_price_fast = max(1, FLOOR(bid_price_fast))
+
+	if(bid_price_fast > safe_wealth)
 		// clamp to money we actually HAVE
-		bid_price_fast = curr_wealth
+		bid_price_fast = safe_wealth
 
 	remaining_cash = (curr_wealth - bid_price_fast)
 
@@ -197,31 +221,35 @@
 	var/commodity = src.GetBestPurchaseCommodityForNeed(need_key)
 
 	if(isnull(commodity))
-		to_world_log("ERROR: CreateBuyOfferForNeed: [src.name] Commodity for [need_key] is null ([commodity])")
+		to_world_log("ERROR: CreateBuyOfferForNeed: [src.name] Commodity for [need_key] is [NULL_TO_TEXT(commodity)]")
 		return
 
 	var/source_entity = src.pawn
 
 	if(!isnull(bid_price_fast))
 		// Find HOW MUCH of said Thing we ideally want to buy
-		var/fast_trade_amount = src.GetCommodityAmountForNeedDelta(half_need_delta, curr_need)  // should usually return a positive value!
+		var/raw_fast_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, half_need_delta)  // should usually return a positive value!
+		var/fast_trade_amount = -raw_fast_trade_amount
 		var/expiry_time_fast = EXPIRY_TIME_FAST
 		var/datum/trade_offer/buy_offer_fast = new(source_entity, commodity, fast_trade_amount, bid_price_fast, world.time + expiry_time_fast)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_fast)
 		GOAI_BRAIN_ADD_OFFER(ai_brain, buy_offer_fast.id)
+		#warn Debug logs
+		to_world_log("CreateBuyOfferForNeed: [src.name] created new fast Buy offer for [commodity] @ [fast_trade_amount]u | [bid_price_fast]$")
 
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
-		var/slow_trade_amount = src.GetCommodityAmountForNeedDelta(half_need_delta, curr_need + half_need_delta)  // should usually return a positive value!
+		var/raw_slow_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, curr_need + half_need_delta)  // should usually return a positive value!
+		var/slow_trade_amount = -raw_slow_trade_amount
 		var/expiry_time_slow = EXPIRY_TIME_SLOW
 		var/datum/trade_offer/buy_offer_slow = new(source_entity, commodity, slow_trade_amount, bid_price_slow, world.time + expiry_time_slow)
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_slow)
 		GOAI_BRAIN_ADD_OFFER(ai_brain, buy_offer_slow.id)
+		#warn Debug logs
+		to_world_log("CreateBuyOfferForNeed: [src.name] created new slow Buy offer for [commodity] @ [slow_trade_amount]u | [bid_price_slow]$")
 
 	tracker.SetDone()
 
-	#warn Debug logs
-	to_world_log("CreateBuyOfferForNeed: [src.name] created new Buy [isnull(bid_price_slow) ? "offer" : "offers"] for [commodity]")
 	return
 
 
@@ -344,12 +372,12 @@
 		return
 
 	var/creator_is_seller = contract.commodity_amount > 0
-	var/creator_is_payer = contract.cash_value < 0
+	var/creator_is_payer = contract.cash_value > 0
 
 	var/datum/creator_datum = contract.creator
 	var/datum/contractor_datum = contract.receiver
 
-	var/datum/goods_sender = (creator_is_seller ? contractor_datum : creator_datum)
+	var/datum/goods_sender = (creator_is_seller ? creator_datum : contractor_datum)
 	var/datum/money_sender = (creator_is_payer ? creator_datum : contractor_datum)
 
 	ASSETS_TABLE_LAZY_INIT(TRUE)
@@ -358,11 +386,11 @@
 
 	// Supplier delivers, if they can
 	var/goods_needed = contract.EscrowGetNeededAmt(contract.commodity_key)
-	var/delivered = (!goods_needed || contract.EscrowPut(goods_sender, contract.commodity_key, goods_needed))
+	var/delivered = ((!goods_needed) || contract.EscrowPut(goods_sender, contract.commodity_key, goods_needed))
 
 	// Payer pays, if they can
 	var/cash_needed = contract.EscrowGetNeededAmt(NEED_WEALTH)
-	var/paid = (!cash_needed || contract.EscrowPut(money_sender, NEED_WEALTH, cash_needed))
+	var/paid = ((!cash_needed) || contract.EscrowPut(money_sender, NEED_WEALTH, cash_needed))
 
 	if(delivered && paid)
 		// Sign off

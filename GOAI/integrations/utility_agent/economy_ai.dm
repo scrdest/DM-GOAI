@@ -262,10 +262,30 @@
 	return commodity_desirability
 
 
-/datum/utility_ai/proc/GetMoneyDesirability(var/amount, var/curr_wealth = null)
-	// mostly pro-forma in case this ever does anything important in the ABC
-	. = ..(amount)
+/datum/utility_ai/proc/GetWealthNeedFromAssets(var/datum/pawn_override = null, var/default = 0)
+	/*
+	// Returns how much our Wealth need is satisfied by our (abstract) assets.
+	*/
+	var/datum/pawn = DEFAULT_IF_NULL(pawn_override, src.GetPawn())
 
+	if(!istype(pawn))
+		return default
+
+	ASSETS_TABLE_LAZY_INIT(TRUE)
+	var/list/assets = GET_ASSETS_TRACKER(pawn.global_id || pawn.InitializeGlobalId())
+
+	var/cash_on_hand = (assets ? assets[NEED_WEALTH] : 0)
+	return cash_on_hand
+
+
+
+/datum/utility_ai/proc/GetMoneyDesirability(var/amount, var/curr_wealth = null)
+	/*
+	// Returns how much we would value a CHANGE in the amount of money we have
+	// (i.e. the marginal utility of money integrated over the proposed delta).
+	*/
+
+	// Note the default will GENERALLY route back from the Brain into src.GetWealthNeedFromAssets()
 	var/wealth = DEFAULT_IF_NULL(DEFAULT_IF_NULL(curr_wealth, src.brain?.GetNeed(NEED_WEALTH, null)), 0)
 
 	// Personality factor (PF) makes us loss-averse
@@ -381,8 +401,9 @@
 		return wealth
 
 	var/as_angle = arcsin(basis)
+	var/angle_to_tan = tan(as_angle)
 
-	var/breakeven_money_value = tan(as_angle)
+	var/breakeven_money_value = angle_to_tan * wealth
 
 	// This is the break-even price, expressed as cash_amt for the *COUNTERPARTY*
 	// (i.e. the SELLER if we are BUYING, or the BUYER if we are SELLING).
@@ -398,6 +419,7 @@
 	// This has a bunch of benefits, but the biggest one IMO is interpretability - this is
 	// the cost, in Utils, of bothering with the trade and associated information assymetries.
 	// As such, the padding value can be either RNG'd or estimated by AI in sane ways.
+	to_world_log("[src.name] | GetMoneyForNeedUtility: breakeven_money_value for Utility [utility] and current wealth [wealth] is: [breakeven_money_value] on basis [basis]/angle [as_angle]")
 	return breakeven_money_value
 
 
@@ -405,15 +427,18 @@
 	/* Pre-flight checks */
 
 	if(!commodity)
+		to_world_log("GetCommodityAmountForNeedDelta: Commodity [NULL_TO_TEXT(commodity)] is null.")
 		return null.
 
 	if(!need_key)
+		to_world_log("GetCommodityAmountForNeedDelta: need_key [NULL_TO_TEXT(need_key)] is null.")
 		return null
 
 	if(!delta)
 		// compressing null-handling and zero-handling
 		// null returns null, because invalid
 		// zero returns zero, because we don't need any Commodity to satisfy that
+		to_world_log("GetCommodityAmountForNeedDelta: Commodity [commodity] has no nonzero need values for delta [NULL_TO_TEXT(delta)].")
 		return delta
 
 	// fetch how much this commodity satisfies the target need

@@ -14,8 +14,11 @@
 	var/weakref/pawn
 	# endif
 
-	// If True, calls src.InitializePawn()
-	// Set to False as an optimization to skip an unnecessary call.
+	// If TRUE, calls src.InitPawn(), skips if FALSE
+	// Set to FALSE as an optimization to skip an unnecessary call
+	// or to defer the Pawn initializer until later (e.g. for spawners, which might customize some vars first).
+	//
+	// NOTE: if you wish to defer it, it's on *YOU* as the user to call <ai_instance>.InitPawn() later!
 	var/initialize_pawn = TRUE
 
 	// Associated Brain

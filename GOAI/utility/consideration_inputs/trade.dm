@@ -25,6 +25,19 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	// For SELLING, these roles are simply reversed (MPF on sell-side acts like CPF on buy-side and likewise substitute CPF for MPF above for the seller)
 	// So, we only sell when MPF is high and prefer to sell commodities we don't really need.
 
+	/*
+	//          -----------------------------
+	//           CONSIDERATION USAGE NOTE!!!
+	//          -----------------------------
+	//
+	// Choose your high watermark carefully for this!
+	// Very few offers will ever reach a score of 1 - that would require a ridiculously good offer.
+	//
+	// Instead, think of it as more of an indifference curve - above a certain watermark, all deals
+	// are treated as a bargain for the AI. The high threshold should represent how 'picky' the AI
+	// is (the higher, the more picky - decent but less ideal deals will still be chosen, but rarely)
+	*/
+
 	var/datum/utility_action_template/candidate = action_template
 
 	if(!istype(candidate))

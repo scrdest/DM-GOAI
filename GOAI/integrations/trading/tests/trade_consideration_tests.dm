@@ -31,7 +31,12 @@ var/global/datum/faction_data/trade_debug_faction = null
 		to_chat(usr, "[raw_faction_ai] brain [faction_brain] is not a Utility brain, somehow")
 		return
 
+	var/datum/pawn = faction_ai.GetPawn()
+	var/has_pawn = istype(pawn)
+
 	var/list/new_needs = testdata["_new_needs"] || list()
+
+	ASSETS_TABLE_LAZY_INIT(TRUE)
 
 	for(var/new_need_key in new_needs)
 		var/new_need_val = new_needs[new_need_key]
@@ -41,9 +46,25 @@ var/global/datum/faction_data/trade_debug_faction = null
 
 		faction_brain.needs[new_need_key] = new_need_val
 
+		if(has_pawn && new_need_key == NEED_WEALTH)
+			var/list/target_assets = GET_ASSETS_TRACKER(pawn.global_id || pawn.InitializeGlobalId()) || list()
+			target_assets[NEED_WEALTH] = new_need_val
+			UPDATE_ASSETS_TRACKER(pawn.global_id, target_assets)
+
 	if(isnull(global.trade_debug_faction))
 		var/datum/faction_data/economy_gods = new("Economy Gods")
 		global.trade_debug_faction = economy_gods
+
+		// Give 'em near-infinite stuff to trade with
+		// This faction has no AI, any offers they make we create manually,
+		// so having infinite resources does not cause any problems for us.
+		var/list/economy_gods_assets = list(
+			"/obj/decor" = 1e6,
+			"/obj/ore" = 1e6,
+			"/obj/food" = 1e6,
+			NEED_WEALTH = 1e6
+		)
+		UPDATE_ASSETS_TRACKER((economy_gods.global_id || economy_gods.InitializeGlobalId()), economy_gods_assets)
 
 	for(var/test_key in testdata)
 		if(test_key == "_new_needs")

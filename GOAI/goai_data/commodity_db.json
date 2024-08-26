@@ -4,5 +4,11 @@
 	},
 	"/obj/decor": {
 		"prestige": 2
+	},
+	"/obj/ore": {
+		"ore": 5
+	},
+	"/obj/steel_bar": {
+		"steel": 1
 	}
 }

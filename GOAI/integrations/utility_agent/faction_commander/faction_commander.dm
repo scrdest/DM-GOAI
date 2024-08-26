@@ -44,12 +44,19 @@
 		return
 	*/
 
+	var/list/factionspec = null // assoc list
 	var/spec_file = (filespec || src.factionspec_source)
 
-	var/list/factionspec = null // assoc list
 	if(spec_file)
-		READ_JSON_FILE_CACHED(spec_file, factionspec)
-		to_world_log("Read factionspec [spec_file] for [src] ([json_encode(factionspec)])")
+		// If the spec does not have the canonical SO location, assume it's a relative path in the factionspec dir.
+		var/basepath_idx = findtext(spec_file, GOAI_FACTIONSPEC_PATH(""))
+
+		var/abs_spec_path = spec_file
+		if(!basepath_idx)
+			abs_spec_path = GOAI_FACTIONSPEC_PATH(spec_file)
+
+		READ_JSON_FILE_CACHED(abs_spec_path, factionspec)
+		to_world_log("Read factionspec [abs_spec_path] for [src] ([json_encode(factionspec)])")
 
 	var/faction_name = null
 	if(factionspec)
@@ -101,17 +108,6 @@
 				var/abs_spec_path = ((basepath_idx != 1) ? GOAI_SMARTOBJECT_PATH(raw_spec_path) : raw_spec_path)
 				actionspecs.Add(abs_spec_path)
 
-	if(spec_file)
-		// If the spec does not have the canonical SO location, assume it's a relative path in the SO dir.
-		var/basepath_idx = findtext(spec_file, GOAI_SMARTOBJECT_PATH(""))
-
-		var/abs_spec_path = spec_file
-		if(!basepath_idx)
-			abs_spec_path = GOAI_DATA_PATH(spec_file)
-
-		READ_JSON_FILE_CACHED(abs_spec_path, factionspec)
-		to_world_log("Read factionspec [spec_file] for [src] ([json_encode(factionspec)])")
-
 	var/datum/faction_data/new_faction = new(faction_name, faction_rels, faction_tags, actionspecs)
 
 	// Note: the pawn may be a weakref, so
@@ -119,5 +115,15 @@
 	// this would result in the pawn getting nulled out.
 	src.pawn = REFERENCE_PAWN(new_faction)
 	to_world_log("The pawn for Faction AI [src] is [src.pawn] ([faction_name])")
+
+	// Initial Assets (things this faction 'owns')
+	// Note this needs to happen AFTER the main datum init.
+	if(factionspec)
+		var/list/new_assets = factionspec["assets"]
+
+		if(new_assets)
+			// Create assets DB if not yet initialized
+			ASSETS_TABLE_LAZY_INIT(TRUE)
+			UPDATE_ASSETS_TRACKER(GET_GLOBAL_ID_LAZY(new_faction), new_assets)
 
 	return src

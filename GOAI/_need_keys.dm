@@ -24,6 +24,9 @@
 
 /* Materials */
 
+// Unprocessed metal ores
+#define NEED_ORE_GENERIC "ore"
+
 // Raw steel, e.g. for construction
 #define NEED_STEEL "steel"
 

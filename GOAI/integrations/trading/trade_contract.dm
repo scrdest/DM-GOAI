@@ -153,7 +153,7 @@
 		src.on_failure_proc_args
 	)
 
-	to_world_log("Contract [contract] <[NULL_TO_TEXT(contract.id)]> ([contract.commodity_key] x [contract.commodity_amount] @ [contract.cash_value] by [contract.deadline]) created between creator [contract.creator] and contractor [contract.receiver]")
+	to_world_log("Contract [contract] <ID #[NULL_TO_TEXT(contract.id)]> ([contract.commodity_key] x [contract.commodity_amount] @ [contract.cash_value] by [NULL_TO_TEXT(contract.deadline)]) created between creator [contract.creator] and contractor [contract.receiver]")
 	return contract
 
 
@@ -188,23 +188,26 @@
 	ASSETS_TABLE_LAZY_INIT(TRUE)
 
 	if(isnull(party.global_id))
-		to_world_log("ERROR: EscrowPut contract receiver ([NULL_TO_TEXT(party)]) has no global ID.")
+		to_world_log("ERROR: EscrowPut party ([NULL_TO_TEXT(party)]) has no global ID.")
 		return null
 
 	var/list/assets = GET_ASSETS_TRACKER(party.global_id)
 
 	if(!assets)
 		// If we don't even have a list entry, we sure as hell don't have enough stuff to put here.
+		to_world_log("WARNING: EscrowPut party ([NULL_TO_TEXT(party)]) has no assets.")
 		return FALSE
 
 	var/owned_key_amt = assets[key]
 
 	if(!owned_key_amt)
 		// We ain't got it, abort.
+		to_world_log("WARNING: EscrowPut party ([NULL_TO_TEXT(party)]) has no asset '[key]' (assets: [json_encode(assets)]).")
 		return FALSE
 
 	if(owned_key_amt < value)
 		// We got some, but not enough - still abort.
+		to_world_log("WARNING: EscrowPut party ([NULL_TO_TEXT(party)]) has insufficient amount of [key] - needs [value], has [owned_key_amt].")
 		return FALSE
 
 	if(!istype(src.escrow))

@@ -26,30 +26,29 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_market_trade_offers)
 	for(var/offer_key in GOAI_LIBBED_GLOB_ATTR(global_marketplace))
 		var/datum/trade_offer/offer = (GOAI_LIBBED_GLOB_ATTR(global_marketplace))[offer_key]
 
-		#warn debug logging
 		if(!istype(offer))
 			// Exclude null/junk offers
-			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - junk")
+			//to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - junk")
 			continue
 
 		if(!(offer.is_open))
 			// Exclude bound offers
-			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - no longer open")
+			//to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - no longer open")
 			continue
 
 		if(!(isnull(offer.expiry_time) || (offer.expiry_time > now)))
 			// Exclude expired offers
-			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - expired")
+			//to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - expired")
 			continue
 
 		if(!(isnull(offer.receiver) || (offer.receiver == requester_pawn)))
 			// Exclude offers that are specifically directed at someone else.
-			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - directed at someone else")
+			//to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - directed at someone else")
 			continue
 
 		if(!isnull(requester_pawn) && (offer.creator == requester_pawn))
 			// Exclude our own offers; this should be handled by another CF.
-			to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - we created this")
+			//to_world_log("ctxfetcher_get_market_trade_offers: Rejecting [offer_key] - we created this")
 			continue
 
 		var/list/ctx = list()

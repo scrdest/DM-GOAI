@@ -229,19 +229,27 @@
 	set waitfor = FALSE
 	sleep(0)
 
+	var/loop_retries = 0
+
 	// selection left intentionally vague; will probably do deterministic as PoC and weighted sampling later
 
 	if(!is_planning)
 		is_planning = TRUE
 
 		var/list/actionsets = src.GetAvailableActions()
-		var/datum/Triple/best_act_tup = null
 
+		if(!actionsets)
+			RUN_ACTION_DEBUG_LOG("WARNING: Actionsets empty! (len: [length(actionsets)]) | <@[src]> | [__FILE__] -> L[__LINE__]")
+			return
+
+		var/datum/Triple/best_act_tup = null
 		src.ScoreActions(actionsets)
-		while(src.unranked_actions)
+
+		while(src.unranked_actions && loop_retries < 10)
+			loop_retries++
 			sleep(1)
 
-		while(src.utility_ranking.L)
+		while(src.utility_ranking.L && loop_retries < 10)
 			// pop first not-null item
 			var/best_act_res = utility_ranking.Dequeue()
 
@@ -249,7 +257,9 @@
 			if(best_act_tup)
 				break
 
-		if(!best_act_tup)
+			loop_retries++
+
+		if(isnull(best_act_tup))
 			RUN_ACTION_DEBUG_LOG("ERROR: Best action tuple is null! [best_act_tup], Actionset count: [length(actionsets)] | <@[src]> | [__FILE__] -> L[__LINE__]")
 			return
 

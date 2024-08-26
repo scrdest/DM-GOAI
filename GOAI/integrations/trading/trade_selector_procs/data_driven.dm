@@ -32,9 +32,6 @@
 
 	var/list/lookup = ai_brain.preferred_trades
 
-	#warn utility_best_trade_item_selector_personality_generic has debug logs
-	to_world_log("DEBUG: utility_best_trade_item_selector_personality_generic key is [need_key], lookup is [lookup && json_encode(lookup)]")
-
 	var/best_choice = lookup?[need_key]
 	return best_choice
 

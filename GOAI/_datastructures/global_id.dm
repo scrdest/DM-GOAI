@@ -15,6 +15,18 @@
 
 /datum/proc/InitializeGlobalId(var/list/args = null)
 	/* Subclass hook in case the ID has to be dynamically generated */
+
+	if(src.global_id)
+		// Do not rewrite the ID if initialized
+		return src.global_id
+
+	// By default, generate an ID from a ref macro - guaranteed to be unique up to a reallocation.
 	var/default_id = ref(src)
 	src.global_id = default_id
 	return default_id
+
+
+// Shorthand for a very common code pattern where the Global ID is lazily initialized.
+// The OR operator is short-circuiting, so the initialization will only be done once, when needed,
+// because the initialization proc is expected to set the new ID on the object as part of its contract.
+#define GET_GLOBAL_ID_LAZY(TargetDatum) (TargetDatum.global_id || TargetDatum.InitializeGlobalId())
