@@ -120,7 +120,7 @@
 
 	if(isnull(src.utility_ranking))
 		// initialize if not done yet
-		src.utility_ranking = new /PriorityQueue(/datum/Triple/proc/FirstTwoCompare)
+		src.utility_ranking = new DEFAULT_PRIORITY_QUEUE_IMPL(/datum/Triple/proc/FirstTwoCompare)
 	else
 		// clear last tick's data so we start fresh
 		src.utility_ranking.L.Cut()

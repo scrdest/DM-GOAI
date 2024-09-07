@@ -225,6 +225,7 @@
 	if(pathtracker)
 		src.active_path = pathtracker
 		src.brain.SetMemory(MEM_PATH_ACTIVE, pathtracker.path)
+		MOVEMENT_DEBUG_LOG("[src]: Created a pathtracker to [trg] @ [pawn.loc] [COORDS_TUPLE(pawn.loc)]")
 
 	else
 		#ifdef MOVEMENT_DEBUG_LOGGING

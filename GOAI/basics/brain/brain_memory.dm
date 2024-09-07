@@ -61,7 +61,7 @@
 /datum/brain/proc/GetMemoryValue(var/mem_key, var/default = null, var/by_age = FALSE, var/check_hivemind = FALSE, var/recursive = FALSE, var/prefer_hivemind = FALSE)
 	// Like GetMemory, but resolves the Memory object to the stored value.
 	// This is a bit lossy, but 99% of the time that's all you care about.
-	var/datum/memory/retrieved_mem = GetMemory(mem_key, null, by_age, check_hivemind, recursive, prefer_hivemind)
+	var/datum/memory/retrieved_mem = src.GetMemory(mem_key, null, by_age, check_hivemind, recursive, prefer_hivemind)
 	var/memory_value = retrieved_mem?.val
 	return (isnull(memory_value) ? default : memory_value)
 

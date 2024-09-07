@@ -77,7 +77,7 @@
 
 /datum/brain/proc/SetNeed(var/key, var/val)
 	if(isnull(needs))
-		src.needs = new()
+		src.needs = list()
 
 	src.needs[key] = val
 	return TRUE
@@ -88,11 +88,13 @@
 		src.needs = new()
 
 	var/curr_val = src.needs[key]
+
 	if(isnull(curr_val))
 		return
 
 	var/new_val = curr_val + val
-	src.SetNeed(new_val)
+
+	src.SetNeed(key, new_val)
 	return new_val
 
 /*

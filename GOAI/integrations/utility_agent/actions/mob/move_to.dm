@@ -130,6 +130,7 @@
 		var/stored_path = StartNavigateTo(position, _min_dist, null)
 		if(isnull(stored_path))
 			tracker.SetFailed()
+			RUN_ACTION_DEBUG_LOG("FAILED: No path to [position] found for [src.name] AI @ L[__LINE__] in [__FILE__]")
 			src.brain?.SetMemory("UnreachableRunMovePath", position, 500)
 			return
 

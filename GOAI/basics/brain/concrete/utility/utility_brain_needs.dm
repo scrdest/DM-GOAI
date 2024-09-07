@@ -31,7 +31,7 @@
 	var/fixed_value = isnull(val) ? null : clamp(val, NEED_MINIMUM, NEED_MAXIMUM)
 
 	// Parent logic handles the rest
-	. = ..(fixed_value)
+	. = ..(key, fixed_value)
 
 	// Extra bookkeeping on top
 	#ifdef BRAIN_MODULE_INCLUDED_METRICS

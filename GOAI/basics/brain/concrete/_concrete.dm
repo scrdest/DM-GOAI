@@ -171,7 +171,11 @@
 
 	var/fixed_value = min(NEED_MAXIMUM, max(NEED_MINIMUM, (value)))
 	needs[motive_key] = fixed_value
+
+	#ifdef BRAIN_MODULE_INCLUDED_METRICS
 	last_need_update_times[motive_key] = world.time
+	#endif
+
 	MOTIVES_DEBUG_LOG("Curr [motive_key] = [needs[motive_key]] <@[src]>")
 
 

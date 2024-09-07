@@ -103,19 +103,24 @@
 
 #define DEFAULT_COMMODITY_DB_FP GOAI_DATA_PATH("commodity_db.json")
 
-var/global/list/commodity_db = null
+# ifdef GOAI_LIBRARY_FEATURES
+var/global/list/commodity_db
+# endif
+# ifdef GOAI_SS13_SUPPORT
+GLOBAL_LIST_EMPTY(commodity_db)
+# endif
 
 
 /proc/InitCommodityDb(var/filepath_override = null, var/force = FALSE)
-	if(!(isnull(commodity_db) || force))
+	if(!(isnull(GOAI_LIBBED_GLOB_ATTR(commodity_db)) || force))
 		return TRUE
 
 	var/db_filepath = isnull(filepath_override) ? DEFAULT_COMMODITY_DB_FP : filepath_override
-	READ_JSON_FILE_CACHED(db_filepath, global.commodity_db)
-	to_world_log("New CommodityDB is [global.commodity_db ? json_encode(global.commodity_db) : "uninitialized"] from [db_filepath]")
+	READ_JSON_FILE_CACHED(db_filepath, GOAI_LIBBED_GLOB_ATTR(commodity_db))
+	to_world_log("New CommodityDB is [GOAI_LIBBED_GLOB_ATTR(commodity_db) ? json_encode(GOAI_LIBBED_GLOB_ATTR(commodity_db)) : "uninitialized"] from [db_filepath]")
 
-	if(!global.commodity_db)
-		global.commodity_db = null
+	if(!GOAI_LIBBED_GLOB_ATTR(commodity_db))
+		GOAI_LIBBED_GLOB_ATTR(commodity_db) = null
 
 	return TRUE
 
@@ -126,7 +131,7 @@ var/global/list/commodity_db = null
 		if(!inited)
 			return
 
-	var/list/type_data = global.commodity_db[typename]
+	var/list/type_data = GOAI_LIBBED_GLOB_ATTR(commodity_db)[typename]
 	return type_data
 
 
@@ -136,7 +141,7 @@ var/global/list/commodity_db = null
 		if(!inited)
 			return
 
-	var/list/type_data = global.commodity_db[typename]
+	var/list/type_data = GOAI_LIBBED_GLOB_ATTR(commodity_db)[typename]
 
 	if(!istype(type_data))
 		return null

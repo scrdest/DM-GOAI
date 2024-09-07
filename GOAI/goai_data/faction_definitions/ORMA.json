@@ -32,7 +32,7 @@
 	},
 	"assets": {
 		"wealth": 1000,
-		"/obj/food": 10,
+		"/obj/food": 300,
 		"/obj/ore": 800,
 		"/obj/steel_bar": 80
 	}

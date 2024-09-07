@@ -1,3 +1,5 @@
+#define DEFAULT_PRIORITY_QUEUE_IMPL /PriorityQueue/BinHeap
+
 #define MATH_PI 3.14159265
 #define LOG2(x) log(2, x)
 

@@ -38,6 +38,9 @@
 	# warn TODO, debug log
 	to_world_log("ACCEPTED a deal for [offer.commodity_key] * [offer.commodity_amount]u @ [offer.cash_value]$")
 
+	var/unit_price = (abs(offer.cash_value) / abs(offer.commodity_amount))
+	SET_PRICE_POINT(offer.commodity_key, unit_price)
+
 	tracker.SetDone()
 	return
 
@@ -123,7 +126,28 @@
 	// We need to flip the signs to represent the values on the receiver side
 	// (e.g. if we are selling 5u == -5u for us, the receiver is GETTING +5u)
 	var/trade_amount = -raw_trade_amount
-	var/asking_price = CEIL(max(1, abs(raw_asking_price))) * (raw_asking_price < 0 ? -1 : 1)
+
+	var/abs_asking_price = CEIL(max(1, abs(raw_asking_price)))
+	var/asking_price = abs_asking_price
+
+	// Check last trade value and adjust asking price if needed
+	PRICEPOINTS_TABLE_LAZY_INIT(TRUE)
+	var/raw_last_trade_price = GET_PRICE_POINT(commodity)
+
+	if(!isnull(raw_last_trade_price))
+		var/abs_last_trade_price = abs(raw_last_trade_price) * raw_trade_amount
+		var/price_delta = (abs_last_trade_price - abs_asking_price)
+
+		if(price_delta > 0)
+			// If the market can tolerate a higher price than we'd naively guess, adjust the price up.
+			// Note the naive value is a hard minimum, we will NOT accept a deal below this value ever.
+			// We'll smooth the difference; this is randomized but guaranteed to be between 30% and 90% of the delta
+			var/market_smoothing_factor = 0.3 + (0.6 * rand())
+			var/market_smoothing_amt = (market_smoothing_factor * price_delta)
+			asking_price = (abs_asking_price + market_smoothing_amt)
+
+	// reapply the correct sign to the absolute value
+	asking_price = asking_price * (raw_asking_price < 0 ? -1 : 1)
 
 	var/datum/trade_offer/sell_offer = new(source_entity, commodity, trade_amount, asking_price, world.time + expiry_time)
 	REGISTER_OFFER_TO_MARKETPLACE(sell_offer)
@@ -194,41 +218,60 @@
 	// How much do we want to play with (i.e. excluding a reserve)
 	var/safe_wealth = (curr_wealth * (1 - profitability_factor))
 
-	// How much we offer for this deal
-	var/bid_price_fast = min(safe_wealth, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, safe_wealth))
+	var/need_price = src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, safe_wealth)
 
-	if(bid_price_fast >= PLUS_INF)
-		// Invalid deal
+	if((need_price <= 0) || (need_price >= PLUS_INF))
+		// Invalid deal, we shouldn't have gotten here
 		tracker.SetFailed()
 		return
-
-	var/remaining_cash = safe_wealth
-
-	bid_price_fast = max(1, FLOOR(bid_price_fast))
-
-	if(bid_price_fast > safe_wealth)
-		// clamp to money we actually HAVE
-		bid_price_fast = safe_wealth
-
-	remaining_cash = (curr_wealth - bid_price_fast)
-
-	var/bid_price_slow = null
-
-	if(remaining_cash > 0)
-		bid_price_slow = min(remaining_cash, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, remaining_cash))
 
 	// Find the best Thing we can buy to satisfy this need
 	var/commodity = src.GetBestPurchaseCommodityForNeed(need_key)
 
 	if(isnull(commodity))
 		to_world_log("ERROR: CreateBuyOfferForNeed: [src.name] Commodity for [need_key] is [NULL_TO_TEXT(commodity)]")
+		tracker.SetFailed()
 		return
+
+	// Find HOW MUCH of said Thing we ideally want to buy
+	var/raw_fast_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, half_need_delta)  // should usually return a positive value!
+
+	// How much we offer for this deal
+	// clamp to money we actually HAVE
+	var/bid_price_fast = min(need_price, safe_wealth)
+
+	// Check last trade value and adjust asking price if needed
+	PRICEPOINTS_TABLE_LAZY_INIT(TRUE)
+	var/raw_last_trade_unit_price = GET_PRICE_POINT(commodity)
+	var/abs_last_trade_unit_price = null
+
+	if(!isnull(raw_last_trade_unit_price))
+		abs_last_trade_unit_price = abs(raw_last_trade_unit_price)
+
+	if(!isnull(abs_last_trade_unit_price))
+		var/abs_last_trade_total_price = abs_last_trade_unit_price * raw_fast_trade_amount
+		var/abs_bid_price_fast = CEIL(max(1, abs(bid_price_fast)))
+		var/price_delta_fast = (abs_bid_price_fast - abs_last_trade_total_price)
+
+		if(price_delta_fast > 0)
+			// If the market can tolerate a lower price than we'd naively guess, adjust the price down.
+			// Note the naive value is a hard maximum, we will NOT accept a deal above this value, ever.
+			// We'll smooth the difference; this is randomized but guaranteed to be between 30% and 90% of the delta
+			var/market_smoothing_factor = 0.3 + (0.6 * rand())
+			var/market_smoothing_amt = (market_smoothing_factor * price_delta_fast)
+			bid_price_fast = (abs_bid_price_fast - market_smoothing_amt)
+
+	var/remaining_cash = safe_wealth
+	var/bid_price_slow = null
+
+	remaining_cash = (curr_wealth - bid_price_fast)
+
+	if(remaining_cash > 0)
+		bid_price_slow = min(remaining_cash, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, remaining_cash))
 
 	var/source_entity = src.pawn
 
 	if(!isnull(bid_price_fast))
-		// Find HOW MUCH of said Thing we ideally want to buy
-		var/raw_fast_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, half_need_delta)  // should usually return a positive value!
 		var/fast_trade_amount = -raw_fast_trade_amount
 		var/expiry_time_fast = EXPIRY_TIME_FAST
 		var/datum/trade_offer/buy_offer_fast = new(source_entity, commodity, fast_trade_amount, bid_price_fast, world.time + expiry_time_fast)
@@ -240,6 +283,18 @@
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
 		var/raw_slow_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, curr_need + half_need_delta)  // should usually return a positive value!
+
+		if(!isnull(abs_last_trade_unit_price))
+			var/abs_bid_price_slow = CEIL(max(1, abs(bid_price_slow)))
+			var/abs_last_trade_total_price_slow = abs_last_trade_unit_price * raw_slow_trade_amount
+			var/price_delta_slow = (abs_bid_price_slow - abs_last_trade_total_price_slow)
+
+			if(price_delta_slow > 0)
+				// Same as for fast, just re-do it
+				var/market_smoothing_factor = 0.3 + (0.6 * rand())
+				var/market_smoothing_amt = (market_smoothing_factor * price_delta_slow)
+				bid_price_slow = (abs_bid_price_slow - market_smoothing_amt)
+
 		var/slow_trade_amount = -raw_slow_trade_amount
 		var/expiry_time_slow = EXPIRY_TIME_SLOW
 		var/datum/trade_offer/buy_offer_slow = new(source_entity, commodity, slow_trade_amount, bid_price_slow, world.time + expiry_time_slow)

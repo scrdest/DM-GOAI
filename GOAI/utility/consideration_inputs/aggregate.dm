@@ -550,7 +550,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_decorator_median)
 	var/list/subargs = consideration_args?["aggregated_proc_args"]
 
 	// We'll use a Priority Queue to sort values for us
-	var/PriorityQueue/values = new /PriorityQueue(/proc/medianhelper_gt)
+	var/PriorityQueue/values = new DEFAULT_PRIORITY_QUEUE_IMPL(/proc/medianhelper_gt)
 	var/count = 0
 
 	// We pretty much only need a list for context as a formality, and inits are expensive
