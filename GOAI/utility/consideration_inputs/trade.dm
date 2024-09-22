@@ -129,6 +129,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_offers_pending)
 		return default
 
 	var/result = 0
+	var/now = world.time
 
 	for(var/offer_id in requesting_brain.active_offers)
 		if(isnull(offer_id))
@@ -138,6 +139,9 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_offers_pending)
 		GET_OFFER_FROM_MARKETPLACE(offer_id, offer)
 
 		if(!istype(offer))
+			continue
+
+		if(offer.expiry_time <= now)
 			continue
 
 		result++

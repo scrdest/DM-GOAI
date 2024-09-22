@@ -1,27 +1,3 @@
-/datum/brain/utility/GetNeed(var/key, var/default = null)
-	// This part is copypasta'd from the parent; we could dedupe it,
-	// but it saves us a proc-call in the early exit cases.
-
-	if(isnull(src.needs))
-		return default
-
-	var/found = (key in src.needs)
-
-	if(!found)
-		return default
-
-	// This is the new bit
-	if(key == NEED_WEALTH)
-		var/datum/utility_ai/commander = src.GetAiController()
-
-		if(!istype(commander))
-			return default
-
-		return commander.GetWealthNeedFromAssets()
-
-	var/result = ..(key, default)
-	return result
-
 
 /datum/brain/utility/SetNeed(var/key, var/val)
 	if(isnull(key))

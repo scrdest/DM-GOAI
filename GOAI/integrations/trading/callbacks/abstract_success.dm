@@ -30,17 +30,15 @@
 		to_world_log("ERROR: trade_apply_instant_abstract_success contract creator ([NULL_TO_TEXT(my_creator)]) is not a datum @ L[__LINE__] in [__FILE__]")
 		return
 
-	if(isnull(my_creator.global_id))
-		to_world_log("WARNING: trade_apply_instant_abstract_success contract creator ([NULL_TO_TEXT(my_creator)]) has no global ID - attempting to initialize @ L[__LINE__] in [__FILE__]")
-		my_creator.InitializeGlobalId()
+	var/creator_global_id = GET_GLOBAL_ID_LAZY(my_creator)
 
-	if(isnull(my_creator.global_id))
+	if(isnull(creator_global_id))
 		to_world_log("ERROR: trade_apply_instant_abstract_success contract creator ([NULL_TO_TEXT(my_creator)]) has no global ID @ L[__LINE__] in [__FILE__]")
 		return
 
-	var/creator_has_account = HAS_REGISTERED_ASSETS(my_creator.global_id)
+	var/creator_has_account = HAS_REGISTERED_ASSETS(creator_global_id)
 	if(!creator_has_account)
-		CREATE_ASSETS_TRACKER(my_creator.global_id)
+		CREATE_ASSETS_TRACKER(creator_global_id)
 
 	// ...and now the same for the Contract receiver
 	var/datum/my_receiver = contract.receiver
@@ -49,27 +47,25 @@
 		to_world_log("ERROR: trade_apply_instant_abstract_success contract receiver ([NULL_TO_TEXT(my_receiver)]) is not a datum @ L[__LINE__] in [__FILE__]")
 		return
 
-	if(isnull(my_receiver.global_id))
-		to_world_log("WARNING: trade_apply_instant_abstract_success contract receiver ([NULL_TO_TEXT(my_receiver)]) has no global ID - attempting to initialize @ L[__LINE__] in [__FILE__]")
-		my_receiver.InitializeGlobalId()
+	var/receiver_global_id = GET_GLOBAL_ID_LAZY(my_receiver)
 
-	if(isnull(my_receiver.global_id))
+	if(isnull(receiver_global_id))
 		to_world_log("ERROR: trade_apply_instant_abstract_success contract receiver ([NULL_TO_TEXT(my_receiver)]) has no global ID @ L[__LINE__] in [__FILE__]")
 		return
 
-	var/receiver_has_account = HAS_REGISTERED_ASSETS(my_receiver.global_id)
+	var/receiver_has_account = HAS_REGISTERED_ASSETS(receiver_global_id)
 	if(!receiver_has_account)
-		CREATE_ASSETS_TRACKER(my_receiver.global_id)
+		CREATE_ASSETS_TRACKER(receiver_global_id)
 
 	// Allocate the assets table if it's uninitialized
 	ASSETS_TABLE_LAZY_INIT(TRUE)
 
 	// Figuring out what kind of good goes to whom
 	var/creator_is_seller = contract.commodity_amount > 0
-	var/creator_is_payer = contract.cash_value < 0
+	var/creator_is_payer = contract.cash_value > 0
 
-	var/datum/goods_receiver = (creator_is_seller ? my_creator : my_receiver)
-	var/datum/money_receiver = (creator_is_payer ? my_creator : my_receiver)
+	var/datum/goods_receiver = (creator_is_seller ? my_receiver : my_creator)
+	var/datum/money_receiver = (creator_is_payer ? my_receiver : my_creator)
 
 	// Iterate through the assoc; route goods to buyer, money to seller
 	for(var/escrow_key in contract.escrow)
@@ -87,25 +83,29 @@
 		if(escrow_key == NEED_WEALTH)
 			//curr_sender = money_sender
 			curr_recipient = money_receiver
+			to_world_log("DEBUG: trade_apply_instant_abstract_success current receiver for [escrow_key] @ [escrow_val] is the money receiver ([NULL_TO_TEXT(curr_recipient)]);  @ L[__LINE__] in [__FILE__]")
 
 		else
 			//curr_sender = goods_sender
 			curr_recipient = goods_receiver
+			to_world_log("DEBUG: trade_apply_instant_abstract_success current receiver for [escrow_key] @ [escrow_val] is the goods receiver ([NULL_TO_TEXT(curr_recipient)]) @ L[__LINE__] in [__FILE__]")
 
 		if(isnull(curr_recipient))
 			to_world_log("ERROR: trade_apply_instant_abstract_success current receiver ([NULL_TO_TEXT(curr_recipient)]) is null @ L[__LINE__] in [__FILE__]")
 			continue
 
-		var/list/receiver_assets = GET_ASSETS_TRACKER(curr_recipient.global_id)
+		var/receiver_id = GET_GLOBAL_ID_LAZY(curr_recipient)
+		var/list/receiver_assets = GET_ASSETS_TRACKER(receiver_id)
 
 		if(!istype(receiver_assets))
 			// If null/corrupted, overwrite with a clean list
-			receiver_assets = list()
+			GET_ASSETS_TRACKER(receiver_id) = list()
 
 		var/transferred_amt = abs(escrow_val)
-		var/new_receiver_asset_amt = (receiver_assets[escrow_key] || 0) + transferred_amt
-		receiver_assets[escrow_key] = new_receiver_asset_amt
-		UPDATE_ASSETS_TRACKER(curr_recipient.global_id, receiver_assets)
+
+		var/current_receiver_amt = GET_ASSETS_TRACKER(receiver_id)[escrow_key]
+		var/new_receiver_asset_amt = (current_receiver_amt || 0) + transferred_amt
+		GET_ASSETS_TRACKER(receiver_id)[escrow_key] = new_receiver_asset_amt
 
 		// The only logic needed here is just us handling each Receiver.
 		// The Sender should just put things into escrow and decrement their account themselves in the process

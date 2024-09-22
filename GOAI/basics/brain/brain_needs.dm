@@ -76,10 +76,27 @@
 
 
 /datum/brain/proc/SetNeed(var/key, var/val)
-	if(isnull(needs))
+	if(isnull(src.needs))
 		src.needs = list()
 
 	src.needs[key] = val
+	return TRUE
+
+
+/datum/brain/proc/SetNeedBatched(var/list/kv_pairs)
+	// Similar to SetNeed, but done for a whole buncha key-value pairs.
+	// Saves us repeated function calls.
+	if(isnull(src.needs))
+		src.needs = list()
+
+	if(!kv_pairs)
+		return FALSE
+
+	for(var/key in kv_pairs)
+		var/raw_val = kv_pairs[key]
+		var/safe_val = max(raw_val, 0) // no negatives by assumption
+		src.needs[key] = safe_val
+
 	return TRUE
 
 

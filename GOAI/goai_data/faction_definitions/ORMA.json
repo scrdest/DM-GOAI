@@ -18,10 +18,10 @@
 		"steel": 50
 	},
 	"need_weights": {
-		"food_generic": 4,
-		"wealth": 3,
+		"food_generic": 8,
+		"wealth": 8,
 		"prestige": 1,
-		"ore": 1,
+		"ore": 0.01,
 		"steel": 2
 	},
 	"preferred_trades": {
@@ -31,9 +31,10 @@
 		"steel": "/obj/steel_bar"
 	},
 	"assets": {
-		"wealth": 1000,
-		"/obj/food": 300,
-		"/obj/ore": 800,
-		"/obj/steel_bar": 80
+		"wealth": 5000,
+		"mining_outpost": 10,
+		"workers": 200,
+		"/obj/food": 400,
+		"/obj/ore": 4000
 	}
 }

@@ -38,7 +38,7 @@
 					"hi_mark": 2, 
 					"curve_proc": "/proc/curve_antilinear",
 					"consideration_args": {
-						"default": 3
+						"default": 0
 					}
 				},
 				{
@@ -64,10 +64,10 @@
 					"name": "Offers Below Max",
 					"input_proc": "/proc/consideration_offers_pending",
 					"lo_mark": 0, 
-					"hi_mark": 2, 
-					"curve_proc": "/proc/curve_antilinear",
+					"hi_mark": 5, 
+					"curve_proc": "/proc/curve_antisquare",
 					"consideration_args": {
-						"default": 3
+						"default": 0
 					}
 				},
 				{
@@ -92,7 +92,10 @@
 					"input_proc": "/proc/consideration_input_get_need_weight",
 					"lo_mark": 1, 
 					"hi_mark": 20, 
-					"curve_proc": "/proc/curve_antilinear"
+					"curve_proc": "/proc/curve_antilinear",
+					"consideration_args": {
+						"default": 0
+					}
 				}
 			]
 		},
@@ -110,10 +113,10 @@
 					"name": "Offers Below Max",
 					"input_proc": "/proc/consideration_offers_pending",
 					"lo_mark": 0, 
-					"hi_mark": 2, 
-					"curve_proc": "/proc/curve_antilinear",
+					"hi_mark": 5, 
+					"curve_proc": "/proc/curve_antisquare",
 					"consideration_args": {
-						"default": 3
+						"default": 0
 					}
 				},
 				{

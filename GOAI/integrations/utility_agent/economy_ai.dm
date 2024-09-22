@@ -40,6 +40,13 @@
 // This is a family of curves developed later - it's even cheaper.
 // Z is a smoothing constant that makes the curve less convex the higher it gets (at 0, it's a flat line at U=1)
 #define INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING(Pre, Post, Z) ((Z+1) * (Post - Pre) / (Post + Pre + Z))
+
+// Reverse of INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING - returns (Post - Pre) from that formula given Utils (output of the formula), and Post/Z as input earlier
+#define REVERSE_INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING_TO_DELTA(Utils, Post, Z) ((Utils * (2 * Post + Z)) / (Utils + Z + 1))
+
+// Reverse of INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING - returns pure Pre from that formula given Utils (output of the formula), and Post/Z as input earlier
+#define REVERSE_INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING_TO_AMOUNT(Utils, Post, Z) (Post - REVERSE_INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING_TO_DELTA(Utils, Post, Z))
+
 // Empirically a fairly sensible value, values getting the hell away from zero at all quite highly
 // but remains reasonably enthusiastic about big jumps later on.
 #define DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR 0.05
@@ -107,14 +114,32 @@
 	// If the math scares you, don't worry - the actual formula used will likely be very simple.
 
 	// Potential TODO: replace the const convexity factor with a personality-derived value?
-	var/result = INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING(pre_desirability, post_desirability, DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR)
+	var/smoothing_factor = DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR
+	var/result = INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING(pre_desirability, post_desirability, smoothing_factor)
 	#warn debug logs
 	to_world_log("GetNeedDeltaUtility: Need [need] [amt_pre]->[amt_post] ([pre_desirability] -> [post_desirability]): desirability [result]")
 
 	return result
 
 
-/datum/utility_ai/proc/GetCommodityDesirability(var/commodity, var/amount, var/cash_value = 0, var/list/curr_need_level_overrides = null)
+/datum/utility_ai/proc/GetUtilityAsNeedDelta(var/util_delta, var/need, var/curr_amt)
+	/*
+	// Inverse of GetNeedDeltaUtility()
+	// Returns how much a given change in Utils corresponds to a change in Need%
+	//
+	*/
+
+	// Potential TODO: replace the const convexity factor with a personality-derived value?
+	var/smoothing_factor = DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR
+	var/delta = REVERSE_INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING_TO_DELTA(util_delta, curr_amt, smoothing_factor)
+
+	#warn debug logs
+	to_world_log("GetUtilityAsNeedDelta: Desirability [util_delta] corresponds to: Need [need] [delta]")
+
+	return delta
+
+
+/datum/utility_ai/proc/GetCommodityDesirability(var/commodity, var/amount, var/cash_value = 0, var/list/curr_need_level_overrides = null, var/list/need_weights_override = null)
 	// Returns the Desirability of a Commodity
 	//
 	// Desirability of a Commodity is an aggregate of the integrated Desirability
@@ -141,6 +166,9 @@
 	//                              contain the Need keys and their initial values to use instead of the current.
 	//
 	//                              NOTE: any *missing* Need keys in the list WILL STILL BE READ FROM THE *CURRENT* VALUES.
+	//
+	// - need_weights_override: By default (on null), we consider our AI's Need Weights for the calculations.
+	//                          If you want to look at a different set of Weights, pass them here.
 
 	if(!amount)
 		// broken or fairly pointless call, no value in trading nothing
@@ -150,7 +178,10 @@
 		return null
 
 	/* STEP 1: Figure out what Needs we even care about */
-	var/list/need_weights = src.brain.GetNeedWeights() // assoc[str, float]
+	var/list/need_weights = need_weights_override // assoc[str, float]
+	if(isnull(need_weights))
+		need_weights = src.brain.GetNeedWeights()
+
 	if(!need_weights)
 		return 0 // vendor trash
 
@@ -217,6 +248,10 @@
 		// deltas:
 		var/raw_post_need_amt = needs_commodity_deltas[posthoc_need_key]
 
+		if(abs(raw_post_need_amt ) < 0.01)
+			// ignore tiny amounts that would throw off the weights
+			continue
+
 		// actually apply the deltas to the current amount:
 		var/true_post_need_amt = curr_need_amt + raw_post_need_amt
 
@@ -262,30 +297,12 @@
 	return commodity_desirability
 
 
-/datum/utility_ai/proc/GetWealthNeedFromAssets(var/datum/pawn_override = null, var/default = 0)
-	/*
-	// Returns how much our Wealth need is satisfied by our (abstract) assets.
-	*/
-	var/datum/pawn = DEFAULT_IF_NULL(pawn_override, src.GetPawn())
-
-	if(!istype(pawn))
-		return default
-
-	ASSETS_TABLE_LAZY_INIT(TRUE)
-	var/list/assets = GET_ASSETS_TRACKER(pawn.global_id || pawn.InitializeGlobalId())
-
-	var/cash_on_hand = (assets ? assets[NEED_WEALTH] : 0)
-	return cash_on_hand
-
-
-
 /datum/utility_ai/proc/GetMoneyDesirability(var/amount, var/curr_wealth = null)
 	/*
 	// Returns how much we would value a CHANGE in the amount of money we have
 	// (i.e. the marginal utility of money integrated over the proposed delta).
 	*/
 
-	// Note the default will GENERALLY route back from the Brain into src.GetWealthNeedFromAssets()
 	var/wealth = DEFAULT_IF_NULL(DEFAULT_IF_NULL(curr_wealth, src.brain?.GetNeed(NEED_WEALTH, null)), 0)
 
 	// Personality factor (PF) makes us loss-averse

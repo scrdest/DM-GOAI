@@ -1,6 +1,6 @@
 {
 	"food_generic": 5,
-	"prestige": 100,
-	"ore": 50,
-	"steel": 200
+	"prestige": 5000,
+	"ore": 100,
+	"steel": 1000
 }

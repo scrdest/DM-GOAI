@@ -124,6 +124,12 @@
 		if(new_assets)
 			// Create assets DB if not yet initialized
 			ASSETS_TABLE_LAZY_INIT(TRUE)
-			UPDATE_ASSETS_TRACKER(GET_GLOBAL_ID_LAZY(new_faction), new_assets)
+			var/faction_id = GET_GLOBAL_ID_LAZY(new_faction)
+			CREATE_ASSETS_TRACKER_IF_NEEDED(faction_id)
+			UPDATE_ASSETS_TRACKER(faction_id, new_assets)
+
+		// start the production system if needed
+		INITIALIZE_PRODUCTION_SYSTEM_INLINE_IF_NEEDED_AT_DEFAULT_RATE
+		INITIALIZE_ASSETNEEDS_SYSTEM_INLINE_IF_NEEDED_AT_DEFAULT_RATE
 
 	return src

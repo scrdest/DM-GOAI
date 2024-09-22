@@ -148,3 +148,4 @@ GLOBAL_LIST_EMPTY(commodity_db)
 
 	var/val = type_data[need_key]
 	return val
+

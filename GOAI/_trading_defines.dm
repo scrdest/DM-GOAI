@@ -7,7 +7,7 @@
 // 'Slow' offers are good for us and have longer TTL
 // Live, 20 mins
 // #define EXPIRY_TIME_SLOW 12000
-// Debug, 1 min:
+// Debug, 60s:
 #define EXPIRY_TIME_SLOW 600
 
 // 'Fast' offers are bad for us, but we make them out of desperation, short TTL
@@ -24,7 +24,17 @@
 // However, too low means we do a bunch of scanning and allocs in *here* instead,
 //   so this needs to be tuned a bit to strike a good balance.
 //#define DEFAULT_MARKETWATCH_TICKRATE 3000
-#define DEFAULT_MARKETWATCH_TICKRATE 600
+#define DEFAULT_MARKETWATCH_TICKRATE 300
+
+// Default delay between production system ticks
+#define DEFAULT_PRODUCTION_SYSTEM_TICKRATE 100
+
+// Time quantization for production system - i.e. the lowest unit of time it takes for something to get produced
+// This is mainly used to throttle processing so that it doesn't eat CPU cycles unnecessarily.
+#define PRODUCTIONSYSTEM_TICKSIZE_DSECONDS 100
+
+// Default delay between asset-needs system ticks
+#define DEFAULT_ASSETNEEDS_SYSTEM_TICKRATE 60
 
 /* Bitflag enum of trade_contract lifecycle states */
 

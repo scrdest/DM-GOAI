@@ -68,17 +68,7 @@
 		tracker.SetFailed()
 		return
 
-	// How much money we got
-	var/curr_wealth = ai_brain.GetNeed(NEED_WEALTH, 0)
-
-	// How much of our Need-satisfaction we're willing to sacrifice
-	var/need_delta_total = -min(curr_need - 10, RANDOMIZED_NEED_DELTA)
-
-	if(need_delta_total > 0)
-		// Would put us in danger (or some code went rogue), abort!
-		tracker.SetFailed()
-		return
-
+	// What are we willing to sell to sacrifice that need
 	var/commodity = src.GetBestSaleCommodityForNeed(need_key)
 
 	if(isnull(commodity))
@@ -86,6 +76,55 @@
 		tracker.SetFailed()
 		return
 
+	/*
+	// Shipping cost
+	// This isn't just simulationism - having it stops AIs from making tiny-volume, low-value trades.
+	// The cost scales with log-volume, to represent 'weight classes' of carriers having associated cost.
+	var/raw_shipment_volume_class = FLOOR(log(10, (max(2, abs(raw_trade_amount)) - 1)))
+	var/shipment_volume_class = 1 + raw_shipment_volume_class
+
+	// Roughly, a carrier charges 20$ per 10u shipments, 200$ for 100u, and so on.
+	var/shipping_cost = -4 * (10 ** shipment_volume_class)
+	*/
+	var/shipping_cost = 0
+
+	// How much money we got
+	var/curr_wealth = ai_brain.GetNeed(NEED_WEALTH, 0)
+
+	// How much money needs to change hands for us to even bother trading, converted to Utils
+	var/min_trade_utility = GetMoneyDesirability((100 + shipping_cost), (curr_wealth - shipping_cost))
+
+	// ...converted into what it would be as a need delta
+	var/min_viable_need_delta = GetUtilityAsNeedDelta(min_trade_utility, need_key, curr_need)
+	to_world_log("CreateSellOfferForNeed: [src.name] - min_trade_utility is [min_trade_utility], min_viable_need_delta is [min_viable_need_delta], curr_need is [curr_need]")
+
+	var/need_safety_margin = 15
+
+	if((min_viable_need_delta + need_safety_margin) >= curr_need)
+		// Can't afford it without putting ourselves in danger!
+		tracker.SetFailed()
+		return
+
+	// we'll need this in a couple of places, so caching it here
+	var/double_safety_margin = 2 * need_safety_margin
+
+	// How much of our Need-satisfaction we're willing to sacrifice
+	var/safe_sacrifice_span = (curr_need < double_safety_margin) ? (curr_need / 2) : (curr_need - double_safety_margin)
+
+	var/rand_delta = rand() * safe_sacrifice_span
+
+	// We know both values are safe; pick a random one in between, but no less than the minimum viable
+	var/need_delta_total = -max(min_viable_need_delta, rand_delta)
+
+	// If we can sell more than minimum, go for it
+	to_world_log("CreateSellOfferForNeed: [src.name] - need_delta_total is [need_delta_total], rand factor is [rand_delta], min factor is [min_viable_need_delta], curr_need is [curr_need]")
+
+	if(need_delta_total > 0)
+		// Would put us in danger (or some code went rogue), abort!
+		tracker.SetFailed()
+		return
+
+	// ...converted into units of the Commodity
 	var/raw_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, need_delta_total)  // should usually return a negative value!
 
 	if(isnull(raw_trade_amount))
@@ -94,7 +133,18 @@
 		return
 
 	// How much Utility we lose from the trade if we didn't get paid
-	var/tradeoff_utility_loss = src.GetCommodityDesirability(commodity, raw_trade_amount, 0)
+	var/tradeoff_utility_loss = src.GetCommodityDesirability(commodity, raw_trade_amount, shipping_cost)
+
+	// Same, but (estimated) loss for abstract market
+	MARKET_UTILITIES_TABLE_LAZY_INIT(TRUE)
+	var/market_utility_loss = src.GetCommodityDesirability(commodity, raw_trade_amount, shipping_cost, null, GOAI_LIBBED_GLOB_ATTR(reference_market_utilities))
+
+	// We take the higher of the two Utility losses, so that
+	// if we in particular care less about a good but know it's good, we value it higher,
+	// and if we care MORE we're willing to overpay to get it ASAP.
+	var/resolved_utility_loss = max(market_utility_loss, tradeoff_utility_loss)
+
+	//var/resolved_utility_loss = tradeoff_utility_loss
 
 	// How much profit we want to take on top of a Utility-fair trade
 	var/profitability_factor = RANDOMIZED_PROFITABILITY_FACTOR
@@ -103,7 +153,7 @@
 	var/safe_wealth = (curr_wealth * (1 - profitability_factor))
 
 	// Just totalling the factors for auditability
-	var/total_pricing_utility = tradeoff_utility_loss - profitability_factor
+	var/total_pricing_utility = resolved_utility_loss - profitability_factor
 
 	// How much we want for this deal
 	var/raw_asking_price = src.GetMoneyForNeedUtility(total_pricing_utility, safe_wealth)
