@@ -75,13 +75,13 @@ var/global/production_subsystem_last_update_time = null
 		GOAI_LIBBED_GLOB_ATTR(production_subsystem_last_update_time) = world.time
 
 	// We might want to try reloading this later in the loop, for now this is kinda useless
-	var/db_initialized = TRUE
+	//var/db_initialized = TRUE
 
 	// Load 'recipes' (what asset consumes and/or produces other assets) into an in-memory DB
 	var/list/prodconsume_db = READ_JSON_FILE(ECONOMY_ASSET_TRANSFORMS_DATA_FP)
 	if(!istype(prodconsume_db))
 		to_world_log("WARNING: Failed to load ECONOMY_ASSET_TRANSFORMS_DATA file at [ECONOMY_ASSET_TRANSFORMS_DATA_FP] - DB not initialized!")
-		db_initialized = FALSE
+		//db_initialized = FALSE
 		prodconsume_db = list()
 
 	// This is a ticker; it will continue to run while the global holds its ID
@@ -121,7 +121,7 @@ var/global/production_subsystem_last_update_time = null
 				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [faction.name]|ID=[faction_id] - no assets =")
 				continue
 
-			to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name]|ID=[faction_id] with assets: [json_encode(faction_assets)] =")
+			to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name]|ID=[faction_id] with assets: [json_encode(faction_assets)] @TIME:[world.time] =")
 
 			// How far back we are in the simulation
 			// We have already checked this is at least one quantum of production-tick in the past

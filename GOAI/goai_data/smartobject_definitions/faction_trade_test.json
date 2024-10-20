@@ -18,6 +18,13 @@
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"curve_proc": "/proc/curve_linear"
+				},
+				{
+					"name": "Priority fuzzing 2",
+					"input_proc": "/proc/consideration_input_fuzz_uniform",
+					"lo_mark": 0, 
+					"hi_mark": 1, 
+					"curve_proc": "/proc/curve_linear"
 				}
 			]
 		},
@@ -35,7 +42,7 @@
 					"name": "Offers Below Max",
 					"input_proc": "/proc/consideration_contracts_pending",
 					"lo_mark": 0, 
-					"hi_mark": 2, 
+					"hi_mark": 10, 
 					"curve_proc": "/proc/curve_antilinear",
 					"consideration_args": {
 						"default": 0
@@ -57,14 +64,14 @@
 			"priority": 5,
 			"context_procs": ["/proc/ctxfetcher_get_needs"], 
 			"context_args": [{
-				
+				"skipped_needs": ["wealth"]
 			}],
 			"considerations": [
 				{
 					"name": "Offers Below Max",
 					"input_proc": "/proc/consideration_offers_pending",
 					"lo_mark": 0, 
-					"hi_mark": 5, 
+					"hi_mark": 4, 
 					"curve_proc": "/proc/curve_antisquare",
 					"consideration_args": {
 						"default": 0
@@ -106,14 +113,14 @@
 			"priority": 5,
 			"context_procs": ["/proc/ctxfetcher_get_needs"], 
 			"context_args": [{
-				
+				"skipped_needs": ["wealth"]
 			}],
 			"considerations": [
 				{
 					"name": "Offers Below Max",
 					"input_proc": "/proc/consideration_offers_pending",
 					"lo_mark": 0, 
-					"hi_mark": 5, 
+					"hi_mark": 4, 
 					"curve_proc": "/proc/curve_antisquare",
 					"consideration_args": {
 						"default": 0

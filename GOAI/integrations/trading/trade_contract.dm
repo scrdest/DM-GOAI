@@ -161,8 +161,7 @@
 // $$$  Contract => Fulfilment (or not)  $$$
 */
 
-
-/datum/trade_contract/proc/EscrowPut(var/datum/party, var/key, var/value)
+/datum/trade_contract/proc/EscrowPut(var/datum/party, var/key, var/value, var/allow_partial = ESCROW_PUT_PARTIAL_ALLOWED_DEFAULT)
 	/*
 	// To fulfill a contract, both parties commit resources into the Escrow,
 	// which acts as an impartial tracker for their amounts and locks them down
@@ -205,7 +204,7 @@
 		to_world_log("WARNING: EscrowPut party ([NULL_TO_TEXT(party)]) has no asset '[key]' (assets: [json_encode(assets)]).")
 		return FALSE
 
-	if(owned_key_amt < value)
+	if(!allow_partial && (owned_key_amt < value))
 		// We got some, but not enough - still abort.
 		to_world_log("WARNING: EscrowPut party ([NULL_TO_TEXT(party)]) has insufficient amount of [key] - needs [value], has [owned_key_amt].")
 		return FALSE
@@ -215,8 +214,12 @@
 
 	var/curr_escrow_amt = src.escrow[key] || 0
 
-	var/new_owned_amt = owned_key_amt - value
-	var/new_escrow_amt = curr_escrow_amt + value
+	// NOTE: if allow_partial is FALSE, the min here should always resolve to value
+	//       (otherwise we would have errored out earlier)
+	var/safe_val = min(value, owned_key_amt)
+
+	var/new_owned_amt = owned_key_amt - safe_val
+	var/new_escrow_amt = curr_escrow_amt + safe_val
 
 	// this whole block is logically a transaction (in the DB sense)
 	src.escrow[key] = new_escrow_amt

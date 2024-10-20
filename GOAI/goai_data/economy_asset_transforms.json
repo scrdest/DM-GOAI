@@ -1,0 +1,76 @@
+{
+	"hungry_workers": {
+		"consumes": {
+			"hungry_workers": 1,
+			"/obj/food": 1
+		},
+		"produces": {
+			"workers": 1
+		}
+	},
+	
+	"planetary_farmland_upgraded": {
+		"consumes": {
+			"workers": 10,
+			"planetary_farmland": 1,
+			"farm_upgrade_tech": 1,
+			"/obj/steel_bar": 0.01
+		},
+		"produces": {
+			"hungry_workers": 10,
+			"planetary_farmland_downgrader": 1,
+			"farm_upgrade_tech": 1,
+			"/obj/food": 100
+		}
+	},
+	
+	"planetary_farmland": {
+		"consumes": {
+			"workers": 10
+		},
+		"produces": {
+			"hungry_workers": 10,
+			"/obj/food": 20
+		}
+	},
+	
+	"planetary_farmland_downgrader": {
+		"consumes": {
+			"planetary_farmland_downgrader": 1
+		},
+		"produces": {
+			"planetary_farmland": 1
+		}
+	},
+	
+	"industrial_furnace": {
+		"consumes": {
+			"workers": 100,
+			"/obj/ore": 10
+		},
+		"produces": {
+			"hungry_workers": 100,
+			"/obj/steel_bar": 1
+		}
+	},
+	
+	"mining_outpost": {
+		"consumes": {
+			"workers": 10
+		},
+		"produces": {
+			"hungry_workers": 10,
+			"/obj/ore": 100
+		}
+	},
+	
+	"workers": {
+		"consumes": {
+			"workers": 2
+		},
+		"produces": {
+			"workers": 1,
+			"hungry_workers": 1
+		}
+	}
+}

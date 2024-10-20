@@ -6,7 +6,7 @@
 		"prestige": 2
 	},
 	"/obj/ore": {
-		"ore": 0.5
+		"ore": 0.05
 	},
 	"/obj/steel_bar": {
 		"steel": 1

@@ -88,3 +88,9 @@
 // If any of the bits in progressed_state were set, someone made a good-faith effort to fulfill their obligations.
 // This can be checked to add some leniency on things like expiration.
 #define GOAI_CONTRACT_IS_PROGRESSING(ContractStateVal, ContractAuxStateVal) (ContractAuxStateVal > GOAI_CONTRACT_LIFECYCLE_INITIAL)
+
+// Whether cash for trades can be submitted in multiple parts (i.e. I owe you 30$, I pay 10$ now and 20$ tomorrow) by default.
+// If FALSE, we must have the whole amount ready as lump sum, if TRUE we will dump all our reserves into the trade if necessary.
+// Hard to tell whether TRUE or FALSE is better here a priori - both can cause liquidity issues in their own ways.
+// Can be overridden at call points for the EscrowPut() method.
+#define ESCROW_PUT_PARTIAL_ALLOWED_DEFAULT FALSE

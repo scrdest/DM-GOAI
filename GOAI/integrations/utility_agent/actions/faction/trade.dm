@@ -88,11 +88,17 @@
 	*/
 	var/shipping_cost = 0
 
+	// This is part of the 'floor' for minimum volumes, effectively minimum local money-velocity.
+	// We will calibrate our trade volumes so that at least this much money *changes hands*.
+	// This prevents the AI from making a ton of junk trades that are both low-volume and low-value.
+	// TODO: This should likely be a Personality factor.
+	var/effort_cost = 100
+
 	// How much money we got
 	var/curr_wealth = ai_brain.GetNeed(NEED_WEALTH, 0)
 
 	// How much money needs to change hands for us to even bother trading, converted to Utils
-	var/min_trade_utility = GetMoneyDesirability((100 + shipping_cost), (curr_wealth - shipping_cost))
+	var/min_trade_utility = GetMoneyDesirability((effort_cost + shipping_cost), (curr_wealth - shipping_cost))
 
 	// ...converted into what it would be as a need delta
 	var/min_viable_need_delta = GetUtilityAsNeedDelta(min_trade_utility, need_key, curr_need)
@@ -306,8 +312,8 @@
 		if(price_delta_fast > 0)
 			// If the market can tolerate a lower price than we'd naively guess, adjust the price down.
 			// Note the naive value is a hard maximum, we will NOT accept a deal above this value, ever.
-			// We'll smooth the difference; this is randomized but guaranteed to be between 30% and 90% of the delta
-			var/market_smoothing_factor = 0.3 + (0.6 * rand())
+			// We'll smooth the difference; this is randomized but guaranteed to be between 60% and 90% of the delta
+			var/market_smoothing_factor = 0.6 + (0.3 * rand())
 			var/market_smoothing_amt = (market_smoothing_factor * price_delta_fast)
 			bid_price_fast = (abs_bid_price_fast - market_smoothing_amt)
 

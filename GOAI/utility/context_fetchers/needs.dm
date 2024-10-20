@@ -38,11 +38,13 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_needs)
 	var/raw_below_threshold = context_args?["below"]
 	var/raw_above_threshold = context_args?["above"]
 
-	var/below_threshold = isnull(raw_below_threshold) ? NEED_MAXIMUM : raw_below_threshold
-	var/above_threshold = isnull(raw_above_threshold) ? NEED_MINIMUM : raw_above_threshold
-	var/disjoint_thresh = (below_threshold < above_threshold)
+	var/list/skipped_needs = context_args?["skipped_needs"]
 
 	for(var/need_key in needs_by_weight)
+		if(need_key in skipped_needs)
+			// e.g. sell offers for Wealth don't work rn, so we want to skip Wealth
+			continue
+
 		var/need_weight = needs_by_weight[need_key]
 
 		if(!need_weight)
@@ -51,6 +53,10 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_needs)
 			continue
 
 		var/curr_need_value = requesting_brain.GetNeed(need_key, null)
+
+		var/below_threshold = isnull(raw_below_threshold) ? max(curr_need_value, NEED_MAXIMUM) : raw_below_threshold
+		var/above_threshold = isnull(raw_above_threshold) ? min(curr_need_value, NEED_MINIMUM) : raw_above_threshold
+		var/disjoint_thresh = (below_threshold < above_threshold)
 
 		if(isnull(curr_need_value))
 			UTILITYBRAIN_DEBUG_LOG("WARNING: ctxfetcher_get_needs need [need_key] value is null! @ L[__LINE__] in [__FILE__]!")
@@ -62,10 +68,12 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_needs)
 		if(disjoint_thresh)
 			// we're looking for tails, so only one predicate can be satisfied
 			if(!(aboveness || belowness))
+				to_world_log("Skipping [need_key] for [requester_ai.name] - DISJOINT CASE, failed [above_threshold] < val [curr_need_value] or > [below_threshold]  @ L[__LINE__] in [__FILE__]")
 				continue
 		else
 			// we're looking for an intersection, so both must be satisfied
 			if(!(aboveness && belowness))
+				to_world_log("Skipping [need_key] for [requester_ai.name] - MIDDLE CASE, failed [above_threshold] > val [curr_need_value] and < [below_threshold] @ L[__LINE__] in [__FILE__]")
 				continue
 
 		// We survived the checks; emit a context

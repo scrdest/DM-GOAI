@@ -83,12 +83,12 @@
 		if(escrow_key == NEED_WEALTH)
 			//curr_sender = money_sender
 			curr_recipient = money_receiver
-			to_world_log("DEBUG: trade_apply_instant_abstract_success current receiver for [escrow_key] @ [escrow_val] is the money receiver ([NULL_TO_TEXT(curr_recipient)]);  @ L[__LINE__] in [__FILE__]")
+			to_world_log("DEBUG: trade_apply_instant_abstract_success current receiver for [escrow_key] @ [escrow_val] is the money receiver ([NULL_TO_TEXT(curr_recipient)]) @Time: [world.time];  @ L[__LINE__] in [__FILE__]")
 
 		else
 			//curr_sender = goods_sender
 			curr_recipient = goods_receiver
-			to_world_log("DEBUG: trade_apply_instant_abstract_success current receiver for [escrow_key] @ [escrow_val] is the goods receiver ([NULL_TO_TEXT(curr_recipient)]) @ L[__LINE__] in [__FILE__]")
+			to_world_log("DEBUG: trade_apply_instant_abstract_success current receiver for [escrow_key] @ [escrow_val] is the goods receiver ([NULL_TO_TEXT(curr_recipient)]) @Time: [world.time]; @ L[__LINE__] in [__FILE__]")
 
 		if(isnull(curr_recipient))
 			to_world_log("ERROR: trade_apply_instant_abstract_success current receiver ([NULL_TO_TEXT(curr_recipient)]) is null @ L[__LINE__] in [__FILE__]")
