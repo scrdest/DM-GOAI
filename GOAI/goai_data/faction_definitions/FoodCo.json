@@ -1,9 +1,11 @@
 {
-	"name": "ORMA",
+	"name": "FoodCo",
 	"tags": [
-		"mining"
+		"corporate",
+		"agricultural"
 	],
 	"relationships": {
+		"agricultural": 50,
 		"metallurgy": 50
 	},
 	"actionset_files": [
@@ -11,17 +13,17 @@
 		"faction_trade_test.json"
 	],
 	"needs": {
-		"food_generic": 50,
-		"wealth": 1000,
+		"food_generic": 100,
+		"wealth": 2000,
 		"prestige": 50,
-		"ore": 80,
-		"steel": 50
+		"ore": 100,
+		"steel": 5
 	},
 	"need_weights": {
-		"food_generic": 8,
-		"wealth": 8,
+		"food_generic": 5,
+		"wealth": 4,
 		"prestige": 1,
-		"ore": 0.01,
+		"ore": 0.1,
 		"steel": 2
 	},
 	"preferred_trades": {
@@ -31,10 +33,12 @@
 		"steel": "/obj/steel_bar"
 	},
 	"assets": {
-		"wealth": 5000,
-		"mining_outpost": 10,
-		"workers": 1000,
-		"/obj/food": 1000,
-		"/obj/ore": 4000
+		"wealth": 4000,
+		"planetary_farmland": 100,
+		"farm_upgrade_tech": 100,
+		"workers": 1500,
+		"/obj/food": 6000,
+		"/obj/steel_bar": 10,
+		"/obj/ore": 50
 	}
 }

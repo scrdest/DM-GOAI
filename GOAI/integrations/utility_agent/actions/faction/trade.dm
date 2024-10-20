@@ -289,37 +289,44 @@
 		tracker.SetFailed()
 		return
 
-	// Find HOW MUCH of said Thing we ideally want to buy
-	var/raw_fast_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, half_need_delta)  // should usually return a positive value!
+	var/frac_need = ((NEED_MAXIMUM - curr_need) / NEED_MAXIMUM) * 100
+	var/do_fast_offer = prob(frac_need)
 
-	// How much we offer for this deal
-	// clamp to money we actually HAVE
-	var/bid_price_fast = min(need_price, safe_wealth)
+	// How much we offer for this deal; if null - not doing this bid
+	var/bid_price_fast = null
+	var/bid_price_slow = null
 
 	// Check last trade value and adjust asking price if needed
 	PRICEPOINTS_TABLE_LAZY_INIT(TRUE)
 	var/raw_last_trade_unit_price = GET_PRICE_POINT(commodity)
 	var/abs_last_trade_unit_price = null
 
-	if(!isnull(raw_last_trade_unit_price))
-		abs_last_trade_unit_price = abs(raw_last_trade_unit_price)
+	var/raw_fast_trade_amount
 
-	if(!isnull(abs_last_trade_unit_price))
-		var/abs_last_trade_total_price = abs_last_trade_unit_price * raw_fast_trade_amount
-		var/abs_bid_price_fast = CEIL(max(1, abs(bid_price_fast)))
-		var/price_delta_fast = (abs_bid_price_fast - abs_last_trade_total_price)
+	if(do_fast_offer)
+		// Find HOW MUCH of said Thing we ideally want to buy
+		raw_fast_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, half_need_delta)  // should usually return a positive value!
 
-		if(price_delta_fast > 0)
-			// If the market can tolerate a lower price than we'd naively guess, adjust the price down.
-			// Note the naive value is a hard maximum, we will NOT accept a deal above this value, ever.
-			// We'll smooth the difference; this is randomized but guaranteed to be between 60% and 90% of the delta
-			var/market_smoothing_factor = 0.6 + (0.3 * rand())
-			var/market_smoothing_amt = (market_smoothing_factor * price_delta_fast)
-			bid_price_fast = (abs_bid_price_fast - market_smoothing_amt)
+		// clamp to money we actually HAVE
+		bid_price_fast = min(need_price, safe_wealth)
+
+		if(!isnull(raw_last_trade_unit_price))
+			abs_last_trade_unit_price = abs(raw_last_trade_unit_price)
+
+		if(!isnull(abs_last_trade_unit_price))
+			var/abs_last_trade_total_price = abs_last_trade_unit_price * raw_fast_trade_amount
+			var/abs_bid_price_fast = CEIL(max(1, abs(bid_price_fast)))
+			var/price_delta_fast = (abs_bid_price_fast - abs_last_trade_total_price)
+
+			if(price_delta_fast > 0)
+				// If the market can tolerate a lower price than we'd naively guess, adjust the price down.
+				// Note the naive value is a hard maximum, we will NOT accept a deal above this value, ever.
+				// We'll smooth the difference; this is randomized but guaranteed to be between 60% and 90% of the delta
+				var/market_smoothing_factor = 0.6 + (0.3 * rand())
+				var/market_smoothing_amt = (market_smoothing_factor * price_delta_fast)
+				bid_price_fast = (abs_bid_price_fast - market_smoothing_amt)
 
 	var/remaining_cash = safe_wealth
-	var/bid_price_slow = null
-
 	remaining_cash = (curr_wealth - bid_price_fast)
 
 	if(remaining_cash > 0)
@@ -334,7 +341,7 @@
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_fast)
 		GOAI_BRAIN_ADD_OFFER(ai_brain, buy_offer_fast.id)
 		#warn Debug logs
-		to_world_log("CreateBuyOfferForNeed: [src.name] created new fast Buy offer for [commodity] @ [fast_trade_amount]u | [bid_price_fast]$")
+		to_world_log("CreateBuyOfferForNeed: [src.name] created new fast Buy offer for [commodity] @ [fast_trade_amount]u | [bid_price_fast]$ @Time:[world.time]")
 
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
@@ -357,7 +364,7 @@
 		REGISTER_OFFER_TO_MARKETPLACE(buy_offer_slow)
 		GOAI_BRAIN_ADD_OFFER(ai_brain, buy_offer_slow.id)
 		#warn Debug logs
-		to_world_log("CreateBuyOfferForNeed: [src.name] created new slow Buy offer for [commodity] @ [slow_trade_amount]u | [bid_price_slow]$")
+		to_world_log("CreateBuyOfferForNeed: [src.name] created new slow Buy offer for [commodity] @ [slow_trade_amount]u | [bid_price_slow]$ @Time:[world.time]")
 
 	tracker.SetDone()
 
@@ -482,6 +489,8 @@
 		tracker.SetFailed()
 		return
 
+	var/first_attempt_time = tracker.BBSetDefault("First-Attempt-Time", world.time)
+
 	var/creator_is_seller = contract.commodity_amount > 0
 	var/creator_is_payer = contract.cash_value > 0
 
@@ -533,8 +542,22 @@
 		var/failures = tracker.BBSetDefault("CouldNotDeliver", 1)
 		tracker.BBSet("CouldNotDeliver", failures + 1)
 
+		/*
+		var/first_failed = tracker.BBSetDefault("FirstFailureTime", world.time)
+		var/last_failed = tracker.BBGet("LastFailureTime", world.time)
+		tracker.BBSet("LastFailureTime", world.time)
+		*/
+
+		if(failures > 3)
+			tracker.SetFailed()
+			to_world_log("Contract [contract] could not be fulfilled after max tries - cancelling.")
+			contract.Expire()
+			return
+
 		if(failures > 1)
 			tracker.SetFailed()
 			to_world_log("Contract [contract] could not be fulfilled right now.")
+			return
+
 
 	return

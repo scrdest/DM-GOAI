@@ -13,14 +13,14 @@
 			}],
 			"considerations": [
 				{
-					"name": "Priority fuzzing",
-					"input_proc": "/proc/consideration_input_fuzz_uniform",
+					"name": "Can fulfill",
+					"input_proc": "/proc/consideration_we_can_fulfill",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
 					"curve_proc": "/proc/curve_linear"
 				},
 				{
-					"name": "Priority fuzzing 2",
+					"name": "Priority fuzzing",
 					"input_proc": "/proc/consideration_input_fuzz_uniform",
 					"lo_mark": 0, 
 					"hi_mark": 1, 
@@ -148,6 +148,52 @@
 					"input_proc": "/proc/consideration_input_get_need_weight",
 					"lo_mark": -10, 
 					"hi_mark": 10, 
+					"curve_proc": "/proc/curve_linear"
+				}
+			]
+		},
+		{
+			"name": "Make Emergency Buy Offer", 
+			"description": "Same as Buy Offer, but restricted to extremely low vital needs. Relaxes some considerations and has higher priority.", 
+			"handler": "/datum/utility_ai/proc/CreateBuyOfferForNeed", 
+			"priority": 20,
+			"context_procs": ["/proc/ctxfetcher_get_needs"], 
+			"context_args": [{
+				"skipped_needs": ["wealth"]
+			}],
+			"considerations": [
+				{
+					"name": "Offers Below Max",
+					"input_proc": "/proc/consideration_offers_pending",
+					"lo_mark": 0, 
+					"hi_mark": 20, 
+					"curve_proc": "/proc/curve_antisquare",
+					"consideration_args": {
+						"default": 0
+					}
+				},
+				{
+					"name": "Contracts Below Max",
+					"input_proc": "/proc/consideration_contracts_pending",
+					"lo_mark": 1, 
+					"hi_mark": 20, 
+					"curve_proc": "/proc/curve_antibinary",
+					"consideration_args": {
+						"default": 0
+					}
+				},
+				{
+					"name": "Need is Low",
+					"input_proc": "/proc/consideration_input_get_need_perc",
+					"lo_mark": 0, 
+					"hi_mark": 0.2, 
+					"curve_proc": "/proc/curve_antibinary"
+				},
+				{
+					"name": "Need Weight",
+					"input_proc": "/proc/consideration_input_get_need_weight",
+					"lo_mark": 1, 
+					"hi_mark": 5, 
 					"curve_proc": "/proc/curve_linear"
 				}
 			]

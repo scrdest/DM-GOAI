@@ -1,24 +1,10 @@
-"a" = (/turf/wall,/area)
+"a" = (/obj/spawner/oneshot/faction{factionspec_filepath = "FreeTradeMFT1.json"; name = "FreeTrade Interm spawner"},/turf/ground,/area)
 "b" = (/obj/spawner/oneshot/faction{factionspec_filepath = "FarmVille.json"; name = "FarmVille spawner"},/turf/ground,/area)
 "c" = (/obj/spawner/oneshot/faction{factionspec_filepath = "ORMA.json"; name = "ORMA spawner"},/turf/ground,/area)
-"d" = (/obj/spawner/oneshot/faction{factionspec_filepath = "FreeTradeInterm.json"; name = "FreeTrade Interm spawner"},/turf/ground,/area)
 "e" = (/turf/ground,/area)
 
 (1,1,1) = {"
-aaaaaaaaaaaaaaaa
-aeeaeeeeeeeeeeea
-aeeaaaeeeeaeeeaa
-aeeaeeeeeeeeeeea
-aeeaeeeeeeeeeeea
-aeeaeeeeeeeeeeea
-aeeaaaeeeeeeeeaa
-aeeaeeeeeeeeeeea
-aeaaeeeeeeeeeeea
-aeeaeeeeeeeeeeea
-aeeaaaeeeeeeeeea
-aeeaeeeebeeeeeea
-aeeaaaeeeeeeeeea
-aeeeeeedeceeeeea
-aeeaaaeeeeeeeeea
-aaaaaaaaaaaaaaaa
+eee
+bee
+ace
 "}

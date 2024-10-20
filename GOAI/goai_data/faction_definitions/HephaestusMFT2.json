@@ -1,11 +1,13 @@
 {
-	"name": "FreeTrade",
+	"name": "Hephaestus",
 	"tags": [
-		"FreeTrade"
+		"corporate",
+		"mining",
+		"metallurgy"
 	],
 	"relationships": {
-		"ORMA": 50,
-		"FarmVille": 50
+		"agricultural": 50,
+		"mining": 50
 	},
 	"actionset_files": [
 		"faction_base.json",
@@ -13,7 +15,7 @@
 	],
 	"needs": {
 		"food_generic": 100,
-		"wealth": 8000,
+		"wealth": 3000,
 		"prestige": 50,
 		"ore": 5,
 		"steel": 80
@@ -22,7 +24,7 @@
 		"food_generic": 6,
 		"wealth": 5,
 		"prestige": 1,
-		"ore": 4,
+		"ore": 2,
 		"steel": 0.1
 	},
 	"preferred_trades": {
@@ -32,12 +34,12 @@
 		"steel": "/obj/steel_bar"
 	},
 	"assets": {
-		"wealth": 8000,
-		"planetary_farmland": 5,
-		"industrial_furnace": 10,
-		"workers": 2000,
-		"/obj/food": 5000,
-		"/obj/ore": 5,
-		"/obj/steel_bar": 80
+		"wealth": 3000,
+		"mining_outpost": 2,
+		"industrial_furnace": 1,
+		"workers": 300,
+		"/obj/food": 2000,
+		"/obj/ore": 500,
+		"/obj/steel_bar": 10
 	}
 }

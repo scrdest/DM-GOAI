@@ -223,3 +223,84 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_get_our_assets)
 
 	var/list/assets = GET_ASSETS_TRACKER(pawn.global_id)
 	return assets
+
+
+CONSIDERATION_CALL_SIGNATURE(/proc/consideration_we_can_fulfill)
+	/*
+	// Checks if we are able to fulfill a Contract at a given moment.
+	// This is defined as being able to ringfence enough of our assets into the Escrow.
+	*/
+	var/datum/utility_action_template/candidate = action_template
+
+	if(!istype(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/from_ctx = TRUE //consideration_args["from_context"]
+	if(isnull(from_ctx))
+		from_ctx = TRUE
+
+	var/datum/trade_contract/contract = null
+
+	CONSIDERATION_GET_INPUT_KEY(var/input_key)
+	if(from_ctx)
+		contract = context[input_key]
+	else
+		contract = consideration_args[input_key]
+
+	if(!istype(contract))
+		to_world_log("ERROR: consideration_we_can_fulfill Contract is not a valid type! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(!contract.is_open)
+		return FALSE
+
+	if(isnull(requester))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/datum/utility_ai/ai = requester
+
+	if(!istype(ai))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	var/datum/pawn = ai.GetPawn()
+
+	if(!istype(pawn))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester has no Pawn! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(isnull(pawn.global_id))
+		pawn.InitializeGlobalId()
+
+	var/list/assets = GET_ASSETS_TRACKER(pawn.global_id)
+
+	if(!assets)
+		return FALSE
+
+	var/creator_is_seller = contract.commodity_amount > 0
+	var/creator_is_payer = contract.cash_value > 0
+
+	var/datum/creator_datum = contract.creator
+	var/datum/contractor_datum = contract.receiver
+
+	var/datum/goods_sender = (creator_is_seller ? creator_datum : contractor_datum)
+	var/datum/money_sender = (creator_is_payer ? creator_datum : contractor_datum)
+
+	// initialized as True so we can just do an AND check later.
+	var/can_provide_goods = TRUE
+	var/can_pay = TRUE
+
+	if(pawn == goods_sender)
+		var/goods_needed = contract.EscrowGetNeededAmt(contract.commodity_key)
+		var/goods_available = assets[contract.commodity_key]
+		can_provide_goods = goods_available >= goods_needed
+
+	if(pawn == money_sender)
+		var/cash_needed = contract.EscrowGetNeededAmt(NEED_WEALTH)
+		var/cash_available = assets[NEED_WEALTH]
+		can_pay = cash_available >= cash_needed
+
+	return (can_provide_goods && can_pay)
+

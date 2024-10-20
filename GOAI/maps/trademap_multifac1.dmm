@@ -1,0 +1,9 @@
+"a" = (/obj/spawner/oneshot/faction{factionspec_filepath = "HephaestusMFT2.json"; name = "Heph spawner"},/turf/ground,/area)
+"b" = (/obj/spawner/oneshot/faction{factionspec_filepath = "FoodCo.json"; name = "FoodCo spawner"},/turf/ground,/area)
+"e" = (/turf/ground,/area)
+
+(1,1,1) = {"
+eee
+eee
+bea
+"}

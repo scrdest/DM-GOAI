@@ -1,5 +1,7 @@
-{
-	"hungry_workers": {
+[
+	{
+		"//": "Workers are 'regenerated' to usable state by using up food.",
+		"source_asset": "hungry_workers",
 		"consumes": {
 			"hungry_workers": 1,
 			"/obj/food": 1
@@ -9,62 +11,73 @@
 		}
 	},
 	
-	"planetary_farmland_upgraded": {
+	{
+		"//": "Having steel and the know-how to apply it improves farm yields at scale.",
+		"source_asset": "farm_upgrade_tech",
 		"consumes": {
-			"workers": 10,
 			"planetary_farmland": 1,
-			"farm_upgrade_tech": 1,
-			"/obj/steel_bar": 0.01
+			"/obj/steel_bar": 1
 		},
 		"produces": {
-			"hungry_workers": 10,
-			"planetary_farmland_downgrader": 1,
-			"farm_upgrade_tech": 1,
-			"/obj/food": 100
+			"planetary_farmland_upgraded": 1
 		}
 	},
 	
-	"planetary_farmland": {
+	{
+		"//": "Basic food production asset.",
+		"source_asset": "planetary_farmland",
 		"consumes": {
-			"workers": 10
+			"workers": 1
 		},
 		"produces": {
-			"hungry_workers": 10,
-			"/obj/food": 20
+			"hungry_workers": 1,
+			"/obj/food": 3
 		}
 	},
 	
-	"planetary_farmland_downgrader": {
+	{
+		"//": "Upgraded food production asset.",
+		"source_asset": "planetary_farmland_upgraded",
 		"consumes": {
-			"planetary_farmland_downgrader": 1
+			"planetary_farmland_upgraded": 1,
+			"workers": 1
 		},
 		"produces": {
-			"planetary_farmland": 1
+			"hungry_workers": 1,
+			"planetary_farmland": 1,
+			"/obj/food": 10
 		}
 	},
 	
-	"industrial_furnace": {
+	{
+		"//": "Basic steel production asset; requires fairly high volumes.",
+		"source_asset": "industrial_furnace",
 		"consumes": {
 			"workers": 100,
-			"/obj/ore": 10
+			"/obj/ore": 1000
 		},
 		"produces": {
 			"hungry_workers": 100,
-			"/obj/steel_bar": 1
+			"/obj/steel_bar": 20
+			
 		}
 	},
 	
-	"mining_outpost": {
+	{
+		"//": "Basic ore production asset.",
+		"source_asset": "mining_outpost",
 		"consumes": {
-			"workers": 10
+			"workers": 50
 		},
 		"produces": {
-			"hungry_workers": 10,
+			"hungry_workers": 50,
 			"/obj/ore": 100
 		}
 	},
 	
-	"workers": {
+	{
+		"//": "Unassigned workers still get hungry.",
+		"source_asset": "workers",
 		"consumes": {
 			"workers": 2
 		},
@@ -73,4 +86,4 @@
 			"hungry_workers": 1
 		}
 	}
-}
+]

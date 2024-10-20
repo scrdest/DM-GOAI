@@ -90,7 +90,11 @@ var/global/assetneeds_subsystem_running = null
 				if(!associated_needs)
 					continue
 
-				var/owned_amt = DEFAULT_IF_NULL(assets[commodity_key], 0)
+				var/owned_amt = 0
+
+				if(commodity_key in assets)
+					owned_amt = DEFAULT_IF_NULL(assets[commodity_key], 0)
+
 				owned_amt = max(0, owned_amt) // no negativity here pls
 
 				for(var/need_key in associated_needs)

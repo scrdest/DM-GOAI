@@ -1,10 +1,14 @@
 {
 	"name": "FreeTrade",
 	"tags": [
-		"FreeTrade"
+		"corporate",
+		"metallurgy"
 	],
 	"relationships": {
-		"ORMA": 50
+		"corporate": 50,
+		"agricultural": 50,
+		"mining": 50,
+		"metallurgy": 50
 	},
 	"actionset_files": [
 		"faction_base.json",
@@ -12,7 +16,7 @@
 	],
 	"needs": {
 		"food_generic": 100,
-		"wealth": 4000,
+		"wealth": 8000,
 		"prestige": 50,
 		"ore": 5,
 		"steel": 80
@@ -32,10 +36,10 @@
 	},
 	"assets": {
 		"wealth": 8000,
-		"planetary_farmland": 100,
+		"planetary_farmland": 5,
 		"industrial_furnace": 10,
-		"workers": 3500,
-		"/obj/food": 10000,
+		"workers": 2000,
+		"/obj/food": 5000,
 		"/obj/ore": 5,
 		"/obj/steel_bar": 80
 	}

@@ -142,16 +142,22 @@ var/global/production_subsystem_last_update_time = null
 				curr_simulation_time += PRODUCTIONSYSTEM_TICKSIZE_DSECONDS
 
 				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name] - simulation tick... =")
+				var/asset_idx = 0
 
-				for(var/productive_asset_key in prodconsume_db)
-					// Go through all Things Wot Use/Produce Resources...
-					if(isnull(productive_asset_key))
-						continue
-
-					// ...check how much they use/produce stuff...
-					var/list/asset_deltas = prodconsume_db[productive_asset_key]
+				for(var/list/asset_deltas in prodconsume_db)
+					// Go through all Resource 'recipes' and check how much they use/produce stuff...
+					asset_idx++
 
 					if(!asset_deltas)
+						// junk entry somehow
+						continue
+
+					// What asset gives rise to this recipe?
+					var/productive_asset_key = asset_deltas["source_asset"]
+
+					if(isnull(productive_asset_key))
+						// Required field
+						to_world_log("ERROR: asset [asset_idx] in prodconsume_db has no required key 'source_asset' - SKIPPING")
 						continue
 
 					var/owned_amt = faction_assets[productive_asset_key]
