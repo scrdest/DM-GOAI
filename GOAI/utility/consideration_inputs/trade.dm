@@ -40,18 +40,18 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 
 	var/datum/utility_action_template/candidate = action_template
 
-	if(!istype(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
-		return null
-
 	if(isnull(requester))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(!istype(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability for [requester] - Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/utility_ai/ai = requester
 
 	if(!istype(ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability - Requester must be an AI for this Consideration (found: [ai.type])! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_trade_desirability for [requester] - Requester must be an AI for this Consideration (found: [ai.type])! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/from_ctx = consideration_args?["from_context"]
@@ -62,13 +62,13 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 	CONSIDERATION_GET_INPUT_KEY(var/datasource_key)
 
 	if(isnull(datasource_key))
-		to_world_log("ERROR: consideration_trade_desirability: datasource_key [datasource_key || "null"] is null")
+		to_world_log("ERROR: consideration_trade_desirability for [requester]: datasource_key [datasource_key || "null"] is null")
 		return 0
 
 	var/datum/trade_offer/offer = datasource[datasource_key]
 
 	if(!istype(offer))
-		to_world_log("ERROR: consideration_trade_desirability: received offer [offer || "null"] is not of a valid trade_offer type!")
+		to_world_log("ERROR: consideration_trade_desirability for [requester]: received offer [offer || "null"] is not of a valid trade_offer type!")
 		return 0
 
 	var/commodity = offer.commodity_key
@@ -87,7 +87,7 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_trade_desirability)
 		// Either a need went negative, or the proc straight up crashed somewhere.
 		// In both cases, do not pass go, do not collect 200 trades.
 		#warn debug logs
-		to_world_log("DEBUG: consideration_trade_desirability: Desirability for [commodity] x [raw_volume] @ [cash_value] == null!")
+		to_world_log("DEBUG: consideration_trade_desirability for [requester]: Desirability for [commodity] x [raw_volume] @ [cash_value] == null!")
 		return 0
 
 	return desirability
@@ -103,24 +103,24 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_offers_pending)
 	*/
 	var/datum/utility_action_template/candidate = action_template
 
-	if(!istype(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
-		return null
-
 	if(isnull(requester))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(!istype(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending for [requester] - Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/utility_ai/ai = requester
 
 	if(!istype(ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending for [requester] - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/brain/requesting_brain = ai.brain
 
 	if(!istype(requesting_brain))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending - Requester has no Brain! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending for [requester] - Requester has no Brain! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/default = consideration_args?["default"] || 0
@@ -159,24 +159,24 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_contracts_pending)
 	*/
 	var/datum/utility_action_template/candidate = action_template
 
-	if(!istype(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
-		return null
-
 	if(isnull(requester))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(!istype(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending for [requester] - Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/utility_ai/ai = requester
 
 	if(!istype(ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending for [requester] - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/brain/requesting_brain = ai.brain
 
 	if(!istype(requesting_brain))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending - Requester has no Brain! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_contracts_pending for [requester] - Requester has no Brain! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/default = consideration_args?["default"] || 0
@@ -198,24 +198,24 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_get_our_assets)
 	*/
 	var/datum/utility_action_template/candidate = action_template
 
-	if(!istype(candidate))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
-		return null
-
 	if(isnull(requester))
 		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
+	if(!istype(candidate))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets for [requester] Candidate is not an ActionTemplate! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/utility_ai/ai = requester
 
 	if(!istype(ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets for [requester] - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/pawn = ai.GetPawn()
 
 	if(!istype(pawn))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets - Requester has no Pawn! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_get_our_assets for [requester] - Requester has no Pawn! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	if(isnull(pawn.global_id))
@@ -248,27 +248,27 @@ CONSIDERATION_CALL_SIGNATURE(/proc/consideration_we_can_fulfill)
 	else
 		contract = consideration_args[input_key]
 
+	if(isnull(requester))
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
+		return null
+
 	if(!istype(contract))
-		to_world_log("ERROR: consideration_we_can_fulfill Contract is not a valid type! @ L[__LINE__] in [__FILE__]")
+		to_world_log("ERROR: consideration_we_can_fulfill for [requester] - Contract is not a valid type! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	if(!contract.is_open)
 		return FALSE
 
-	if(isnull(requester))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester must be provided for this Consideration! @ L[__LINE__] in [__FILE__]")
-		return null
-
 	var/datum/utility_ai/ai = requester
 
 	if(!istype(ai))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill for [requester] - Requester is not an AI! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	var/datum/pawn = ai.GetPawn()
 
 	if(!istype(pawn))
-		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill - Requester has no Pawn! @ L[__LINE__] in [__FILE__]")
+		DEBUGLOG_UTILITY_INPUT_FETCHERS("ERROR: consideration_we_can_fulfill for [requester] - Requester has no Pawn! @ L[__LINE__] in [__FILE__]")
 		return null
 
 	if(isnull(pawn.global_id))

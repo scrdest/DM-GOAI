@@ -18,11 +18,11 @@
 		"steel": 50
 	},
 	"need_weights": {
-		"food_generic": 8,
+		"food_generic": 12,
 		"wealth": 8,
 		"prestige": 1,
-		"ore": 0.01,
-		"steel": 2
+		"ore": 10,
+		"steel": 1
 	},
 	"preferred_trades": {
 		"food_generic": "/obj/food",
@@ -32,6 +32,7 @@
 	},
 	"assets": {
 		"wealth": 5000,
+		"hydroponics": 1,
 		"mining_outpost": 10,
 		"workers": 1000,
 		"/obj/food": 1000,

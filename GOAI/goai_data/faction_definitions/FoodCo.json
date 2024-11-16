@@ -20,11 +20,11 @@
 		"steel": 5
 	},
 	"need_weights": {
-		"food_generic": 5,
-		"wealth": 4,
+		"food_generic": 2,
+		"wealth": 6,
 		"prestige": 1,
 		"ore": 0.1,
-		"steel": 2
+		"steel": 3
 	},
 	"preferred_trades": {
 		"food_generic": "/obj/food",
@@ -33,9 +33,10 @@
 		"steel": "/obj/steel_bar"
 	},
 	"assets": {
-		"wealth": 4000,
+		"wealth": 7000,
+		"hydroponics": 1,
 		"planetary_farmland": 100,
-		"farm_upgrade_tech": 100,
+		"farm_upgrade_tech": 50,
 		"workers": 1500,
 		"/obj/food": 6000,
 		"/obj/steel_bar": 10,

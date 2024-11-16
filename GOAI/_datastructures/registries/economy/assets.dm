@@ -141,69 +141,111 @@ var/global/production_subsystem_last_update_time = null
 				// Consumed amounts are checked first; if any item would go into negatives, the whole transform is aborted.
 				curr_simulation_time += PRODUCTIONSYSTEM_TICKSIZE_DSECONDS
 
-				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name] - simulation tick... =")
-				var/asset_idx = 0
+				//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name] - simulation tick... =")
+				var/recipe_idx = 0
 
 				for(var/list/asset_deltas in prodconsume_db)
 					// Go through all Resource 'recipes' and check how much they use/produce stuff...
-					asset_idx++
+					recipe_idx++
 
 					if(!asset_deltas)
 						// junk entry somehow
+						to_world_log("ERROR: Recipe [recipe_idx] in prodconsume_db has no asset deltas - SKIPPING")
 						continue
+
+					var/recipe_name = asset_deltas["recipe_name"]
+					//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
 
 					// What asset gives rise to this recipe?
 					var/productive_asset_key = asset_deltas["source_asset"]
 
 					if(isnull(productive_asset_key))
 						// Required field
-						to_world_log("ERROR: asset [asset_idx] in prodconsume_db has no required key 'source_asset' - SKIPPING")
+						to_world_log("ERROR: Recipe [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) in prodconsume_db has no required key 'source_asset' - SKIPPING")
 						continue
 
 					var/owned_amt = faction_assets[productive_asset_key]
 
 					if(isnull(owned_amt) || (owned_amt <= 0))
 						// We don't have it, no point processing
+						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - owned amount insufficient/null! =")
 						continue
 
-					// TODO: consider randomly skipping these based on low last update time
-					//       to randomize who gets the first pick of resource consumption
-
-					// ...starting with inputs...
-					var/list/consumed_deltas = asset_deltas["consumes"]
+					// ...making sure all inputs are THERE...
 					var/consume_valid = TRUE
 					var/consumed_mult = PLUS_INF
 
-					// ...making sure all inputs are THERE...
-					for(var/checked_consumed_asset in consumed_deltas)
-						if(consumed_mult <= 0)
-							consume_valid = FALSE
-							break
+					// ...starting with requirements...
+					// (assets that need to BE there, but are not used up)
+					var/list/requirements = asset_deltas["requires"]
 
-						if(isnull(checked_consumed_asset))
-							continue
+					if(requirements)
+						for(var/checked_required_asset in requirements)
+							// We default consume_valid to TRUE, so if nothing is a prerequisite,
+							// it just succeeds automatically.
+							if(consumed_mult <= 0)
+								consume_valid = FALSE
+								break
 
-						var/raw_checked_delta = (consumed_deltas[checked_consumed_asset] || 0)
+							if(isnull(checked_required_asset))
+								continue
 
-						if(raw_checked_delta <= 0)
-							continue
+							var/required_amt = (requirements[checked_required_asset] || 0)
 
-						var/assets_amt = (faction_assets[checked_consumed_asset] || 0)
+							if(required_amt <= 0)
+								continue
 
-						if(assets_amt < raw_checked_delta)
-							consume_valid = FALSE
-							consumed_mult = 0
-							break
+							var/assets_amt = (faction_assets[checked_required_asset] || 0)
 
-						// Note: This is an approximation that might get buggy, but is super cheap.
-						//       The more accurate method would be to do this in a loop over owned_amt,
-						//       but that would be significantly slower at large scales.
-						//       This is a fairly hot loop, so we can't afford that probably.
-						var/multiples = FLOOR(assets_amt / raw_checked_delta)
-						consumed_mult = min(multiples, consumed_mult, owned_amt)
+							if(assets_amt < required_amt)
+								consume_valid = FALSE
+								break
+
+							// Clamp allowed repeats to the rate-limiting amount of the least abundant prereq.
+							//
+							// Note: This is an approximation that might get buggy, but is super cheap.
+							//       The more accurate method would be to do this in a loop over owned_amt,
+							//       but that would be significantly slower at large scales.
+							//       This is a fairly hot loop, so we can't afford that probably.
+							var/multiples = FLOOR(assets_amt / required_amt)
+							consumed_mult = min(multiples, consumed_mult, owned_amt)
+
+					if((!consume_valid) || (consumed_mult <= 0))
+						// requirements not met - skip to next
+						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - requirements not met! =")
+						continue
+
+					// ...then with inputs...
+					var/list/consumed_deltas = asset_deltas["consumes"]
+
+					if(consumed_deltas)
+						for(var/checked_consumed_asset in consumed_deltas)
+							if(consumed_mult <= 0)
+								consume_valid = FALSE
+								break
+
+							if(isnull(checked_consumed_asset))
+								continue
+
+							var/raw_checked_delta = (consumed_deltas[checked_consumed_asset] || 0)
+
+							if(raw_checked_delta <= 0)
+								continue
+
+							var/assets_amt = (faction_assets[checked_consumed_asset] || 0)
+
+							if(assets_amt < raw_checked_delta)
+								consume_valid = FALSE
+								consumed_mult = 0
+								break
+
+							// Note: as above, approximation & rate-limiting
+							var/multiples = FLOOR(assets_amt / raw_checked_delta)
+							consumed_mult = min(multiples, consumed_mult, owned_amt)
 
 					if(!consume_valid)
 						// if something is missing, this specific process is skipped/aborted
+						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - insufficient resources! =")
 						continue
 
 					var/list/produced_deltas = asset_deltas["produces"]
@@ -214,10 +256,11 @@ var/global/production_subsystem_last_update_time = null
 					// Subtract everything consumed
 					for(var/consumed_asset in consumed_deltas)
 						var/current_amt = faction_assets[consumed_asset]
-						var/consumed_amt = consumed_deltas[consumed_asset] * owned_amt
+						var/consumed_amt = consumed_deltas[consumed_asset] * consumed_mult
 						var/new_amt = (current_amt - consumed_amt)
 
 						if(new_amt < 0)
+							to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - invalidating, [consumed_asset] [current_amt]-[consumed_amt] = [new_amt] < 0 =")
 							valid_transaction = FALSE
 							break
 
@@ -226,14 +269,18 @@ var/global/production_subsystem_last_update_time = null
 					if(!valid_transaction)
 						// rollback
 						faction_assets = faction_assets_backup.Copy()
+						to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: ROLLED BACK [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - invalid transaction! =")
 						continue
 
 					// Add everything produced
-					for(var/produced_asset in produced_deltas)
-						var/produced_amt = produced_deltas[produced_asset] * owned_amt
-						var/current_amt = (faction_assets[produced_asset] || 0)
+					if(produced_deltas)
+						for(var/produced_asset in produced_deltas)
+							var/produced_amt = produced_deltas[produced_asset] * owned_amt
+							var/current_amt = (faction_assets[produced_asset] || 0)
 
-						faction_assets[produced_asset] = (current_amt + produced_amt)
+							faction_assets[produced_asset] = (current_amt + produced_amt)
+
+					//Tto_world_log("= PRODUCTION/CONSUMPTION SYSTEM: APPLIED RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
 
 			UPDATE_ASSETS_TRACKER(faction_id, faction_assets)
 

@@ -1,14 +1,14 @@
 {
 	"/obj/food": {
-		"food_generic": 0.01
+		"food_generic": 0.001
 	},
 	"/obj/decor": {
-		"prestige": 2
+		"prestige": 0.00001
 	},
 	"/obj/ore": {
-		"ore": 0.01
+		"ore": 0.001
 	},
 	"/obj/steel_bar": {
-		"steel": 1
+		"steel": 0.01
 	}
 }

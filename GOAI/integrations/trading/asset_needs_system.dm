@@ -9,6 +9,13 @@
 // tracks the running subsystem, by ticker ID hash, to prevent duplication
 var/global/assetneeds_subsystem_running = null
 
+// a global assoc of Commodity -> Total Qty in Economy
+// can be used for graphing or to limit purchase volumes to a reasonable range
+// should kinda be a separate thing, but it's currently leeching off asset-needs
+// initialized in the loop iterations, so you do need to make null-checks just in case.
+var/global/list/assetneeds_assets_totals_table = null
+
+
 // Format-string to use to construct a unique hash for the Production/Consumption subsystem
 // Currently uses a random number AND a world.time to ensure collisions are extremely unlikely
 #define ASSETNEEDS_SYSTEM_TICKER_ID_HASH(MaxRand) "[rand(1, MaxRand)]-[world.time]"
@@ -49,6 +56,9 @@ var/global/assetneeds_subsystem_running = null
 	while(ticker_id == GOAI_LIBBED_GLOB_ATTR(assetneeds_subsystem_running))
 		to_world_log("= ASSET-NEEDS SYSTEM: STARTED TICK! =")
 
+		// We start the tally fresh each tick to avoid statefulness bugs
+		GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table) = list()
+
 		if(!istype(GOAI_LIBBED_GLOB_ATTR(global_faction_registry)))
 			GOAI_LIBBED_GLOB_ATTR(global_faction_registry) = list()
 
@@ -74,6 +84,7 @@ var/global/assetneeds_subsystem_running = null
 
 			var/faction_id = GET_GLOBAL_ID_LAZY(faction)
 			var/list/assets = GET_ASSETS_TRACKER(faction_id)
+			to_world_log("= ASSET-NEEDS SYSTEM: PROCESSING [faction.name]|ID=[faction_id] with assets: [json_encode(assets)] @TIME:[world.time] =")
 
 			if(isnull(GOAI_LIBBED_GLOB_ATTR(commodity_db)))
 				InitCommodityDb()
@@ -87,13 +98,18 @@ var/global/assetneeds_subsystem_running = null
 				// The commodity list shouldn't be THAT long anyway (he said, ready to regret it later...).
 				var/list/associated_needs = GOAI_LIBBED_GLOB_ATTR(commodity_db)[commodity_key]
 
-				if(!associated_needs)
-					continue
-
 				var/owned_amt = 0
 
 				if(commodity_key in assets)
 					owned_amt = DEFAULT_IF_NULL(assets[commodity_key], 0)
+
+				// Update the total tally
+				var/table_stored_total_amt = GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table)[commodity_key]
+				table_stored_total_amt = DEFAULT_IF_NULL(table_stored_total_amt, 0) + owned_amt
+				GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table)[commodity_key] = table_stored_total_amt
+
+				if(!associated_needs)
+					continue
 
 				owned_amt = max(0, owned_amt) // no negativity here pls
 

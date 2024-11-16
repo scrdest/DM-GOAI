@@ -108,6 +108,7 @@
 
 	if((min_viable_need_delta + need_safety_margin) >= curr_need)
 		// Can't afford it without putting ourselves in danger!
+		to_world_log("CreateSellOfferForNeed: Cannot safely offer [need_key] - Need is [curr_need], min delta is [min_viable_need_delta] + margin [need_safety_margin]")
 		tracker.SetFailed()
 		return
 
@@ -266,7 +267,7 @@
 	var/half_need_delta = need_delta_total / 2
 
 	// How much money we got
-	var/curr_wealth = max(0, ai_brain.GetNeed(NEED_WEALTH, 0))
+	var/curr_wealth = (max(0, ai_brain.GetNeed(NEED_WEALTH, 0)) * 0.75)
 
 	// How much profit we want to take on top of a Utility-fair trade
 	var/profitability_factor = RANDOMIZED_PROFITABILITY_FACTOR
@@ -289,7 +290,7 @@
 		tracker.SetFailed()
 		return
 
-	var/frac_need = ((NEED_MAXIMUM - curr_need) / NEED_MAXIMUM) * 100
+	var/frac_need = ((NEED_MAXIMUM - curr_need) / NEED_MAXIMUM) * 50
 	var/do_fast_offer = prob(frac_need)
 
 	// How much we offer for this deal; if null - not doing this bid
@@ -306,6 +307,13 @@
 	if(do_fast_offer)
 		// Find HOW MUCH of said Thing we ideally want to buy
 		raw_fast_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, half_need_delta)  // should usually return a positive value!
+
+		if(GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table))
+			var/market_size_for_commodity = GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table)[commodity]
+			if(market_size_for_commodity)
+				// we'll limit buys to 75% of the market to leave some headroom
+				var/safe_market_trade_amount = market_size_for_commodity * 0.75
+				raw_fast_trade_amount = min(raw_fast_trade_amount, safe_market_trade_amount)
 
 		// clamp to money we actually HAVE
 		bid_price_fast = min(need_price, safe_wealth)
@@ -327,7 +335,9 @@
 				bid_price_fast = (abs_bid_price_fast - market_smoothing_amt)
 
 	var/remaining_cash = safe_wealth
-	remaining_cash = (curr_wealth - bid_price_fast)
+
+	if(bid_price_fast)
+		remaining_cash = (curr_wealth - bid_price_fast)
 
 	if(remaining_cash > 0)
 		bid_price_slow = min(remaining_cash, src.GetMoneyForNeedUtility(half_need_delta - profitability_factor, remaining_cash))
@@ -346,6 +356,14 @@
 	if(!isnull(bid_price_slow))
 		// all the same steps, except assume the fast trade has been 'applied' and extend the timeout
 		var/raw_slow_trade_amount = src.GetCommodityAmountForNeedDelta(commodity, need_key, curr_need + half_need_delta)  // should usually return a positive value!
+
+		if(GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table))
+			// TODO: if the market size is WAY too small for us to bother, just... don't
+			var/market_size_for_commodity = GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table)[commodity]
+			if(market_size_for_commodity)
+				// we'll limit buys to 75% of the market to leave some headroom
+				var/safe_market_trade_amount = market_size_for_commodity * 0.75
+				raw_slow_trade_amount = min(raw_slow_trade_amount, safe_market_trade_amount)
 
 		if(!isnull(abs_last_trade_unit_price))
 			var/abs_bid_price_slow = CEIL(max(1, abs(bid_price_slow)))
@@ -548,7 +566,7 @@
 		tracker.BBSet("LastFailureTime", world.time)
 		*/
 
-		if(failures > 3)
+		if(failures >= 2)
 			tracker.SetFailed()
 			to_world_log("Contract [contract] could not be fulfilled after max tries - cancelling.")
 			contract.Expire()

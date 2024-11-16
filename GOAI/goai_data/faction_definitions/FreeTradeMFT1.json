@@ -15,14 +15,14 @@
 		"faction_trade_test.json"
 	],
 	"needs": {
-		"food_generic": 100,
+		"food_generic": 5000,
 		"wealth": 8000,
 		"prestige": 50,
 		"ore": 5,
 		"steel": 80
 	},
 	"need_weights": {
-		"food_generic": 6,
+		"food_generic": 10,
 		"wealth": 5,
 		"prestige": 1,
 		"ore": 4,
@@ -35,7 +35,8 @@
 		"steel": "/obj/steel_bar"
 	},
 	"assets": {
-		"wealth": 8000,
+		"wealth": 15000,
+		"hydroponics": 1,
 		"planetary_farmland": 5,
 		"industrial_furnace": 10,
 		"workers": 2000,

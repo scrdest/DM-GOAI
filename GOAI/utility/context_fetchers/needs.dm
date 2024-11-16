@@ -56,6 +56,7 @@ CTXFETCHER_CALL_SIGNATURE(/proc/ctxfetcher_get_needs)
 
 		var/below_threshold = isnull(raw_below_threshold) ? max(curr_need_value, NEED_MAXIMUM) : raw_below_threshold
 		var/above_threshold = isnull(raw_above_threshold) ? min(curr_need_value, NEED_MINIMUM) : raw_above_threshold
+
 		var/disjoint_thresh = (below_threshold < above_threshold)
 
 		if(isnull(curr_need_value))

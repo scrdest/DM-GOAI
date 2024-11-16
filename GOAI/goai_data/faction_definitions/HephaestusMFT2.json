@@ -21,7 +21,7 @@
 		"steel": 80
 	},
 	"need_weights": {
-		"food_generic": 6,
+		"food_generic": 2000,
 		"wealth": 5,
 		"prestige": 1,
 		"ore": 2,
@@ -34,7 +34,8 @@
 		"steel": "/obj/steel_bar"
 	},
 	"assets": {
-		"wealth": 3000,
+		"wealth": 6000,
+		"hydroponics": 1,
 		"mining_outpost": 2,
 		"industrial_furnace": 1,
 		"workers": 300,

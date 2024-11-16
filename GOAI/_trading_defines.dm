@@ -34,7 +34,7 @@
 #define PRODUCTIONSYSTEM_TICKSIZE_DSECONDS 100
 
 // Default delay between asset-needs system ticks
-#define DEFAULT_ASSETNEEDS_SYSTEM_TICKRATE 60
+#define DEFAULT_ASSETNEEDS_SYSTEM_TICKRATE 50
 
 /* Bitflag enum of trade_contract lifecycle states */
 
