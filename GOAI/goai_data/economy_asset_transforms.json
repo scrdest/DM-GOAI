@@ -1,17 +1,5 @@
 [
 	{
-		"//": "Fed Worker item to break weird cycles.",
-		"recipe_name": "Worker Regen",
-		"source_asset": "fed_workers",
-		"consumes": {
-			"fed_workers": 1
-		},
-		"produces": {
-			"workers": 1
-		}
-	},
-	
-	{
 		"//": "Having steel and the know-how to apply it improves farm yields at scale.",
 		"recipe_name": "Farm upgrade",
 		"source_asset": "farm_upgrade_tech",
@@ -36,7 +24,7 @@
 		},
 		"produces": {
 			"hydroponics": 1,
-			"/obj/food": 1
+			"/obj/food": 5
 		}
 	},
 	
@@ -49,7 +37,7 @@
 		},
 		"produces": {
 			"hungry_workers": 1,
-			"/obj/food": 50
+			"/obj/food": 30
 		}
 	},
 	
@@ -64,7 +52,7 @@
 		"produces": {
 			"hungry_workers": 1,
 			"planetary_farmland": 1,
-			"/obj/food": 200
+			"/obj/food": 300
 		}
 	},
 	
@@ -114,10 +102,10 @@
 		"source_asset": "hungry_workers",
 		"consumes": {
 			"hungry_workers": 1,
-			"/obj/food": 0.1
+			"/obj/food": 1
 		},
 		"produces": {
-			"fed_workers": 1
+			"workers": 1
 		}
 	}
 ]

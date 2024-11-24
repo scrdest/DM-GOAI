@@ -14,13 +14,16 @@
 
 # ifdef GOAI_LIBRARY_FEATURES
 var/global/list/global_asset_registry
+var/global/list/faction_asset_deltas_registry
 # endif
 
 # ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_asset_registry)
+GLOBAL_LIST_EMPTY(faction_asset_deltas_registry)
 # endif
 
 #define ASSETS_TABLE_LAZY_INIT(_Unused) if(isnull(GOAI_LIBBED_GLOB_ATTR(global_asset_registry)) || !islist(GOAI_LIBBED_GLOB_ATTR(global_asset_registry))) { GOAI_LIBBED_GLOB_ATTR(global_asset_registry) = list() }
+#define ASSETDELTAS_TABLE_LAZY_INIT(_Unused) if(isnull(GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)) || !islist(GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry))) { GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry) = list() }
 
 #define HAS_REGISTERED_ASSETS(AssetId) (AssetId && GOAI_LIBBED_GLOB_ATTR(global_asset_registry) && (AssetId in GOAI_LIBBED_GLOB_ATTR(global_asset_registry)))
 #define CREATE_ASSETS_TRACKER(AssetId) (GOAI_LIBBED_GLOB_ATTR(global_asset_registry)[AssetId] = list())
@@ -28,6 +31,10 @@ GLOBAL_LIST_EMPTY(global_asset_registry)
 #define GET_ASSETS_TRACKER(AssetId) (GOAI_LIBBED_GLOB_ATTR(global_asset_registry)[AssetId])
 #define UPDATE_ASSETS_TRACKER(AssetId, NewData) (GOAI_LIBBED_GLOB_ATTR(global_asset_registry)[AssetId] = NewData)
 
+#define CREATE_ASSET_DELTAS_TABLE(FactionId) (GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)[FactionId] = list())
+#define CREATE_ASSET_DELTAS_TABLE_IF_NEEDED(FactionId) if(!( GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry) )) { ASSETDELTAS_TABLE_LAZY_INIT(TRUE); CREATE_ASSET_DELTAS_TABLE(FactionId) }; if (!(FactionId in GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry) )) { CREATE_ASSET_DELTAS_TABLE(FactionId) };
+#define GET_ASSETS_DELTAS_FOR_FACTION(FactionId) (GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)[FactionId])
+#define SET_ASSETS_DELTAS_FOR_FACTION(FactionId, Deltas) (GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)[FactionId] = Deltas)
 
 // tracks the running subsystem, by ticker ID hash, to prevent duplication
 var/global/production_subsystem_running = null
@@ -122,6 +129,7 @@ var/global/production_subsystem_last_update_time = null
 				continue
 
 			to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name]|ID=[faction_id] with assets: [json_encode(faction_assets)] @TIME:[world.time] =")
+			var/list/deltas_for_faction = list()
 
 			// How far back we are in the simulation
 			// We have already checked this is at least one quantum of production-tick in the past
@@ -144,20 +152,20 @@ var/global/production_subsystem_last_update_time = null
 				//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name] - simulation tick... =")
 				var/recipe_idx = 0
 
-				for(var/list/asset_deltas in prodconsume_db)
+				for(var/list/recipe_asset_deltas in prodconsume_db)
 					// Go through all Resource 'recipes' and check how much they use/produce stuff...
 					recipe_idx++
 
-					if(!asset_deltas)
+					if(!recipe_asset_deltas)
 						// junk entry somehow
 						to_world_log("ERROR: Recipe [recipe_idx] in prodconsume_db has no asset deltas - SKIPPING")
 						continue
 
-					var/recipe_name = asset_deltas["recipe_name"]
+					var/recipe_name = recipe_asset_deltas["recipe_name"]
 					//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
 
 					// What asset gives rise to this recipe?
-					var/productive_asset_key = asset_deltas["source_asset"]
+					var/productive_asset_key = recipe_asset_deltas["source_asset"]
 
 					if(isnull(productive_asset_key))
 						// Required field
@@ -177,7 +185,7 @@ var/global/production_subsystem_last_update_time = null
 
 					// ...starting with requirements...
 					// (assets that need to BE there, but are not used up)
-					var/list/requirements = asset_deltas["requires"]
+					var/list/requirements = recipe_asset_deltas["requires"]
 
 					if(requirements)
 						for(var/checked_required_asset in requirements)
@@ -216,7 +224,7 @@ var/global/production_subsystem_last_update_time = null
 						continue
 
 					// ...then with inputs...
-					var/list/consumed_deltas = asset_deltas["consumes"]
+					var/list/consumed_deltas = recipe_asset_deltas["consumes"]
 
 					if(consumed_deltas)
 						for(var/checked_consumed_asset in consumed_deltas)
@@ -248,7 +256,7 @@ var/global/production_subsystem_last_update_time = null
 						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - insufficient resources! =")
 						continue
 
-					var/list/produced_deltas = asset_deltas["produces"]
+					var/list/produced_deltas = recipe_asset_deltas["produces"]
 
 					var/list/faction_assets_backup = faction_assets.Copy()
 					var/valid_transaction = TRUE
@@ -266,6 +274,10 @@ var/global/production_subsystem_last_update_time = null
 
 						faction_assets[consumed_asset] = new_amt
 
+						var/old_delta_for_asset = (deltas_for_faction[consumed_asset] || 0)
+						var/new_delta_for_asset = old_delta_for_asset - consumed_amt
+						deltas_for_faction[consumed_asset] = new_delta_for_asset
+
 					if(!valid_transaction)
 						// rollback
 						faction_assets = faction_assets_backup.Copy()
@@ -275,12 +287,30 @@ var/global/production_subsystem_last_update_time = null
 					// Add everything produced
 					if(produced_deltas)
 						for(var/produced_asset in produced_deltas)
-							var/produced_amt = produced_deltas[produced_asset] * owned_amt
+							var/produced_amt = produced_deltas[produced_asset] * consumed_mult
 							var/current_amt = (faction_assets[produced_asset] || 0)
 
 							faction_assets[produced_asset] = (current_amt + produced_amt)
 
-					//Tto_world_log("= PRODUCTION/CONSUMPTION SYSTEM: APPLIED RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
+							var/old_delta_for_asset = (deltas_for_faction[produced_asset] || 0)
+							var/new_delta_for_asset = old_delta_for_asset + produced_amt
+							deltas_for_faction[produced_asset] = new_delta_for_asset
+
+					// NOTE: if we rolled back, this won't update so we'll be using old data
+					//       if this causes headaches later, I can't say I didn't warn myself.
+					//
+					// NOTE: we do this *per simulation tick*, unlike assets total!
+					//       we only want per-tick deltas, not aggregates
+					//       (not for *this* table, at least)
+					CREATE_ASSET_DELTAS_TABLE_IF_NEEDED(faction_id)
+					SET_ASSETS_DELTAS_FOR_FACTION(faction_id, deltas_for_faction)
+
+					//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: APPLIED RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
+
+
+				// After all recipes are applied, but before next simulation tick stuff goes here.
+				// debugging
+				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: Asset deltas table for [faction.name] is: [json_encode(deltas_for_faction)] =")
 
 			UPDATE_ASSETS_TRACKER(faction_id, faction_assets)
 

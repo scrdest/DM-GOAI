@@ -40,7 +40,7 @@
 		"planetary_farmland": 5,
 		"industrial_furnace": 10,
 		"workers": 2000,
-		"/obj/food": 5000,
+		"/obj/food": 15000,
 		"/obj/ore": 5,
 		"/obj/steel_bar": 80
 	}

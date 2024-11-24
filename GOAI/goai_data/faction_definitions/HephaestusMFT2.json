@@ -39,7 +39,7 @@
 		"mining_outpost": 2,
 		"industrial_furnace": 1,
 		"workers": 300,
-		"/obj/food": 2000,
+		"/obj/food": 10000,
 		"/obj/ore": 500,
 		"/obj/steel_bar": 10
 	}

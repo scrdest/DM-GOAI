@@ -312,7 +312,7 @@
 			var/market_size_for_commodity = GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table)[commodity]
 			if(market_size_for_commodity)
 				// we'll limit buys to 75% of the market to leave some headroom
-				var/safe_market_trade_amount = market_size_for_commodity * 0.75
+				var/safe_market_trade_amount = round(market_size_for_commodity * 0.75)
 				raw_fast_trade_amount = min(raw_fast_trade_amount, safe_market_trade_amount)
 
 		// clamp to money we actually HAVE
@@ -362,7 +362,7 @@
 			var/market_size_for_commodity = GOAI_LIBBED_GLOB_ATTR(assetneeds_assets_totals_table)[commodity]
 			if(market_size_for_commodity)
 				// we'll limit buys to 75% of the market to leave some headroom
-				var/safe_market_trade_amount = market_size_for_commodity * 0.75
+				var/safe_market_trade_amount = round(market_size_for_commodity * 0.75)
 				raw_slow_trade_amount = min(raw_slow_trade_amount, safe_market_trade_amount)
 
 		if(!isnull(abs_last_trade_unit_price))

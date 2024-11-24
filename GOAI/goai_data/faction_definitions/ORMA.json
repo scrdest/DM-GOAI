@@ -35,7 +35,7 @@
 		"hydroponics": 1,
 		"mining_outpost": 10,
 		"workers": 1000,
-		"/obj/food": 1000,
+		"/obj/food": 8000,
 		"/obj/ore": 4000
 	}
 }

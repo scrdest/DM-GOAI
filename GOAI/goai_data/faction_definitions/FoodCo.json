@@ -38,7 +38,7 @@
 		"planetary_farmland": 100,
 		"farm_upgrade_tech": 50,
 		"workers": 1500,
-		"/obj/food": 6000,
+		"/obj/food": 36000,
 		"/obj/steel_bar": 10,
 		"/obj/ore": 50
 	}
