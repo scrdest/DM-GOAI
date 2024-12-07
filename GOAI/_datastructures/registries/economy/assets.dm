@@ -37,20 +37,31 @@ GLOBAL_LIST_EMPTY(faction_asset_deltas_registry)
 #define SET_ASSETS_DELTAS_FOR_FACTION(FactionId, Deltas) (GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)[FactionId] = Deltas)
 
 // tracks the running subsystem, by ticker ID hash, to prevent duplication
-var/global/production_subsystem_running = null
+# ifdef GOAI_LIBRARY_FEATURES
+var/global/production_subsystem_running
+# endif
+# ifdef GOAI_SS13_SUPPORT
+GLOBAL_VAR(production_subsystem_running)
+# endif
+
 
 // Format-string to use to construct a unique hash for the Production/Consumption subsystem
 // Currently uses a random number AND a world.time to ensure collisions are extremely unlikely
 #define PRODUCTIONSYSTEM_TICKER_ID_HASH(MaxRand) "[rand(1, MaxRand)]-[world.time]"
 
 // tracks the time delta for integrating the values
-var/global/production_subsystem_last_update_time = null
+# ifdef GOAI_LIBRARY_FEATURES
+var/global/production_subsystem_last_update_time
+# endif
+# ifdef GOAI_SS13_SUPPORT
+GLOBAL_VAR(production_subsystem_last_update_time)
+# endif
 
 // Inline version; generally preferable unless you REALLY need a proc
-#define INITIALIZE_PRODUCTION_SYSTEM_INLINE(Tickrate) if(TRUE) {\
+#define INITIALIZE_PRODUCTION_SYSTEM_INLINE(Tickrate) \
 	StartProductionConsumptionSystem(Tickrate); \
 	MARKETWATCH_DEBUG_LOG("Initialized a production/consumption subsystem with tickrate [DEFAULT_IF_NULL(Tickrate, DEFAULT_PRODUCTION_SYSTEM_TICKRATE)]"); \
-};
+;
 
 // Variant - does the same, but only if it's not already initialized
 #define INITIALIZE_PRODUCTION_SYSTEM_INLINE_IF_NEEDED(Tickrate) if(isnull(GOAI_LIBBED_GLOB_ATTR(production_subsystem_running))) {\
@@ -87,7 +98,7 @@ var/global/production_subsystem_last_update_time = null
 	// Load 'recipes' (what asset consumes and/or produces other assets) into an in-memory DB
 	var/list/prodconsume_db = READ_JSON_FILE(ECONOMY_ASSET_TRANSFORMS_DATA_FP)
 	if(!istype(prodconsume_db))
-		to_world_log("WARNING: Failed to load ECONOMY_ASSET_TRANSFORMS_DATA file at [ECONOMY_ASSET_TRANSFORMS_DATA_FP] - DB not initialized!")
+		GOAI_LOG_ERROR("WARNING: Failed to load ECONOMY_ASSET_TRANSFORMS_DATA file at [ECONOMY_ASSET_TRANSFORMS_DATA_FP] - DB not initialized!")
 		//db_initialized = FALSE
 		prodconsume_db = list()
 
@@ -97,27 +108,35 @@ var/global/production_subsystem_last_update_time = null
 	while(ticker_id == GOAI_LIBBED_GLOB_ATTR(production_subsystem_running))
 		// Wait for the next iteration
 		sleep(tick_rate)
-		to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: STARTED TICK! =")
+		GOAI_LOG_ERROR("= PRODUCTION/CONSUMPTION SYSTEM: STARTED TICK! =")
 
 		// Fix time to the start time of the tick
 		var/now = world.time
 
 		if((1 + now - GOAI_LIBBED_GLOB_ATTR(production_subsystem_last_update_time)) < PRODUCTIONSYSTEM_TICKSIZE_DSECONDS)
-			to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: TICK ENDED EARLY - below quant =")
+			GOAI_LOG_ERROR("= PRODUCTION/CONSUMPTION SYSTEM: TICK ENDED EARLY - below quant =")
 			continue
 
 		if(!istype(GOAI_LIBBED_GLOB_ATTR(global_faction_registry)))
 			GOAI_LIBBED_GLOB_ATTR(global_faction_registry) = list()
 
-		for(var/faction_ref in GOAI_LIBBED_GLOB_ATTR(global_faction_registry))
+		for(var/raw_faction in GOAI_LIBBED_GLOB_ATTR(global_faction_registry))
 			// can yield between factions, assuming they have separate resource pools
 			sleep(0)
 
 			// might be a weakref, so we cannot typecast in the loop directly
+			#ifdef GOAI_LIBRARY_FEATURES
+			var/faction_ref = raw_faction
+			#endif
+
+			#ifdef GOAI_SS13_SUPPORT
+			var/weakref/faction_ref = raw_faction
+			#endif
+
 			var/datum/faction_data/faction = RESOLVE_PAWN(faction_ref)
 
 			if(!istype(faction))
-				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING FACTION for ref [NULL_TO_TEXT(faction_ref)] - wrong type! =")
+				GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING FACTION for ref [NULL_TO_TEXT(faction_ref)] - wrong type! =")
 				continue
 
 			var/faction_id = GET_GLOBAL_ID_LAZY(faction)
@@ -125,10 +144,10 @@ var/global/production_subsystem_last_update_time = null
 			var/list/faction_assets = actual_assets?.Copy()
 
 			if(!faction_assets)
-				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [faction.name]|ID=[faction_id] - no assets =")
+				GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [faction.name]|ID=[faction_id] - no assets =")
 				continue
 
-			to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name]|ID=[faction_id] with assets: [json_encode(faction_assets)] @TIME:[world.time] =")
+			GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name]|ID=[faction_id] with assets: [json_encode(faction_assets)] @TIME:[world.time] =")
 			var/list/deltas_for_faction = list()
 
 			// How far back we are in the simulation
@@ -149,7 +168,7 @@ var/global/production_subsystem_last_update_time = null
 				// Consumed amounts are checked first; if any item would go into negatives, the whole transform is aborted.
 				curr_simulation_time += PRODUCTIONSYSTEM_TICKSIZE_DSECONDS
 
-				//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name] - simulation tick... =")
+				//GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING [faction.name] - simulation tick... =")
 				var/recipe_idx = 0
 
 				for(var/list/recipe_asset_deltas in prodconsume_db)
@@ -158,25 +177,25 @@ var/global/production_subsystem_last_update_time = null
 
 					if(!recipe_asset_deltas)
 						// junk entry somehow
-						to_world_log("ERROR: Recipe [recipe_idx] in prodconsume_db has no asset deltas - SKIPPING")
+						GOAI_LOG_ERROR("ERROR: Recipe [recipe_idx] in prodconsume_db has no asset deltas - SKIPPING")
 						continue
 
 					var/recipe_name = recipe_asset_deltas["recipe_name"]
-					//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
+					//GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: PROCESSING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
 
 					// What asset gives rise to this recipe?
 					var/productive_asset_key = recipe_asset_deltas["source_asset"]
 
 					if(isnull(productive_asset_key))
 						// Required field
-						to_world_log("ERROR: Recipe [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) in prodconsume_db has no required key 'source_asset' - SKIPPING")
+						GOAI_LOG_ERROR("ERROR: Recipe [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) in prodconsume_db has no required key 'source_asset' - SKIPPING")
 						continue
 
 					var/owned_amt = faction_assets[productive_asset_key]
 
 					if(isnull(owned_amt) || (owned_amt <= 0))
 						// We don't have it, no point processing
-						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - owned amount insufficient/null! =")
+						//GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - owned amount insufficient/null! =")
 						continue
 
 					// ...making sure all inputs are THERE...
@@ -220,7 +239,7 @@ var/global/production_subsystem_last_update_time = null
 
 					if((!consume_valid) || (consumed_mult <= 0))
 						// requirements not met - skip to next
-						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - requirements not met! =")
+						//GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - requirements not met! =")
 						continue
 
 					// ...then with inputs...
@@ -253,7 +272,7 @@ var/global/production_subsystem_last_update_time = null
 
 					if(!consume_valid)
 						// if something is missing, this specific process is skipped/aborted
-						//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - insufficient resources! =")
+						//GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: SKIPPING [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - insufficient resources! =")
 						continue
 
 					var/list/produced_deltas = recipe_asset_deltas["produces"]
@@ -268,7 +287,7 @@ var/global/production_subsystem_last_update_time = null
 						var/new_amt = (current_amt - consumed_amt)
 
 						if(new_amt < 0)
-							to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - invalidating, [consumed_asset] [current_amt]-[consumed_amt] = [new_amt] < 0 =")
+							GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - invalidating, [consumed_asset] [current_amt]-[consumed_amt] = [new_amt] < 0 =")
 							valid_transaction = FALSE
 							break
 
@@ -281,7 +300,7 @@ var/global/production_subsystem_last_update_time = null
 					if(!valid_transaction)
 						// rollback
 						faction_assets = faction_assets_backup.Copy()
-						to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: ROLLED BACK [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - invalid transaction! =")
+						GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: ROLLED BACK [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)] - invalid transaction! =")
 						continue
 
 					// Add everything produced
@@ -305,17 +324,17 @@ var/global/production_subsystem_last_update_time = null
 					CREATE_ASSET_DELTAS_TABLE_IF_NEEDED(faction_id)
 					SET_ASSETS_DELTAS_FOR_FACTION(faction_id, deltas_for_faction)
 
-					//to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: APPLIED RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
+					//GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: APPLIED RECIPE [recipe_idx] ([NULL_TO_TEXT(recipe_name)]) for ref [NULL_TO_TEXT(faction_ref)]... =")
 
 
 				// After all recipes are applied, but before next simulation tick stuff goes here.
 				// debugging
-				to_world_log("= PRODUCTION/CONSUMPTION SYSTEM: Asset deltas table for [faction.name] is: [json_encode(deltas_for_faction)] =")
+				GOAI_LOG_DEBUG("= PRODUCTION/CONSUMPTION SYSTEM: Asset deltas table for [faction.name] is: [json_encode(deltas_for_faction)] =")
 
 			UPDATE_ASSETS_TRACKER(faction_id, faction_assets)
 
 		// update the last check time to now
-		production_subsystem_last_update_time = now
+		GOAI_LIBBED_GLOB_ATTR(production_subsystem_last_update_time) = now
 
 	return
 

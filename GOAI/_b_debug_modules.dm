@@ -30,12 +30,18 @@
 	//# define DEBUG_UTILITY_INPUT_FETCHERS 0
 	//# define PLANNING_CONSIDERATIONS_DEBUG_LOGGING 0
 	# define MARKETWATCH_DEBUG_LOGGING 0
+	# define TRADE_DEBUG_LOGGING 0
 
 #endif
 
-#define ENABLE_GOAI_DEVEL_LOGGING 1
-#define ENABLE_GOAI_ERROR_LOGGING 1
-#define ENABLE_GOAI_DEBUG_BEAM_GIZMOS 1
+// Undefine to remove warnings for noncritical WIP code stuff
+# define SHOW_GOAI_WIP_WARNINGS 1
+
+// Undefine to disable drawing debug lines pointing at assorted Stuff
+# define ENABLE_GOAI_DEBUG_BEAM_GIZMOS 1
+
+# define ENABLE_GOAI_DEVEL_LOGGING 1
+# define ENABLE_GOAI_ERROR_LOGGING 1
 
 #ifndef to_world
 	#define to_world(message) world << (message)
@@ -57,11 +63,11 @@
 # endif
 
 #ifdef ENABLE_GOAI_DEVEL_LOGGING
-	#define GOAI_LOG_DEVEL(Msg) to_world_log(Msg)
-	#define GOAI_LOG_DEVEL_WORLD(Msg) to_world(Msg)
+	#define GOAI_LOG_DEBUG(Msg) to_world_log(Msg)
+	#define GOAI_LOG_DEBUG_WORLD(Msg) to_world(Msg)
 #else
-	#define GOAI_LOG_DEVEL(Msg)
-	#define GOAI_LOG_DEVEL_WORLD(Msg)
+	#define GOAI_LOG_DEBUG(Msg)
+	#define GOAI_LOG_DEBUG_WORLD(Msg)
 #endif
 
 #ifdef ENABLE_GOAI_ERROR_LOGGING
@@ -201,4 +207,12 @@
 # define MARKETWATCH_DEBUG_LOG(X) to_world_log(X)
 # else
 # define MARKETWATCH_DEBUG_LOG(X)
+# endif
+
+# ifdef TRADE_DEBUG_LOGGING
+# define TRADE_DEBUG_LOG(X) to_world_log(X)
+# define TRADE_DEBUG_LOG_IF(Pred, X) if(##Pred) { to_world_log(X) };
+# else
+# define TRADE_DEBUG_LOG(X)
+# define TRADE_DEBUG_LOG_IF(Pred, X)
 # endif

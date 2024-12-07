@@ -10,6 +10,7 @@
 // Actual usable datastructure impls in subclasses, expected to be full overrides on methods.
 */
 
+#ifdef GOAI_LIBRARY_FEATURES
 /PriorityQueue
 	var/list/L //the actual queue
 	var/cmp //the weight function used to order the queue
@@ -29,10 +30,6 @@
 /PriorityQueue/proc/Dequeue()
 	return
 
-//Returns the first element in the queue without removing or otherwise mutating the queue
-/PriorityQueue/proc/Peek()
-	return
-
 //Removes an arbitrary item from the queue
 /PriorityQueue/proc/Remove(var/idx)
 	return 0
@@ -40,7 +37,11 @@
 //return the length of the queue
 /PriorityQueue/proc/Length()
 	return 0
+#endif
 
+//Returns the first element in the queue without removing or otherwise mutating the queue
+/PriorityQueue/proc/Peek()
+	return
 
 /*
 // Ordered List/Array Bisection-based PQ
@@ -50,6 +51,16 @@
 
 //an ordered list, using the cmp proc to weight the list elements
 /PriorityQueue/OrderedList
+
+//removes and returns the first element in the queue
+/PriorityQueue/OrderedList/Peek()
+	if(!L.len)
+		return
+
+	return L[1]
+
+#ifdef GOAI_LIBRARY_FEATURES
+// All things here already defined in the base class if SS13 decl is included
 
 /PriorityQueue/OrderedList/New(compare)
 	L = list()
@@ -70,13 +81,6 @@
 	. = L[1]
 
 	Remove(.)
-
-//removes and returns the first element in the queue
-/PriorityQueue/OrderedList/Peek()
-	if(!L.len)
-		return
-
-	return L[1]
 
 //removes an element
 /PriorityQueue/OrderedList/Remove(var/idx)
@@ -111,6 +115,7 @@
 	while(i > 1 && call(cmp)(L[i],L[i-1]) <= 0) //last inserted element being first in case of ties (optimization)
 		L.Swap(i,i-1)
 		i--
+#endif
 
 
 /*
@@ -134,7 +139,7 @@
 #define BH_RCHILD_IDX(ParentIdx) (1+(2*ParentIdx))
 
 // Sort downwards from root - used for heappop and heapify operations
-#define BH_PERCOLATE_DOWN(StartIdx, CmpProc, Heap) if(TRUE) {\
+#define BH_PERCOLATE_DOWN(StartIdx, CmpProc, Heap) if(!isnull(Heap)) {\
 	var/__HeapPercolateDown_HeapSize = length(Heap) ;\
 	var/__HeapPercolateDown_Idx = StartIdx ;\
 	;\
@@ -160,7 +165,7 @@
 };
 
 // Sort upwards from a subtree to root - used for heappush operations
-#define BH_PERCOLATE_UP(StartIdx, CmpProc, Heap) if(TRUE) {\
+#define BH_PERCOLATE_UP(StartIdx, CmpProc, Heap) if(!isnull(Heap)) {\
 	var/__HeapPercolate_CurrentIdx = StartIdx ;\
 	while(__HeapPercolate_CurrentIdx > 1) {\
 		var/__HeapPercolate_HeapParentIdx = BH_PARENT_IDX(__HeapPercolate_CurrentIdx) ;\
@@ -176,7 +181,7 @@
 
 // Turns a (non-assoc) list into a heap
 // Leaf nodes are already sorted, so we start from the half-size idx
-#define BH_HEAPIFY(List, CmpProc) if(TRUE) {\
+#define BH_HEAPIFY(List, CmpProc) if(!isnull(List)) {\
 	var/__Heapify_HeapSize = length(List) ;\
 	for(var/idx = FLOOR(__Heapify_HeapSize / 2), idx > 0, idx--) {;\
 		BH_PERCOLATE_DOWN(idx, CmpProc, List) ;\
@@ -186,7 +191,7 @@
 
 // Adds a new element to the heap in the appropriate location,
 // shuffling the rest as needed
-#define BH_HEAPPUSH(Elem, CmpProc, Heap) if(TRUE) {\
+#define BH_HEAPPUSH(Elem, CmpProc, Heap) if(!isnull(Heap)) {\
 	Heap.len++; Heap[Heap.len] = Elem ;\
 	BH_PERCOLATE_UP(Heap.len, CmpProc, Heap) ;\
 };

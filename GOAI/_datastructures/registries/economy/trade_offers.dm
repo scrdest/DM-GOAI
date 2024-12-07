@@ -34,7 +34,12 @@ var/global/list/global_marketplace
 GLOBAL_LIST_EMPTY(global_marketplace)
 # endif
 
-var/global/global_marketwatch_running = null
+# ifdef GOAI_LIBRARY_FEATURES
+var/global/global_marketwatch_running
+# endif
+# ifdef GOAI_SS13_SUPPORT
+GLOBAL_VAR(global_marketwatch_running)
+# endif
 
 
 // Inlined functions, because BYOND's too dumb to do it itself and this code is kinda hot.
@@ -65,7 +70,7 @@ var/global/global_marketwatch_running = null
 
 
 /mob/verb/CheckMarketWatch()
-	to_chat(usr, "Running MarketWatch ID is: [NULL_TO_TEXT(global_marketwatch_running)]")
+	to_chat(usr, "Running MarketWatch ID is: [NULL_TO_TEXT(GOAI_LIBBED_GLOB_ATTR(global_marketwatch_running))]")
 
 /proc/StartGlobalMarketwatch(var/tickrate = null, var/my_id = null)
 	/* Starts a backgrounded Marketwatch system, which maintains the global_marketplace.
@@ -134,19 +139,19 @@ var/global/global_marketwatch_running = null
 /* PROCS TO SET UP THE MARKETPLACE */
 
 // Inline version; generally preferable unless you REALLY need a proc
-#define INITIALIZE_GLOBAL_MARKETPLACE_INLINE(Tickrate) if(TRUE) {\
+#define INITIALIZE_GLOBAL_MARKETPLACE_INLINE(Tickrate) \
 	GOAI_LIBBED_GLOB_ATTR(global_marketplace) = list(); \
 	StartGlobalMarketwatch(Tickrate); \
 	MARKETWATCH_DEBUG_LOG("Initialized a global marketplace with tickrate [DEFAULT_IF_NULL(Tickrate, DEFAULT_MARKETWATCH_TICKRATE)]"); \
-};
+;
 
 // Variant - does the same, but only if it's not already initialized
-#define INITIALIZE_GLOBAL_MARKETPLACE_INLINE_IF_NEEDED(Tickrate) if(TRUE) {\
+#define INITIALIZE_GLOBAL_MARKETPLACE_INLINE_IF_NEEDED(Tickrate) \
 	if(isnull(GOAI_LIBBED_GLOB_ATTR(global_marketplace))) {\
 		INITIALIZE_GLOBAL_MARKETPLACE_INLINE(Tickrate); \
 	};\
-	if(isnull(global_marketwatch_running)) { StartGlobalMarketwatch(Tickrate) };\
-};
+	if(isnull(GOAI_LIBBED_GLOB_ATTR(global_marketwatch_running))) { StartGlobalMarketwatch(Tickrate) };\
+;
 
 
 /proc/InitializeGlobalMarketplace()

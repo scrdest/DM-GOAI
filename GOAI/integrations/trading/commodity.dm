@@ -36,7 +36,7 @@
 // These are both handled by the same proc:
 //
 //
-// >>  GetCommodityNeedValue(var/key)
+// =>  GetCommodityNeedValue(var/key)
 //
 //
 // The 'key' variable defines which 'type of value' we are asking about. This is usually a need of some sort.
@@ -52,7 +52,7 @@
 // there is a separate, convenience proc available:
 //
 //
-// >>   GetCommodityNeedValueSet(var/list/keyset)
+// =>   GetCommodityNeedValueSet(var/list/keyset)
 //
 //
 // This is effectively a variant of GetCommodityNeedValue that returns an assoc list for each input key.
@@ -117,7 +117,6 @@ GLOBAL_LIST_EMPTY(commodity_db)
 
 	var/db_filepath = isnull(filepath_override) ? DEFAULT_COMMODITY_DB_FP : filepath_override
 	READ_JSON_FILE_CACHED(db_filepath, GOAI_LIBBED_GLOB_ATTR(commodity_db))
-	to_world_log("New CommodityDB is [GOAI_LIBBED_GLOB_ATTR(commodity_db) ? json_encode(GOAI_LIBBED_GLOB_ATTR(commodity_db)) : "uninitialized"] from [db_filepath]")
 
 	if(!GOAI_LIBBED_GLOB_ATTR(commodity_db))
 		GOAI_LIBBED_GLOB_ATTR(commodity_db) = null
@@ -126,7 +125,7 @@ GLOBAL_LIST_EMPTY(commodity_db)
 
 
 /proc/GetCommodityNeedAllValuesAbstract(var/typename)
-	if(isnull(commodity_db))
+	if(isnull(GOAI_LIBBED_GLOB_ATTR(commodity_db)))
 		var/inited = InitCommodityDb()
 		if(!inited)
 			return
@@ -136,7 +135,7 @@ GLOBAL_LIST_EMPTY(commodity_db)
 
 
 /proc/GetCommodityNeedValueAbstract(var/typename, var/need_key)
-	if(isnull(commodity_db))
+	if(isnull(GOAI_LIBBED_GLOB_ATTR(commodity_db)))
 		var/inited = InitCommodityDb()
 		if(!inited)
 			return

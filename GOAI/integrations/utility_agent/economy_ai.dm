@@ -2,8 +2,9 @@
 // Adds logic for handling trade stuff.
 */
 
-
+# ifdef SHOW_GOAI_WIP_WARNINGS
 #warn Restore the nulls for default procs here:
+# endif
 //#define DEFAULT_BUY_ITEM_PROC null
 //#define DEFAULT_SELL_ITEM_PROC null
 
@@ -116,8 +117,7 @@
 	// Potential TODO: replace the const convexity factor with a personality-derived value?
 	var/smoothing_factor = DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR
 	var/result = INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING(pre_desirability, post_desirability, smoothing_factor)
-	#warn debug logs
-	to_world_log("GetNeedDeltaUtility: Need [need] [amt_pre]->[amt_post] ([pre_desirability] -> [post_desirability]): desirability [result]")
+	TRADE_DEBUG_LOG("GetNeedDeltaUtility: Need [need] [amt_pre]->[amt_post] ([pre_desirability] -> [post_desirability]): desirability [result]")
 
 	return result
 
@@ -132,9 +132,7 @@
 	// Potential TODO: replace the const convexity factor with a personality-derived value?
 	var/smoothing_factor = DELTA_UTILITY_SMOOTHING_DEFAULT_FACTOR
 	var/delta = REVERSE_INTEGRATE_NEED_DELTA_UTILITY_SMOOTHING_TO_DELTA(util_delta, curr_amt, smoothing_factor)
-
-	#warn debug logs
-	to_world_log("GetUtilityAsNeedDelta: Desirability [util_delta] corresponds to: Need [need] [delta]")
+	TRADE_DEBUG_LOG("GetUtilityAsNeedDelta: Desirability [util_delta] corresponds to: Need [need] [delta]")
 
 	return delta
 
@@ -227,9 +225,6 @@
 	var/total = 0
 	var/denom = 0
 
-	#warn debug only, remove me
-	var/list/final_needs = list()
-
 	for(var/posthoc_need_key in needs_commodity_deltas)
 		// aggregate results
 		var/need_weight = need_weights[posthoc_need_key]
@@ -255,13 +250,9 @@
 		// actually apply the deltas to the current amount:
 		var/true_post_need_amt = curr_need_amt + raw_post_need_amt
 
-		#warn debug only, remove me
-		final_needs[posthoc_need_key] = true_post_need_amt
-
 		if(true_post_need_amt < 0)
 			// If any deal would take us below zero on any need, it's trash.
-			#warn debug logs
-			to_world_log("GetCommodityDesirability: Need [posthoc_need_key] [curr_need_amt]->[true_post_need_amt]: below zero, desirability -1")
+			TRADE_DEBUG_LOG("GetCommodityDesirability: Need [posthoc_need_key] [curr_need_amt]->[true_post_need_amt]: below zero, desirability -1")
 			return -1
 
 		// aggregate:
@@ -280,8 +271,7 @@
 		// future numerator; we need to scale the values by weights or things would get silly
 		total += (desirability * need_weight)
 
-		#warn debug logs
-		to_world_log("GetCommodityDesirability: Need [posthoc_need_key] [curr_need_amt]->[true_post_need_amt]: desirability [desirability] | total [total] / denominator [denom]")
+		TRADE_DEBUG_LOG("GetCommodityDesirability: Need [posthoc_need_key] [curr_need_amt]->[true_post_need_amt]: desirability [desirability] | total [total] / denominator [denom]")
 
 	/* STEP 4: weighted average to get final value */
 	if(!denom)
@@ -291,9 +281,6 @@
 	var/commodity_desirability = total / denom
 
 	/* STEP 5: PROFIT!!! */
-	#warn debug logs
-	to_world_log(" ")
-	to_world_log("GetCommodityDesirability: Needs [json_encode(final_needs)] (deltas: [json_encode(needs_commodity_deltas)]) | numerator [total] / denominator [denom] == [commodity_desirability]")
 	return commodity_desirability
 
 
@@ -374,10 +361,6 @@
 	// The return value can be used as input for TradeOffer cash_amount directly raw,
 	// as it is expressed from the point of view of the counterparty taking the deal.
 	*/
-
-	// mostly pro-forma in case this ever does anything important in the ABC
-	. = ..(utility)
-
 	var/wealth = DEFAULT_IF_NULL(DEFAULT_IF_NULL(curr_wealth, src.brain?.GetNeed(NEED_WEALTH, null)), 0)
 
 	// We scale UP by this in GetMoneyDesirability(), so need to scale DOWN here.
@@ -436,7 +419,7 @@
 	// This has a bunch of benefits, but the biggest one IMO is interpretability - this is
 	// the cost, in Utils, of bothering with the trade and associated information assymetries.
 	// As such, the padding value can be either RNG'd or estimated by AI in sane ways.
-	to_world_log("[src.name] | GetMoneyForNeedUtility: breakeven_money_value for Utility [utility] and current wealth [wealth] is: [breakeven_money_value] on basis [basis]/angle [as_angle]")
+	GOAI_LOG_DEBUG("[src.name] | GetMoneyForNeedUtility: breakeven_money_value for Utility [utility] and current wealth [wealth] is: [breakeven_money_value] on basis [basis]/angle [as_angle]")
 	return breakeven_money_value
 
 
@@ -444,18 +427,18 @@
 	/* Pre-flight checks */
 
 	if(!commodity)
-		to_world_log("GetCommodityAmountForNeedDelta: Commodity [NULL_TO_TEXT(commodity)] is null.")
-		return null.
+		TRADE_DEBUG_LOG("GetCommodityAmountForNeedDelta: Commodity [NULL_TO_TEXT(commodity)] is null.")
+		return null
 
 	if(!need_key)
-		to_world_log("GetCommodityAmountForNeedDelta: need_key [NULL_TO_TEXT(need_key)] is null.")
+		TRADE_DEBUG_LOG("GetCommodityAmountForNeedDelta: need_key [NULL_TO_TEXT(need_key)] is null.")
 		return null
 
 	if(!delta)
 		// compressing null-handling and zero-handling
 		// null returns null, because invalid
 		// zero returns zero, because we don't need any Commodity to satisfy that
-		to_world_log("GetCommodityAmountForNeedDelta: Commodity [commodity] has no nonzero need values for delta [NULL_TO_TEXT(delta)].")
+		TRADE_DEBUG_LOG("GetCommodityAmountForNeedDelta: Commodity [commodity] has no nonzero need values for delta [NULL_TO_TEXT(delta)].")
 		return delta
 
 	// fetch how much this commodity satisfies the target need
@@ -464,8 +447,7 @@
 
 	if(!need_per_unit)
 		// something's gone wrong
-		#warn debug logs
-		to_world_log("GetCommodityAmountForNeedDelta: Commodity [commodity] has no nonzero need values.")
+		TRADE_DEBUG_LOG("GetCommodityAmountForNeedDelta: Commodity [commodity] has no nonzero need values.")
 		return null
 
 	/* Core logic */
@@ -492,27 +474,23 @@
 
 
 /datum/utility_ai/proc/GetBestPurchaseCommodityForNeed(var/need_key)
-	. = ..(need_key)
-
 	if(src.best_purchase_for_need_proc)
 		var/value = call(src.best_purchase_for_need_proc)(need_key, src.best_purchase_for_need_proc_args, src)
 		return value
 
 	else
-		to_world_log("ERROR: GetBestPurchaseCommodityForNeed for [src] has no dynamic proc declared! @ L[__LINE__] in [__FILE__]")
+		TRADE_DEBUG_LOG("ERROR: GetBestPurchaseCommodityForNeed for [src] has no dynamic proc declared! @ L[__LINE__] in [__FILE__]")
 
 	return .
 
 
 /datum/utility_ai/proc/GetBestSaleCommodityForNeed(var/need_key)
-	. = ..(need_key)
-
 	if(src.best_sale_for_need_proc)
 		var/value = call(src.best_sale_for_need_proc)(need_key, src.best_sale_for_need_proc_args, src)
 		return value
 
 	else
-		to_world_log("ERROR: GetBestSaleCommodityForNeed for [src] has no dynamic proc declared!")
+		TRADE_DEBUG_LOG("ERROR: GetBestSaleCommodityForNeed for [src] has no dynamic proc declared!")
 
 	return .
 
