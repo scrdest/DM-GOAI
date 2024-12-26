@@ -49,7 +49,6 @@
 
 		var/relevant_age = by_age ? retrieved_mem.GetAge() : retrieved_mem.GetFreshness()
 
-		to_world_log("[src.name] memories for [mem_key] - Relevant age [relevant_age], ttl [retrieved_mem.ttl]")
 		if(relevant_age < retrieved_mem.ttl)
 			// We already checked for parent preference - no need to redo that.
 			return retrieved_mem
