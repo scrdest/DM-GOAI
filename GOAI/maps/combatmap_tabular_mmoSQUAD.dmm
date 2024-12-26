@@ -1,0 +1,31 @@
+"a" = (/turf/wall,/area)
+"b" = (/turf/ground,/area)
+"c" = (/obj/spawner/oneshot/commanded_squad_mob{mob_faction = "ANTAG"; name = "ANTAG squad"},/turf/ground,/area)
+"d" = (/obj/spawner/oneshot/commanded_squad_mob{mob_faction = "Terran"; name = "Terran Squad"},/turf/ground,/area)
+"e" = (/obj/spawner/oneshot/commanded_squad_mob{mob_faction = "Skrell"; name = "Skrellorist Squad"},/turf/ground,/area)
+"f" = (/obj/cover/barricade,/turf/ground,/area)
+"g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
+"h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)
+"i" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
+"j" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
+
+(1,1,1) = {"
+abbaaaaaaaaaaaaaaa
+abbababbbbbabbbbba
+aababgbbibbbbbhbba
+abbabbbbbbbabbhbba
+abbaiibcbbiaabbbaa
+abbabbbbbbbabbbiba
+abbabbbbbbaafbbbba
+abbabbbbbbabbbdbja
+abbaaaaabaabbbbbba
+abbabbabbbbibbaaaa
+abaabbbbbbbbbbbhba
+abbabbbbbbbbbbbhba
+abbajjbbbbbbbbbbba
+abbabbbebbfjjbabja
+aaaabgbbbbbbbbabba
+abbhbbbjbaabaaabba
+abbbbabbbbabbbabba
+aaaaaaaaaaaaaaaaaa
+"}

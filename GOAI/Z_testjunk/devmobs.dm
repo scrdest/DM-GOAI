@@ -10,8 +10,16 @@
 	var/commander_id = null
 
 
+/mob/living/simple_animal/aitester/squadtester
+	// To identify squaddies more easily
+	//ensure_unique_name = TRUE
+
+	// To get a ref to the custom-created commander in the spawner proc
+	spawn_commander = FALSE
+
+
 /mob/living/simple_animal/aitester/proc/ChooseFaction()
-	var/list/factions = list("ANTAG", "Skrell", "NTIS")
+	var/list/factions = list("ANTAG", "Skrell", "NTIS", "Terran")
 	var/myfaction = pick(factions)
 	return myfaction
 
