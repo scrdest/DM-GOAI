@@ -80,7 +80,25 @@ PathNode
 
 
 /proc/PathWeightCompare(PathNode/a, PathNode/b)
-	return a.estimated_cost - b.estimated_cost
+	var/a_cost = a?.estimated_cost
+	var/b_cost = b?.estimated_cost
+
+	var/a_null = isnull(a_cost)
+	var/b_null = isnull(b_cost)
+
+	if(a_null && b_null)
+		return 0
+
+	if(b_null)
+		if(a_null)
+			return 0
+
+		return -a_cost
+
+	if(a_null)
+		return b_cost
+
+	return a_cost - b_cost
 
 # endif
 
@@ -104,7 +122,15 @@ PathNode
 	var/list/path_node_by_position = list()
 
 	if(!start)
-		return 0
+		return
+
+	var/initial_dist = call(dist)(start, end)
+
+	if(!isnull(min_target_dist) && (initial_dist <= min_target_dist))
+		// We are within min-dist - we're happy enough where we started.
+		// It is literally impossible to get a lower-cost path if no edges are negative.
+		MOVEMENT_DEBUG_LOG("[src]: path from [COORDS_TUPLE_UNSAFE(start)] -> [COORDS_TUPLE_UNSAFE(end)] not needed, within min-dist")
+		return path
 
 	open.Enqueue(new /PathNode(start, null, 0, call(dist)(start, end), 0))
 

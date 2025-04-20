@@ -92,7 +92,7 @@
 	var/list/smart_paths = null
 	var/list/smart_plans = null
 	var/list/smart_orders = null
-	var/datum/squad/mysquad = null
+	//var/datum/squad/mysquad = null
 
 	var/datum/brain/ai_brain = src.brain
 
@@ -101,7 +101,7 @@
 		smart_paths = ai_brain.GetMemoryValue("AbstractSmartPaths", null)
 		smart_plans = ai_brain.GetMemoryValue("SmartPlans", null)
 		smart_orders = ai_brain.GetMemoryValue("SmartOrders", null)
-		mysquad = ai_brain.GetSquad()
+		//mysquad = ai_brain.GetSquad()
 
 	if(isnull(smartobjects))
 		smartobjects = list()
@@ -133,9 +133,11 @@
 	if(!isnull(pawn))
 		smartobjects.Add(pawn)
 
+	/*
 	// The Squad is one as well!
 	if(istype(mysquad))
 		smartobjects.Add(mysquad)
+	*/
 
 	if(smartobjects)
 		for(var/datum/SO in smartobjects)
