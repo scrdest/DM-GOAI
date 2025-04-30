@@ -37,6 +37,9 @@
 // e.g. UTILITY_CONSIDERATION(5, 2, 8, 0, /proc/curve_linear) => 0.5
 //  or: UTILITY_CONSIDERATION(5, 2, 8, 0, /proc/curve_binary) => 0.0
 //  or: UTILITY_CONSIDERATION(5, 0, 4, 0, /proc/curve_linear) => 1.0
+//  or: UTILITY_CONSIDERATION(5, 0, 4, 50, /proc/curve_linear) => (0.5 to 1.0)
+//  or: UTILITY_CONSIDERATION(3, 0, 4, 25, /proc/curve_linear) => (0.5 to 1.0)
+//  or: UTILITY_CONSIDERATION(5, 2, 8, 50, /proc/curve_linear) => (0.0 to 1.0)
 // Note that at NoisePerc>=100, the curve inputs are dominated by noise.
 # define UTILITY_CONSIDERATION(RawData, LoMark, HiMark, NoisePerc, CurveProc) call(CurveProc)(clamp(NORMALIZE_UTILITY_INPUT(RawData, LoMark, HiMark) + ((rand() - 0.5) * (NoisePerc / 50)), ACTIVATION_NONE, ACTIVATION_FULL))
 
@@ -271,4 +274,35 @@
 	}; \
 	var/atom/pawn = commander.GetPawn(); \
 	return (src in pawn) \
+};
+
+
+// Available if a memory value for a given key is exactly this entity:
+# define GOAI_HAS_UTILITY_ACTIONS_BOILERPLATE_IS_MEMORY(OBJTYPE, MemoryKey) \
+##OBJTYPE/HasUtilityActions(var/requester, var/list/args = null) { \
+	var/datum/utility_ai/commander = requester; \
+	if(!istype(commander)) { \
+		return FALSE \
+	}; \
+	var/datum/brain/commander_brain = commander.brain; \
+	if(!istype(commander_brain)) { \
+		return FALSE \
+	}; \
+	var/mem = commander_brain.GetMemoryValue(MemoryKey); \
+	return (src == mem) \
+};
+
+// Available if a memory value for a given key CONTAINS this entity (generally, memories storing lists):
+# define GOAI_HAS_UTILITY_ACTIONS_BOILERPLATE_INSIDE_MEMORY(OBJTYPE, MemoryKey) \
+##OBJTYPE/HasUtilityActions(var/requester, var/list/args = null) { \
+	var/datum/utility_ai/commander = requester; \
+	if(!istype(commander)) { \
+		return FALSE \
+	}; \
+	var/datum/brain/commander_brain = commander.brain; \
+	if(!istype(commander_brain)) { \
+		return FALSE \
+	}; \
+	var/list/mem = commander_brain.GetMemoryValue(MemoryKey); \
+	return (islist(mem) && (src in mem)) ; \
 };

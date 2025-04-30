@@ -13,10 +13,16 @@
 	if(!(M?.brain))
 		return
 
-	var/datum/memory/created_mem = M.brain.SetMemory("ai_target", Trg, PLUS_INF)
-	M.brain.SetMemory("ai_target_mindist", 2, PLUS_INF)
+	var/datum/memory/created_mem = M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, Trg, PLUS_INF)
+
+	var/turf/trgturf = get_turf(Trg)
+	if(isnull(trgturf))
+		to_chat(usr, "[Trg] physical location not found")
+
+	M.brain.SetMemory(MEM_AI_TARGET, trgturf, M.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+	M.brain.SetMemory(MEM_AI_TARGET_MINDIST, 2, PLUS_INF)
+	M.brain.SetMemory(MEM_WAYPOINT_LKP, TO_GOAI_WAYPOINT_DATA(trgturf), PLUS_INF)
 	M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, Trg, PLUS_INF)
-	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
 
 	var/atom/waypoint = created_mem?.val
 
@@ -35,10 +41,10 @@
 		if(!(M?.brain))
 			continue
 
-		M.brain.SetMemory("ai_target", trgturf, M.ai_tick_delay * 20)
-		M.brain.SetMemory("ai_target_mindist", 2, M.ai_tick_delay * 20)
-		M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, trgturf, M.ai_tick_delay * 20)
-		M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 3)
+		M.brain.SetMemory(MEM_AI_TARGET, trgturf, M.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+		M.brain.SetMemory(MEM_AI_TARGET_MINDIST, 1, PLUS_INF)
+		M.brain.SetMemory(MEM_WAYPOINT_LKP, TO_GOAI_WAYPOINT_DATA(trgturf), PLUS_INF)
+		M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, Trg, PLUS_INF)
 
 	return
 
@@ -53,7 +59,6 @@
 		return
 
 	var/datum/memory/created_mem = M.brain.SetMemory("forced_fleethreat", Trg, PLUS_INF)
-	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
 
 	var/atom/waypoint = created_mem?.val
 
@@ -76,11 +81,11 @@
 		to_chat(usr, "Target position ([trueX], [trueY], [trueZ]) does not exist!")
 		return
 
-	var/datum/memory/created_mem = M.brain.SetMemory("ai_target", position, PLUS_INF)
-	M.brain.SetMemory("ai_target_mindist", 1, PLUS_INF)
+	var/datum/memory/created_mem = M.brain.SetMemory(MEM_AI_TARGET, position, PLUS_INF)
+	M.brain.SetMemory(MEM_AI_TARGET_MINDIST, 1, PLUS_INF)
+	M.brain.SetMemory(MEM_WAYPOINT_LKP, TO_GOAI_WAYPOINT_DATA(position), PLUS_INF)
 	M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, position, PLUS_INF)
 
-	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
 	var/atom/waypoint = created_mem?.val
 
 	to_chat(usr, (waypoint ? "[M] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[M] not tracking waypoints"))
@@ -103,11 +108,11 @@
 		to_chat(usr, "Target position ([trueX], [trueY], [trueZ]) does not exist!")
 		return
 
-	var/datum/memory/created_mem = M.brain.SetMemory("ai_target", position, PLUS_INF)
-	M.brain.SetMemory("ai_target_mindist", 1, PLUS_INF)
-	M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, position, PLUS_INF)
+	var/datum/memory/created_mem = M.brain.SetMemory(MEM_WAYPOINT_IDENTITY, position, PLUS_INF)
+	M.brain.SetMemory(MEM_AI_TARGET_MINDIST, 1, PLUS_INF)
+	M.brain.SetMemory(MEM_AI_TARGET, position, M.ai_tick_delay * MEM_AITICK_MULT_SHORTTERM)
+	M.brain.SetMemory(MEM_WAYPOINT_LKP, TO_GOAI_WAYPOINT_DATA(position), PLUS_INF)
 
-	M.brain.SetMemory("ReplanRouteToTargetRequested", 1, M.ai_tick_delay * 4)
 	var/atom/waypoint = created_mem?.val
 
 	to_chat(usr, (waypoint ? "[M] now tracking [waypoint] @ ([trueX], [trueY], [trueZ])" : "[M] not tracking waypoints"))
@@ -122,9 +127,11 @@
 	if(!(M?.brain))
 		return
 
-	M.brain.DropMemory("ai_target")
-	M.brain.DropMemory("ai_target_mindist")
-	M.brain.DropMemory("ReplanRouteToTargetRequested")
+	M.brain.DropMemory("FollowTarget")
+	M.brain.DropMemory(MEM_AI_TARGET)
+	M.brain.DropMemory(MEM_AI_TARGET_MINDIST)
+	M.brain.DropMemory(MEM_WAYPOINT_LKP)
+	M.brain.DropMemory(MEM_WAYPOINT_IDENTITY)
 
 	//to_chat(usr, (waypoint ? "[M] tracking [waypoint]" : "[M] no longer tracking waypoints"))
 
