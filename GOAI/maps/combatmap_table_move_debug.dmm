@@ -4,10 +4,10 @@
 "d" = (/obj/cover/autodoor,/turf/ground,/area)
 "e" = (/mob/living/simple_animal/aitester/utility{name = "Enemy"; real_name = "Enemy"; faction = "enemy"; spawn_commander = 0},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
-"g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
-"h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)
-"i" = (/obj/spawner/oneshot/table_flipped/south,/turf/ground,/area)
-"j" = (/obj/spawner/oneshot/table_flipped/north,/turf/ground,/area)
+"g" = (/obj/goai_spawner/oneshot/table_flipped/east,/turf/ground,/area)
+"h" = (/obj/goai_spawner/oneshot/table_flipped/west,/turf/ground,/area)
+"i" = (/obj/goai_spawner/oneshot/table_flipped/south,/turf/ground,/area)
+"j" = (/obj/goai_spawner/oneshot/table_flipped/north,/turf/ground,/area)
 
 (1,1,1) = {"
 aaaaaaaaaaaa

@@ -1,11 +1,10 @@
 "a" = (/turf/wall,/area)
 "b" = (/turf/ground,/area)
-"c" = (/mob/goai/combatant,/turf/ground,/area)
-"d" = (/mob/goai/combatant{icon_state = "terran_marine"; name = "combatant 3"},/turf/ground,/area)
-"e" = (/mob/goai/combatant{icon_state = "skrellorist"; name = "combatant 2"},/turf/ground,/area)
+"c" = (/mob/living/simple_animal/aitester/utility,/turf/ground,/area)
+"e" = (/mob/living/simple_animal/aitester/utility{name = "combatant 2"; icon_state = "skrellorist"},/turf/ground,/area)
 "f" = (/obj/cover/barricade,/turf/ground,/area)
-"g" = (/obj/spawner/oneshot/table_flipped/east,/turf/ground,/area)
-"h" = (/obj/spawner/oneshot/table_flipped/west,/turf/ground,/area)
+"g" = (/obj/goai_spawner/oneshot/table_flipped/east,/turf/ground,/area)
+"h" = (/obj/goai_spawner/oneshot/table_flipped/west,/turf/ground,/area)
 
 (1,1,1) = {"
 abbaaaaaaaaaaaaaaa
@@ -15,7 +14,7 @@ abbabbbbbbbbbbbbab
 abbaaabbbbabbbaaaa
 abbabbbbbbbbbbbbab
 abbabbbbcbbbfbbbaa
-abbabbbbbbdbbbbbab
+abbabbbbbbbbbbbbab
 abbaaabbbbbbbbaaab
 abbabbbbgbbbbbbbaa
 abaabbbbebbbbbbbab
