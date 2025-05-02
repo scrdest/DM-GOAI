@@ -42,6 +42,7 @@
 	)
 
 	var/raytrace_to_target_enabled = TRUE
+	var/raytrace_maxdist_limit = null
 
 	// =====      Trackercheat      =====
 	// This is a (provisional) name for an optional module that cheats in a bit of clairvoyance.
@@ -122,7 +123,9 @@
 				// If we have a straight LOS to target, then we can treat them as visible.
 				// Perhaps deceptively, a single raytrace is cheaper than widening the view() range.
 				// We still need view() for things in proximity (pickups etc.) anyway though.
-				var/atom/rayhit = TurfDensityRaytrace(pawn, src_memval, null, RAYTYPE_LOS, null, TRUE, get_dist(pawn, src_memval))
+				var/_raytrace_maxdist_limit = DEFAULT_IF_NULL(src.raytrace_maxdist_limit, world.view)
+				var/ray_maxdist = min(_raytrace_maxdist_limit, get_dist(pawn, src_memval))
+				var/atom/rayhit = TurfDensityRaytrace(pawn, src_memval, null, RAYTYPE_LOS, null, TRUE, ray_maxdist)
 				var/turf/target_loc = get_turf(src_memval)
 
 				if(istype(rayhit) && get_dist(rayhit, target_loc) <= 1)
