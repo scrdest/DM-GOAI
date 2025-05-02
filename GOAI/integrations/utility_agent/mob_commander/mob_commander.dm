@@ -78,7 +78,7 @@
 			// Same faction should not be attacked by default, same as vanilla
 			// This CAN be overridden if the relationship DB specifies that (A->A) has a different value, e.g. -10
 			// though this will be a bit strange to people used to oldschool SS13 factions
-			var/self_value = our_db_values[my_faction]
+			var/self_value = our_db_values?[my_faction]
 			var/self_relation_val = DEFAULT_IF_NULL(self_value, RELATIONS_DEFAULT_SELF_FACTION_RELATION_VAL) // defaults fairly positive
 			var/datum/relation_data/my_faction_rel = new(self_relation_val, RELATIONS_DEFAULT_SELF_FACTION_RELATION_WEIGHT)
 			relations.Insert(my_faction, my_faction_rel)
