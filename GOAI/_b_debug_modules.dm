@@ -5,7 +5,7 @@
 	# define DEBUG_LOGGING_SEPARATORS 0
 	//# define DEBUG_LOGGING 0
 	# define DEMOGOAP_DEBUG_LOGGING 0
-	# define RAYTRACE_DEBUG_LOGGING 0
+	//# define RAYTRACE_DEBUG_LOGGING 0
 	// # define ADD_ACTION_DEBUG_LOGGING 0
 	# define COMBAT_AI_DEBUG_LOGGING 0
 	# define RUN_ACTION_DEBUG_LOGGING 0
@@ -44,10 +44,10 @@
 #endif
 
 // Undefine to disable drawing icons used to debug pathfinding
-#define ENABLE_GOAI_DEBUG_GIZMOS 1
+//#define ENABLE_GOAI_DEBUG_GIZMOS 1
 
 // Undefine to disable drawing debug lines pointing at assorted Stuff. Older and more expensive than other gizmos, for Reasons(TM) (allocs/deallocs)
-#define ENABLE_GOAI_DEBUG_BEAM_GIZMOS 1
+//#define ENABLE_GOAI_DEBUG_BEAM_GIZMOS 1
 
 #ifndef to_world
 	#define to_world(message) world << (message)
