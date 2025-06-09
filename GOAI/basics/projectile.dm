@@ -60,46 +60,125 @@
 		del(src)
 
 
+/gun_cycle_handler
+	// An attachment that contains cycling (cooldown, reload, etc.) logic for guns.
+	var/shoot_allowed = FALSE
+	var/owned_gun = null
+
+
+/gun_cycle_handler/New(var/owned_obj)
+	if(owned_obj)
+		src.owned_gun = GOAI_LIBBED_WEAKREF(owned_obj)
+	return
+
+
+/gun_cycle_handler/proc/force_allow()
+	// Should reset the handler to whatever state is needed to allow shooting.
+	// Meant to be used for external callers for things like reload logic, where
+	// we coerce the thing into a known shootable state.
+	return
+
+
+/gun_cycle_handler/proc/handle_post_shot()
+	// Anything that should happen after each shot.
+	// Can include cooldown, cycling (for semiauto), etc.
+	return
+
+
+/gun_cycle_handler/always
+	// Can always shoot
+	shoot_allowed = TRUE
+
+
+/gun_cycle_handler/cooldown
+	// A cycle limited by a cooldown time
+	var/cooling = FALSE
+	var/cooldown_time_deterministic = 17
+	var/cooldown_time_random = 3
+
+
+/gun_cycle_handler/cooldown/handle_post_shot()
+	src.shoot_allowed = FALSE
+	if(!src.cooling)
+		src.cooldown()
+	return
+
+
+/gun_cycle_handler/cooldown/force_allow()
+	src.shoot_allowed = TRUE
+	src.cooling = FALSE
+	return
+
+
+/gun_cycle_handler/cooldown/proc/cooldown()
+	set waitfor = FALSE
+
+	if(src.cooling)
+		// avoid double-cooling which would cause weird flip-flopping due to concurrency issues
+		return
+
+	src.cooling = TRUE
+	sleep(cooldown_time_deterministic + rand(-cooldown_time_random, cooldown_time_random))
+	src.cooling = FALSE
+	src.shoot_allowed = TRUE
+	return
+
+
+/gun_cycle_handler/reload_owned
+	// a reload cycle-handler that owns the bullets (as opposed to reffing the gun for them)
+	var/ammo_capacity = 6
+	var/ammo_current = 6
+
+
+/gun_cycle_handler/reload_owned/handle_post_shot()
+	src.ammo_current--
+	if(src.ammo_current <= 0)
+		src.ammo_current = 0
+		src.shoot_allowed = FALSE
+
+		// raise the Gun Dry event
+		var/obj/item/mygun = GOAI_LIBBED_WEAKREF_RESOLVE(src.owned_gun)
+		if(istype(mygun))
+			GOAI_LIBBED_GLOB_ATTR(gun_dry_event.raise_event(mygun))
+	return
+
+
 /obj/item/gun
 	name = "Gun"
 	icon = 'icons/obj/gun.dmi'
 	icon_state = "laser"
 
-	var/cooling = FALSE
-	var/cooldown_time_deterministic = 17
-	var/cooldown_time_random = 3
-
-	var/dispersion = GUN_DISPERSION
 	var/ammo_sprite = null
-
+	var/dispersion = GUN_DISPERSION
 	var/projectile_raycast_flags = RAYTYPE_BEAM
+
+	var/cycle_handler_path = /gun_cycle_handler/cooldown
+	var/gun_cycle_handler/cycle_handler = null
 
 
 /obj/item/gun/New(var/atom/location)
 	..()
 
 	loc = location
+
 	ammo_sprite = pick(
 		1; "laser",
 		1; "bluelaser",
 		1; "xray",
 	)
 
-
-/obj/item/gun/proc/cool()
-	cooling = TRUE
-
-	spawn(cooldown_time_deterministic + rand(-cooldown_time_random, cooldown_time_random))
-		cooling = FALSE
+	if(!istype(src.cycle_handler))
+		if(ispath(src.cycle_handler_path, /gun_cycle_handler))
+			src.cycle_handler = new src.cycle_handler_path()
 
 	return
 
 
 /obj/item/gun/proc/shoot(var/atom/At, var/atom/From)
-	if(cooling)
+	if(!(src.cycle_handler?.shoot_allowed))
 		return
 
-	cool()
+	src.cycle_handler?.handle_post_shot()
 
 	var/atom/source = (isnull(From) ? src : From)
 
@@ -120,14 +199,21 @@
 
 	var/obj/projectile/newbeam = new(source.loc, vec_length, vec_length, angle, ammo_sprite)
 
+	// NOTE: The source of the event is *the thing getting hit*, for the purpose of listeners!
+	// We are deeply unlikely to want to listen for a particular gun instead of a particular target.
+	GLOB.shot_at_event.raise_event(Hit, From, angle)
+
 	Hit.RangedHitBy(angle, From)
 
+	/*
+	// legacy event-esque thing
 	if(Hit?.attachments)
 		var/datum/event_queue/hit/hitqueue = Hit.attachments.Get(ATTACHMENT_EVTQUEUE_HIT)
 
 		if(istype(hitqueue))
 			var/datum/event/hit/hit_evt = new("Hit @ [world.time]", angle, From)
 			hitqueue.Add(hit_evt)
+	*/
 
 	return newbeam
 
@@ -140,8 +226,8 @@
 /obj/item/gun/verb/Shoot(var/atom/At as mob in view())
 	set src in view(0)
 
-	if(cooling)
-		to_chat(usr, "[src] is cooling down, please wait.")
+	if(!(src.cycle_handler?.shoot_allowed))
+		to_chat(usr, "[src] cannot shoot right now.")
 
 	else
 		shoot(At, usr)

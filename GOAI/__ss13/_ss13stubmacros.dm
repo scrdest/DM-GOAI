@@ -11,11 +11,17 @@
 // Fake weakrefs
 # define GOAI_LIBBED_WEAKREF(X) X
 # define GOAI_LIBBED_WEAKREF_TYPE atom
+# define GOAI_LIBBED_WEAKREF_RESOLVE(X) X
 
 // Plain globals
 // NOTE: this macro is extra-weird looking, even by macro standards.
-# define GOAI_LIBBED_GLOB_PREFIX(operator)
-# define GOAI_LIBBED_GLOB_ATTR(GLOBJECT) (global.##GLOBJECT)
+
+// Old, pre-GLOB port stubs
+// # define GOAI_LIBBED_GLOB_PREFIX(operator)
+// # define GOAI_LIBBED_GLOB_ATTR(GLOBJECT) (global.##GLOBJECT)
+
+# define GOAI_LIBBED_GLOB_PREFIX(operator) GLOB.
+# define GOAI_LIBBED_GLOB_ATTR(GLOBJECT) (GLOB.##GLOBJECT)
 
 # else
 
@@ -29,6 +35,7 @@
 // Use actual weakrefs
 # define GOAI_LIBBED_WEAKREF(X) weakref(X)
 # define GOAI_LIBBED_WEAKREF_TYPE weakref
+# define GOAI_LIBBED_WEAKREF_RESOLVE(X) (X?.resolve())
 
 // We 'SS13-ify' globals using a prefix + access op (`.` / `?.`)
 # define GOAI_LIBBED_GLOB_PREFIX(operator) GLOB.

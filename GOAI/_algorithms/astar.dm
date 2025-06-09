@@ -80,8 +80,8 @@ PathNode
 
 
 /proc/PathWeightCompare(PathNode/a, PathNode/b)
-	var/a_cost = a?.estimated_cost
-	var/b_cost = b?.estimated_cost
+	var/a_cost = a?.best_estimated_cost
+	var/b_cost = b?.best_estimated_cost
 
 	var/a_null = isnull(a_cost)
 	var/b_null = isnull(b_cost)

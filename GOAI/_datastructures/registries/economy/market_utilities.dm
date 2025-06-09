@@ -12,12 +12,7 @@
 // The answer is - not all goods have positive marginal Utility, so this is more flexible.
 */
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/reference_market_utilities
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(reference_market_utilities)
-# endif
 
 
 #define DEFAULT_MARKET_UTILITY_DB_FP GOAI_DATA_PATH("reference_utilities.json")

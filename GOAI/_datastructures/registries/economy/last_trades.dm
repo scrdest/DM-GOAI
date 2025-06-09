@@ -14,13 +14,7 @@
 // Keeping this global makes it easy to show this information to *players* too, to give them a sense of the markets.
 */
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_pricepoint_registry
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_pricepoint_registry)
-# endif
-
 
 #define DEFAULT_PRICEPOINT_DB_FP GOAI_DATA_PATH("initial_prices.json")
 

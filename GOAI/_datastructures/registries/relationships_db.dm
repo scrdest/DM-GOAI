@@ -18,12 +18,7 @@
 
 #define DEFAULT_RELATIONSHIPS_DB_FP GOAI_DATA_PATH("relationships_db.json")
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/relationships_db
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(relationships_db)
-# endif
 
 
 /proc/InitRelationshipsDb(var/filepath_override = null, var/force = FALSE)

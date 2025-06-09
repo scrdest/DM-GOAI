@@ -26,20 +26,8 @@
 // it saves us a lot of bookkeeping to make integer IDs *actually safe to use*.
 */
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_marketplace
-# endif
-
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_marketplace)
-# endif
-
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/global_marketwatch_running
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_VAR(global_marketwatch_running)
-# endif
 
 
 // Inlined functions, because BYOND's too dumb to do it itself and this code is kinda hot.

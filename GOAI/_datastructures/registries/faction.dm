@@ -2,14 +2,8 @@
 
 // first registry is faction_data datums, second is AIs driving these
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_faction_registry
-var/global/list/global_faction_ai_registry
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_faction_registry)
 GLOBAL_LIST_EMPTY(global_faction_ai_registry)
-# endif
 
 # define IS_REGISTERED_FACTION(id) (id && GOAI_LIBBED_GLOB_ATTR(global_faction_registry) && (id <= GOAI_LIBBED_GLOB_ATTR(global_faction_registry.len)))
 # define IS_REGISTERED_FACTION_AI(id) (id && GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry) && (id <= GOAI_LIBBED_GLOB_ATTR(global_faction_ai_registry.len)))

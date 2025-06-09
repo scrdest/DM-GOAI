@@ -183,7 +183,7 @@
 # endif
 
 # ifdef GOAI_SS13_SUPPORT
-	#define RESOLVE_PAWN(PawnVar) (PawnVar?.resolve())
+	#define RESOLVE_PAWN(PawnVar) (GOAI_LIBBED_WEAKREF_RESOLVE(PawnVar))
 	#define REFERENCE_PAWN(PawnVar) (weakref(PawnVar))
 # endif
 

@@ -43,6 +43,12 @@
 /PriorityQueue/proc/Peek()
 	return
 
+//Clears the whole queue, meant for reusing the same list in an object (stateful, yuck)
+/PriorityQueue/proc/Clear()
+	L.Cut()
+	return
+
+
 /*
 // Ordered List/Array Bisection-based PQ
 // This is a direct copy of the old SS13 implementation,

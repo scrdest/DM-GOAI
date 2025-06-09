@@ -31,6 +31,13 @@
 	//                        The dist proc needs to be a good heuristic. This means it might not behave nice for the purpose of checking min-dist.
 	//                        For example, if you want a Euclid-squared heuristic for efficiency, but the mob should be adjacent to the goal at the end (Chebyshev).
 	*/
+
+	#warn JPS test code left in!
+	var/use_jps = FALSE
+	if(use_jps)
+		to_world_log("Starting JPS...")
+		return pathfind_jps(start, end, GLOBAL_PROC_REF(fCheckCanPassNoblocksObjpermissive), dist, max_nodes, max_node_depth, min_target_dist, min_node_dist, adj_args, exclude, custom_mindist_proc)
+
 	var/PriorityQueue/open = new DEFAULT_PRIORITY_QUEUE_IMPL(/proc/PathWeightCompare)
 	var/list/closed = list()
 	var/list/path

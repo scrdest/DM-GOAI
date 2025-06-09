@@ -44,7 +44,7 @@
 #endif
 
 // Undefine to disable drawing icons used to debug pathfinding
-//#define ENABLE_GOAI_DEBUG_GIZMOS 1
+#define ENABLE_GOAI_DEBUG_GIZMOS 1
 
 // Undefine to disable drawing debug lines pointing at assorted Stuff. Older and more expensive than other gizmos, for Reasons(TM) (allocs/deallocs)
 //#define ENABLE_GOAI_DEBUG_BEAM_GIZMOS 1

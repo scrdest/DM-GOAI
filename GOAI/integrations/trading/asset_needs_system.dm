@@ -7,23 +7,13 @@
 */
 
 // tracks the running subsystem, by ticker ID hash, to prevent duplication
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/assetneeds_subsystem_running
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_VAR(assetneeds_subsystem_running)
-# endif
 
 // a global assoc of Commodity -> Total Qty in Economy
 // can be used for graphing or to limit purchase volumes to a reasonable range
 // should kinda be a separate thing, but it's currently leeching off asset-needs
 // initialized in the loop iterations, so you do need to make null-checks just in case.
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/assetneeds_assets_totals_table
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(assetneeds_assets_totals_table)
-# endif
 
 
 // Format-string to use to construct a unique hash for the Production/Consumption subsystem

@@ -397,6 +397,35 @@
 	return adjacents
 
 
+// Cut-down version of passability checks for JPS
+/proc/fCheckCanPass(var/atom/start, var/turf/t, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE, var/check_objects_permissive = FALSE, var/threeD = TRUE)
+	if(!istype(start))
+		return FALSE
+
+	if(!istype(t))
+		return FALSE
+
+	var/turf/start_turf = get_turf(start)
+	var/valid = FALSE
+
+	if(check_blockage)
+		if(!(t.IsBlocked(check_objects, check_objects_permissive)))
+			if(!(check_links && GoaiLinkBlocked(start_turf, t)))
+				valid = TRUE
+	else
+		valid = TRUE
+
+	return valid
+
+
+/proc/fCheckCanPassNoblocksObjpermissive(var/atom/start, var/turf/t)
+	if(!start)
+		return FALSE
+
+	var/result = fCheckCanPass(start, t, TRUE, FALSE, TRUE, TRUE)
+	return result
+
+
 /proc/fCardinalTurfs(var/turf/start, var/check_blockage = TRUE, var/check_links = TRUE, var/check_objects = TRUE, var/check_objects_permissive = FALSE, var/threeD = TRUE)
 	if(!start)
 		return

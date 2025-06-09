@@ -2,14 +2,8 @@
 // Registry pattern, to facilitate querying all Squads in verbs and AIs
 */
 
-// lazily initialized by the first brain to register itself
-
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_squad_registry
-# endif
-# ifdef GOAI_SS13_SUPPORT
+// lazily initialized by the first Squad to register itself
 GLOBAL_LIST_EMPTY(global_squad_registry)
-# endif
 
 # define IS_REGISTERED_SQUAD(id) GLOBAL_ARRAY_LOOKUP_BOUNDS_CHECK(id, global_squad_registry)
 

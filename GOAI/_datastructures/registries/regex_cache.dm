@@ -7,14 +7,7 @@
 // Lazy init!
 // We need to do ifnull in case someone drops it by VV, so might as well.
 // This also provides a nice and safe way to invalidate the cache if it gets too big - just null it here and let GC clean it up
-
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/regex_cache = null
-# endif
-
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(regex_cache)
-# endif
 
 
 // The _Unused arg is just for call-like syntax, pass in whatever

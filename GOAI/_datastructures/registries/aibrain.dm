@@ -6,13 +6,7 @@
 */
 
 // lazily initialized by the first brain to register itself
-
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_aibrain_registry
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_aibrain_registry)
-# endif
 
 # define IS_REGISTERED_AIBRAIN(id) (id && GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry) && (id <= GOAI_LIBBED_GLOB_ATTR(global_aibrain_registry.len)))
 

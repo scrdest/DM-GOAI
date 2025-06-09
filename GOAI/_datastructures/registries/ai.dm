@@ -1,11 +1,5 @@
 // lazily initialized by the first AI to register itself
-
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_goai_registry
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_goai_registry)
-# endif
 
 # define IS_REGISTERED_AI(id) GLOBAL_ARRAY_LOOKUP_BOUNDS_CHECK(id, global_goai_registry)
 

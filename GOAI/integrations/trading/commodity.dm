@@ -103,12 +103,7 @@
 
 #define DEFAULT_COMMODITY_DB_FP GOAI_DATA_PATH("commodity_db.json")
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/commodity_db
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(commodity_db)
-# endif
 
 
 /proc/InitCommodityDb(var/filepath_override = null, var/force = FALSE)

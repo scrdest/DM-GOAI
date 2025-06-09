@@ -12,15 +12,8 @@
 // without extending the class API in any way - just calling to register it and to update as needed.
 */
 
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/list/global_asset_registry
-var/global/list/faction_asset_deltas_registry
-# endif
-
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_LIST_EMPTY(global_asset_registry)
 GLOBAL_LIST_EMPTY(faction_asset_deltas_registry)
-# endif
 
 #define ASSETS_TABLE_LAZY_INIT(_Unused) if(isnull(GOAI_LIBBED_GLOB_ATTR(global_asset_registry)) || !islist(GOAI_LIBBED_GLOB_ATTR(global_asset_registry))) { GOAI_LIBBED_GLOB_ATTR(global_asset_registry) = list() }
 #define ASSETDELTAS_TABLE_LAZY_INIT(_Unused) if(isnull(GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)) || !islist(GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry))) { GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry) = list() }
@@ -37,12 +30,7 @@ GLOBAL_LIST_EMPTY(faction_asset_deltas_registry)
 #define SET_ASSETS_DELTAS_FOR_FACTION(FactionId, Deltas) (GOAI_LIBBED_GLOB_ATTR(faction_asset_deltas_registry)[FactionId] = Deltas)
 
 // tracks the running subsystem, by ticker ID hash, to prevent duplication
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/production_subsystem_running
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_VAR(production_subsystem_running)
-# endif
 
 
 // Format-string to use to construct a unique hash for the Production/Consumption subsystem
@@ -50,12 +38,7 @@ GLOBAL_VAR(production_subsystem_running)
 #define PRODUCTIONSYSTEM_TICKER_ID_HASH(MaxRand) "[rand(1, MaxRand)]-[world.time]"
 
 // tracks the time delta for integrating the values
-# ifdef GOAI_LIBRARY_FEATURES
-var/global/production_subsystem_last_update_time
-# endif
-# ifdef GOAI_SS13_SUPPORT
 GLOBAL_VAR(production_subsystem_last_update_time)
-# endif
 
 // Inline version; generally preferable unless you REALLY need a proc
 #define INITIALIZE_PRODUCTION_SYSTEM_INLINE(Tickrate) \
