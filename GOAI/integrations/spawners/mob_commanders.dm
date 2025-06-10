@@ -238,9 +238,17 @@
 		gun = new selected_gun(M)
 		M.equip_to_slot_or_del(gun, slot_r_hand)
 
+		if(gun)
+			GLOB.mob_equipped_event.raise_event(M, gun, slot_r_hand)
+			GLOB.item_equipped.raise_event(gun, M, slot_r_hand)
+
 	if(!gun)
 		gun = new selected_gun(M)
 		M.equip_to_slot_or_del(gun, slot_l_hand)
+
+		if(gun)
+			GLOB.mob_equipped_event.raise_event(M, gun, slot_l_hand)
+			GLOB.item_equipped.raise_event(gun, M, slot_l_hand)
 
 	if(spawn_commander)
 		AttachUtilityCommanderTo(M)

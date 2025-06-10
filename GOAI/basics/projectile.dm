@@ -132,6 +132,7 @@
 
 /gun_cycle_handler/reload_owned/handle_post_shot()
 	src.ammo_current--
+
 	if(src.ammo_current <= 0)
 		src.ammo_current = 0
 		src.shoot_allowed = FALSE
@@ -196,12 +197,16 @@
 
 	var/vec_length = sqrt(SQR(dx) + SQR(dy))
 	var/angle = arctan(dx, dy)
+	var/turf/srcloc = get_turf(source)
 
-	var/obj/projectile/newbeam = new(source.loc, vec_length, vec_length, angle, ammo_sprite)
+	var/obj/projectile/newbeam = null
+
+	if(istype(srcloc))
+		newbeam = new(srcloc, vec_length, vec_length, angle, ammo_sprite)
 
 	// NOTE: The source of the event is *the thing getting hit*, for the purpose of listeners!
 	// We are deeply unlikely to want to listen for a particular gun instead of a particular target.
-	GLOB.shot_at_event.raise_event(Hit, From, angle)
+	GLOB.shot_at_event.raise_event(Hit, get_turf(Hit), source, srcloc, angle)
 
 	Hit.RangedHitBy(angle, From)
 

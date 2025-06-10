@@ -56,14 +56,11 @@
 
 
 /atom/proc/MeleeHitBy(var/atom/hitby = null)
-	/* hit angle - clockwise from positive Y axis if positive,
-	counterclockwise if negative.
-
-	Can use the IMPACT_ANGLE(x) macro to calculate.
-
-	shotby - a reference to who shot us (atom - to incl. turret objects etc.)
+	/*
+	hitby - a reference to who shot us (atom - to incl. turret objects etc.)
 	*/
 	GOAI_LOG_DEBUG_WORLD("[src] hit by [hitby]")
+
 	FetchAiControllerForObjIntoVar(src, var/datum/utility_ai/commander)
 	if(istype(commander))
 		commander.HitMelee(src, hitby)

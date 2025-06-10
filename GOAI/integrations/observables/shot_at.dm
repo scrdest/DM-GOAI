@@ -6,7 +6,9 @@
 //
 //		Arguments that the called proc should expect:
 //			/atom/victim: The thing that (almost) got hit.
-//			/atom/source: The thing that (almost) got hit.
+//			/atom/source: The thing that tried to hit us.
+//			/turf/victimloc: Where did we get hit?
+//			/turf/sourceloc: Where did the attack come from?
 //			angle: Incidence angle of the shot.
 
 GLOBAL_TYPED_NEW(shot_at_event, /singleton/observ/shot_at)

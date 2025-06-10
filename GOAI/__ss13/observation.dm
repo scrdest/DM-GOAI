@@ -104,7 +104,22 @@ GLOBAL_LIST_EMPTY(all_observable_events)
 
 	return (proc_call in callback)
 
-/singleton/observ/proc/has_listeners(event_source)
+/singleton/observ/proc/has_listeners(event_source, var/optimize_for_laziness = TRUE)
+
+	// EDIT FROM COPYPASTA
+	// Rather than doing a potentially unnecessary extra proc-call (expensive in DM), we're inlining most early return cases
+	// Without a properly optimizing compiler, we have to sacrifice either performance, DRYness or Not Using Macros.
+	if (!event_source)
+		return !!length(global_listeners)
+
+	// Return whether anything is listening to a source, if no listener is given.
+	if (optimize_for_laziness)
+		// in the cases we are checking for here in the subcall, we know this will be True at this point anyway
+		// this is only gated by an arg in case the subroutine changes substantially
+		return length(global_listeners) || event_sources[event_source]
+	// END EDIT
+
+	// honestly we shouldn't even be getting to this point
 	return is_listening(event_source)
 
 /singleton/observ/proc/register(datum/event_source, datum/listener, proc_call)

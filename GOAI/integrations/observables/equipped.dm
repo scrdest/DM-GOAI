@@ -35,6 +35,7 @@ GLOBAL_TYPED_NEW(item_equipped_event, /singleton/observ/item_equipped)
 	name = "Item Equipped"
 	expected_type = /obj/item
 
+// reference API usages
 //GLOB.mob_equipped_event.raise_event(user, src, slot)
 //GLOB.mob_equipped_event.register(user, src, PROC_REF(remove_click_handler))
 

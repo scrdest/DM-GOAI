@@ -166,6 +166,8 @@
 		return FALSE
 
 	target.MeleeHitBy(pawn)
+	GLOB.meleed_by_event.raise_event(target, pawn)
+
 	var/atom/movable/movPawn = pawn
 	if(istype(movPawn))
 		movPawn.do_attack_animation(target)
@@ -201,6 +203,7 @@
 
 			// Call the attack interface
 			var/attacked = L.IAttack(target)
+			GLOB.meleed_by_event.raise_event(target, pawn)
 
 			if(attacked == ATTACK_SUCCESSFUL)
 				// Might have to be removed later - should likely be handled by the harm logic itself

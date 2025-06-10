@@ -35,8 +35,9 @@
 	#warn JPS test code left in!
 	var/use_jps = FALSE
 	if(use_jps)
-		to_world_log("Starting JPS...")
-		return pathfind_jps(start, end, GLOBAL_PROC_REF(fCheckCanPassNoblocksObjpermissive), dist, max_nodes, max_node_depth, min_target_dist, min_node_dist, adj_args, exclude, custom_mindist_proc)
+		var/jps_result = pathfind_jps(start, end, GLOBAL_PROC_REF(fCheckCanPassNoblocksObjpermissive), dist, max_nodes, max_node_depth, min_target_dist, min_node_dist, adj_args, exclude, custom_mindist_proc)
+		if(jps_result)
+			return jps_result
 
 	var/PriorityQueue/open = new DEFAULT_PRIORITY_QUEUE_IMPL(/proc/PathWeightCompare)
 	var/list/closed = list()

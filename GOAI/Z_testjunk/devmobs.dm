@@ -36,7 +36,16 @@
 
 
 /mob/living/simple_animal/aitester/proc/Equip()
+	set waitfor = FALSE
+
+	while(!GLOB)
+		sleep(1)
+
 	var/obj/item/gun/mygun = new(src)
+
+	GLOB.mob_equipped_event.raise_event(src, mygun, null)
+	GLOB.item_equipped_event.raise_event(mygun, src, null)
+
 	to_chat(src, "You've received a [mygun]")
 	return src
 
